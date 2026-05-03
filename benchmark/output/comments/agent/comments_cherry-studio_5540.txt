@@ -1,0 +1,56 @@
+<notesplit>
+<path>src/renderer/src/pages/agents/components/ImportAgentPopup.tsx</path>
+<side>RIGHT</side>
+<from>30</from>
+<to>75</to>
+<note>**[Security Vulnerability]** Unsafe deserialization of user-provided JSON. The application parses JSON content from a file or URL and immediately processes it as an 'Agent' object. If the JSON contains malicious payloads or unexpected structures, it could lead to application crashes or logic manipulation.
+
+**[Code Defect]** The code attempts to parse the file content using JSON.parse() without checking if the file content is valid JSON or if the parsing succeeds. If the file is not valid JSON, it will throw an unhandled exception, crashing the import process.
+
+**[Performance]** The `onFinish` function calls `addAgent(newAgent)` inside a loop. If `addAgent` triggers a state update or a database write (e.g., via Redux or local storage), this will cause multiple re-renders or excessive I/O operations.
+
+**[Maintainability and Readability]** The `onFinish` function violates the Single Responsibility Principle by handling UI state, network fetching, file system interaction, data validation, and state management (adding agents).
+
+SSRF (Server-Side Request Forgery) vulnerability. The application fetches arbitrary URLs provided by the user without validation, allowing an attacker to probe internal network resources or perform unauthorized requests.
+
+The fetch call is not wrapped in a timeout or abort controller. If the URL is slow or hangs, the UI will remain in a 'loading' state indefinitely without a way for the user to cancel the request.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/pages/agents/index.ts</path>
+<side>RIGHT</side>
+<from>23</from>
+<to>45</to>
+<note>**[Performance]** The `useSystemAgents` hook triggers a re-render and potentially redundant file I/O operations whenever `defaultAgent` or `resourcesPath` changes. Since `_agents` is a module-level variable, the logic inside `useEffect` performs unnecessary checks and potential re-reads of the same file.
+
+**[Maintainability and Readability]** The `useSystemAgents` hook has a side effect that modifies a global variable `_agents` and triggers re-renders based on `defaultAgent` and `resourcesPath`. This makes the hook hard to test and prone to race conditions.
+
+**[Code Defect]** The useSystemAgents hook triggers a re-render and re-execution of the loadAgents logic whenever 'defaultAgent' changes. However, the logic inside loadAgents only populates _agents if it is empty. If the user changes the defaultAgent setting, the hook might not correctly refresh or re-fetch the agents if _agents is already populated, leading to stale data.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/pages/agents/components/ImportAgentPopup.tsx</path>
+<side>RIGHT</side>
+<from>60</from>
+<to>75</to>
+<note>The loop directly calls `addAgent` inside the iteration. If the validation fails halfway through a list of agents, the system state will be partially updated, leading to inconsistent data.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/pages/agents/AgentsPage.tsx</path>
+<side>RIGHT</side>
+<from>43</from>
+<to>62</to>
+<note>The `filteredAgents` useMemo hook performs nested iterations over `agentGroups` and then filters the result again. This O(N*M) complexity (where N is groups and M is agents per group) is executed on every render if dependencies change, which can be inefficient as the agent list grows.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/pages/agents/components/ImportAgentPopup.tsx</path>
+<side>RIGHT</side>
+<from>105</from>
+<to>107</to>
+<note>The `form.submit()` is called inside an `onClick` handler for a button that is not a submit button. This is a common pattern but can be fragile if the form structure changes.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/pages/agents/AgentsPage.tsx</path>
+<side>RIGHT</side>
+<from>141</from>
+<to>149</to>
+<note>The error handling in `handleImportAgent` is duplicated logic that exists in the `ImportAgentPopup` component. This creates a maintenance burden if error reporting requirements change.</note>
+</notesplit>

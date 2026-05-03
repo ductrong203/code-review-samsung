@@ -1,0 +1,35 @@
+<notesplit>
+<path>src/renderer/src/middlewares/extractReasoningMiddleware.ts</path>
+<side>RIGHT</side>
+<from>78</from>
+<to>110</to>
+<note>**[Maintainability and Readability]** The `transform` function in `wrapStream` is overly complex, containing deeply nested logic, a large `while` loop, and a nested `publish` function. This violates the Single Responsibility Principle and makes the stream processing logic difficult to test and maintain.
+
+**[Code Defect]** The `publish` function uses `isReasoning` and `isFirstReasoning` state variables that are captured in the closure. However, the `while` loop logic updates `isReasoning` and `afterSwitch` state, but `publish` is called inside the loop with the state as it exists at that moment. Because `publish` is defined inside `transform`, it relies on the mutable state of the `TransformStream` instance. If `publish` is called multiple times within one `transform` call (due to the `while(true)` loop), the `isFirstReasoning` and `isFirstText` flags are updated incorrectly, potentially causing duplicate separators or incorrect state transitions.
+
+**[Performance]** The `while(true)` loop repeatedly slices the `buffer` string. In JavaScript, repeated string slicing and concatenation in a hot stream processing path creates excessive garbage collection pressure.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/providers/AiProvider/OpenAICompatibleProvider.ts</path>
+<side>RIGHT</side>
+<from>498</from>
+<to>750</to>
+<note>**[Maintainability and Readability]** The `completions` method has become a 'God method' after these changes. It handles stream transformation, state tracking for metrics, UI event dispatching, tool usage, and web search integration in a single block of code exceeding 250 lines.
+
+The `openAIChunkToTextDelta` generator function is defined inside the `completions` method. This makes it impossible to unit test the chunk parsing logic independently.
+
+The `getAppropriateTag` function uses a hardcoded model ID check ('qwen3'). This creates a tight coupling between the provider and specific model versions, making it fragile and hard to extend for new models.
+
+The `switch` statement inside the stream consumption loop is extremely long and handles too many distinct concerns (reasoning, text, finish).
+
+**[Code Defect]** The `isFirstChunk` flag is used to determine if `time_first_token_millsec` should be set. However, `isFirstChunk` is set to `false` inside the `text-delta` case. If the stream starts with a `reasoning` chunk, `isFirstChunk` remains `true` until the first `text-delta` arrives, which might be significantly later, leading to an inaccurate `time_first_token_millsec` measurement.
+
+The `time_thinking_start` is initialized to 0 and set only when the first reasoning chunk arrives. If a model provides reasoning content but the stream is interrupted or the first chunk is lost/empty, `time_thinking_start` might remain 0, causing `final_time_thinking_millsec_delta` to be calculated incorrectly or resulting in a division/subtraction error.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/utils/getPotentialIndex.ts</path>
+<side>RIGHT</side>
+<from>19</from>
+<to>24</to>
+<note>The loop performs substring creation and prefix checking for every character in the text, resulting in O(n²) complexity where n is the length of the text buffer. This is called inside a stream transform loop, which can lead to significant CPU overhead as the buffer grows.</note>
+</notesplit>

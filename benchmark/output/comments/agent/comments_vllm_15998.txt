@@ -1,0 +1,18 @@
+<notesplit>
+<path>benchmarks/benchmark_throughput.py</path>
+<side>RIGHT</side>
+<from>335</from>
+<to>338</to>
+<note>The `get_requests` function logic for `AIMODataset` is incomplete. It sets `dataset_split` to 'train' but fails to set `dataset_subset` to `None` or a default value in the `common_kwargs` dictionary for all code paths, potentially leading to a KeyError or incorrect dataset loading if `args.hf_subset` was previously set or if the dataset class expects specific parameters.</note>
+</notesplit>
+<notesplit>
+<path>benchmarks/benchmark_throughput.py</path>
+<side>RIGHT</side>
+<from>473</from>
+<to>480</to>
+<note>**[Performance]** The use of set union (|) on dictionary keys and sets inside an if-elif chain creates new set objects on every call to validate_args. While not a critical bottleneck, this is inefficient in a validation path that could be executed frequently or during initialization.
+
+**[Maintainability and Readability]** The validation logic for dataset support is becoming a 'God method' that requires manual updates every time a new dataset is added. This violates the Open/Closed principle.
+
+The use of set operations (e.g., `|`) for checking dataset support is clever but reduces readability for developers unfamiliar with Python set algebra in this context.</note>
+</notesplit>

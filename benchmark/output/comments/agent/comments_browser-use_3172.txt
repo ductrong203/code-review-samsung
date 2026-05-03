@@ -1,0 +1,21 @@
+<notesplit>
+<path>browser_use/llm/google/chat.py</path>
+<side>RIGHT</side>
+<from>206</from>
+<to>405</to>
+<note>**[Maintainability and Readability]** The `_make_api_call` function has become a 'God function' that handles too many responsibilities: text generation, structured output parsing, fallback logic, JSON cleaning, and logging. This violates the Single Responsibility Principle and makes the code difficult to test or modify.
+
+**[Performance]** The code performs a deep copy of the entire message history list on every fallback attempt. For long conversation histories, this creates significant memory overhead and CPU usage.
+
+**[Code Defect]** The `ainvoke` method calls `_make_api_call()` without any retry logic. The previous implementation had a 10-attempt retry loop with exponential backoff. Removing this makes the application fragile to transient network errors or rate limits (429), which are common with LLM APIs.
+
+The code uses `response.text or ''` to handle potential None values, but `response.text` can also be None if the model returns a finish_reason that isn't 'STOP' (e.g., 'SAFETY', 'RECITATION'). In such cases, the code proceeds as if it received an empty string rather than raising an error, potentially leading to downstream validation failures.
+
+The logic for stripping markdown code blocks (```json, ```) is duplicated in both the structured output handler and the fallback handler. This duplication increases the risk of inconsistent behavior.
+
+Schema optimization is called inside the API invocation loop. If the same output_format is used repeatedly, this redundant computation of the JSON schema should be cached.
+
+The error handling for API calls is becoming deeply nested and complex. The `ainvoke` method now contains a mix of high-level orchestration and low-level error diagnosis, making it hard to follow the happy path.
+
+The fallback logic modifies the `messages` list by appending instructions. While functional, this mutation of input data can lead to side effects if the `messages` list is reused elsewhere.</note>
+</notesplit>

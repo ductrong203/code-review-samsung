@@ -1,0 +1,74 @@
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>RIGHT</side>
+<from>74</from>
+<to>98</to>
+<note>The executeImpl function contains a massive if-else chain to handle different column type combinations. This is a violation of the Open/Closed principle and makes the code difficult to maintain as new column types are added.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>RIGHT</side>
+<from>105</from>
+<to>105</to>
+<note>The `executeFixedStringString` function is called with `reverse` template parameter `false` in the `else if` block, but the logic inside `executeFixedStringString` uses `reverse` to determine the order of arguments in `normalComparison`. When `fixed_str1_col` is `fixed_str1_col` and `col_str2` is `col_str2`, the `reverse` parameter should be `false`. However, the `else if` block for `col_str1 && fixed_str2_col` calls `executeFixedStringString<true>`, which is correct, but the `executeFixedStringString` implementation itself uses `isOverflowComparison<reverse>` which correctly handles the logic. The issue is that `executeFixedStringString` is missing the `reverse` template parameter in its definition in the `private` section, but it is used in the `executeImpl` call. Wait, the definition is `template <bool reverse> void executeFixedStringString(...)`. This is correct. However, looking at `executeFixedStringString`, the `isOverflowComparison` call uses `reverse` but the `normalComparison` call uses `reverse`. This logic seems correct. Let's re-examine `executeStringString`.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>RIGHT</side>
+<from>269</from>
+<to>285</to>
+<note>**[Performance]** In `executeFixedStringConst`, the `str1_length` and `str2_length` are calculated once, but the loop performs `normalComparison` repeatedly. The `isOverflowComparison` is also called once before the loop, which is good, but the loop body could be further optimized by using `memcmp` directly or SIMD-accelerated comparison functions if the lengths are known to be small and fixed.
+
+**[Code Defect]** In `executeFixedStringString`, the `str2_length` calculation `std::min(num_bytes, str2_total_len - str2_offset)` is potentially unsafe if `str2_offset > str2_total_len`. While `isOverflowComparison` is called before, it only checks `str2_offset >= str2_total_len`. If `str2_offset` is greater than `str2_total_len`, `str2_total_len - str2_offset` will underflow (size_t is unsigned).</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>RIGHT</side>
+<from>232</from>
+<to>252</to>
+<note>The loop iterates over rows and performs `isOverflowComparison` and `normalComparison` for every row. While the logic is correct, the `isOverflowComparison` function is called repeatedly inside the loop, which involves redundant checks that could be hoisted or simplified if the offsets and lengths are constant for the entire column batch.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>RIGHT</side>
+<from>302</from>
+<to>323</to>
+<note>**[Performance]** The `executeFixedStringString` function performs `isOverflowComparison` inside the loop for every row. Since `str1_total_len` and `str1_offset` are constant for the entire column, the overflow check for `str1` can be performed once outside the loop.
+
+**[Code Defect]** In `executeStringString`, `str1_total_len` and `str2_total_len` are calculated as `offsets[i] - data_offset - 1`. If `offsets[i]` is 0 (which shouldn't happen for valid ColumnString but is theoretically possible in corrupted data), this will underflow.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>RIGHT</side>
+<from>154</from>
+<to>182</to>
+<note>The isOverflowComparison function is duplicated: one version returns a bool and sets a single Int8 result, while the other takes a PaddedPODArray and fills it. This duplication increases the risk of inconsistent logic.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>RIGHT</side>
+<from>330</from>
+<to>355</to>
+<note>Similar to other functions, `executeStringString` performs `isOverflowComparison` inside the loop. This involves multiple branch checks per row. Given that `str1_offset` and `num_bytes` are constant, the logic can be simplified to reduce branching inside the hot loop.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>RIGHT</side>
+<from>200</from>
+<to>222</to>
+<note>The logic for calculating string lengths and offsets is repeated across multiple execute* methods. This makes the code fragile and prone to off-by-one errors.</note>
+</notesplit>
+<notesplit>
+<path>docs/en/sql-reference/functions/string-functions.md</path>
+<side>RIGHT</side>
+<from>2542</from>
+<to>2542</to>
+<note>Typo in the function name in the documentation: 'stringComare' instead of 'stringCompare'.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>RIGHT</side>
+<from>35</from>
+<to>35</to>
+<note>The function returns 0 for an empty number of bytes, but the documentation and implementation don't explicitly clarify if this is intended behavior for all edge cases (e.g., negative offsets).</note>
+</notesplit>

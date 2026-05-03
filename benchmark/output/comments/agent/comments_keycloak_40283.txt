@@ -1,0 +1,55 @@
+<notesplit>
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>RIGHT</side>
+<from>43</from>
+<to>45</to>
+<note>**[Maintainability and Readability]** Typo in variable name 'mumServers' (likely meant 'numServers').
+
+**[Code Defect]** The constructor parameter 'mumServers' is likely a typo for 'numServers'. While not a functional bug in isolation, it indicates a logic error in naming that could lead to confusion or incorrect usage.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/testframework/database/AbstractContainerTestDatabase.java</path>
+<side>RIGHT</side>
+<from>90</from>
+<to>90</to>
+<note>**[Maintainability and Readability]** The code assumes that 'getExposedPorts().get(0)' is always the correct port to connect to. This is fragile as it relies on the order of exposed ports in the container definition.
+
+**[Code Defect]** The code assumes that the first exposed port (index 0) is the database port. This is fragile and may not hold true if the container configuration changes or if multiple ports are exposed.</note>
+</notesplit>
+<notesplit>
+<path>tests/clustering/src/test/java/org/keycloak/tests/compatibility/MixedVersionClusterTest.java</path>
+<side>RIGHT</side>
+<from>37</from>
+<to>41</to>
+<note>**[Performance]** Thread.sleep(TimeUnit.MINUTES.toMillis(1)) in a test method introduces an unnecessary 60-second delay, significantly increasing total test suite execution time.
+
+**[Maintainability and Readability]** The test contains a hardcoded 'Thread.sleep' and 'System.out.println' for debugging purposes. This makes the test brittle, slow, and pollutes standard output. Tests should use proper assertions and awaitility-style polling for state verification.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/tests/junit5/src/main/java/org/keycloak/it/utils/DockerKeycloakDistribution.java</path>
+<side>RIGHT</side>
+<from>174</from>
+<to>174</to>
+<note>The bitwise OR operator '|' is used instead of the logical OR operator '||' in the stableOutput condition. While it works for booleans, it prevents short-circuiting, which is inefficient and potentially dangerous if the right side has side effects.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>RIGHT</side>
+<from>54</from>
+<to>56</to>
+<note>The use of 'assert' for runtime validation is dangerous because assertions can be disabled at runtime via JVM flags. This validation should use a standard 'if' check with an exception.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>RIGHT</side>
+<from>64</from>
+<to>83</to>
+<note>The cluster startup logic iterates through containers and calls 'container.run()' sequentially. In a cluster setup, this forces serial startup, which is inefficient for large clusters.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/tests/junit5/src/main/java/org/keycloak/it/utils/DockerKeycloakDistribution.java</path>
+<side>RIGHT</side>
+<from>223</from>
+<to>223</to>
+<note>Typo in error message: 'schecdule' should be 'schedule'.</note>
+</notesplit>

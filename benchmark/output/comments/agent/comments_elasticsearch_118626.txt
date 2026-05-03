@@ -1,0 +1,27 @@
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumentationServiceImpl.java</path>
+<side>RIGHT</side>
+<from>70</from>
+<to>92</to>
+<note>**[Maintainability and Readability]** The logic for parsing the checker method name is becoming complex and fragile due to manual string manipulation and index calculations. This is prone to off-by-one errors and hard to maintain.
+
+The error message for incorrect name format is becoming very long and hard to read. It also duplicates the logic of what the format should be.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumentationServiceImpl.java</path>
+<side>RIGHT</side>
+<from>131</from>
+<to>133</to>
+<note>**[Code Defect]** The variable 'hasReceiver' is calculated but never used, which is misleading and indicates a potential logic gap in how instance methods are handled compared to the previous implementation.
+
+**[Maintainability and Readability]** The variable 'hasReceiver' is calculated but never used in the method, leading to dead code.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumenterImpl.java</path>
+<side>RIGHT</side>
+<from>155</from>
+<to>155</to>
+<note>**[Code Defect]** The variable 'hasReceiver' is calculated but never used. In the context of instrumentation, failing to account for the receiver (the 'this' object) in instance methods can lead to incorrect MethodKey matching if the parameter list logic expects the receiver to be handled differently.
+
+**[Maintainability and Readability]** The variable 'hasReceiver' is calculated but never used in the method, leading to dead code.</note>
+</notesplit>

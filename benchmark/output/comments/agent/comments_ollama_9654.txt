@@ -1,0 +1,35 @@
+<notesplit>
+<path>integration/api_test.go</path>
+<side>RIGHT</side>
+<from>56</from>
+<to>77</to>
+<note>The anonymous function 'fn' inside TestAPIGenerate is too long and violates the Single Responsibility Principle. It handles both validation logic and stream processing, making it difficult to test or reuse.</note>
+</notesplit>
+<notesplit>
+<path>integration/api_test.go</path>
+<side>RIGHT</side>
+<from>236</from>
+<to>257</to>
+<note>Significant code duplication between TestAPIGenerate and TestAPIChat. Both tests implement nearly identical streaming logic, timeout handling, and response validation.</note>
+</notesplit>
+<notesplit>
+<path>integration/model_arch_test.go</path>
+<side>RIGHT</side>
+<from>54</from>
+<to>64</to>
+<note>The getTimeouts function returns a 'soft' and 'hard' timeout, but the logic for calculating these is complex and relies on implicit test deadlines. This makes the test behavior opaque.</note>
+</notesplit>
+<notesplit>
+<path>integration/utils_test.go</path>
+<side>RIGHT</side>
+<from>296</from>
+<to>346</to>
+<note>The GenerateRequests function returns a hardcoded list of requests. This is a 'God' function for test data that will become increasingly difficult to maintain as more models are added.</note>
+</notesplit>
+<notesplit>
+<path>integration/max_queue_test.go</path>
+<side>RIGHT</side>
+<from>85</from>
+<to>105</to>
+<note>The test uses a complex switch-case block inside a loop to handle concurrency and error checking. This logic is hard to follow and prone to race conditions if not handled carefully.</note>
+</notesplit>

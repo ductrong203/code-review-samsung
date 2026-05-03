@@ -1,0 +1,20 @@
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.databricks/src/org/jkiss/dbeaver/ext/databricks/DatabricksExecutionContext.java</path>
+<side>RIGHT</side>
+<from>53</from>
+<to>60</to>
+<note>**[Maintainability and Readability]** Swallowing exceptions in setDefaultCatalog makes debugging difficult. If the super call fails, the state becomes inconsistent, and the error is only logged at debug level.
+
+**[Code Defect]** The setDefaultCatalog method catches DBCException and logs it, but proceeds to update the internal state (activeCatalogName) regardless of whether the underlying super.setDefaultCatalog call actually succeeded in changing the database state. This leads to a desynchronization between the UI state and the actual database state.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.databricks/src/org/jkiss/dbeaver/ext/databricks/DatabricksExecutionContext.java</path>
+<side>RIGHT</side>
+<from>64</from>
+<to>93</to>
+<note>**[Maintainability and Readability]** Deep nesting (4 levels) in refreshDefaults reduces readability. The logic for querying and updating the catalog state should be extracted into a private helper method.
+
+**[Performance]** The refreshDefaults method executes a synchronous network call (SELECT CURRENT_CATALOG()) every time the context is refreshed. If this method is called frequently or within a loop, it will introduce significant latency.
+
+Swallowing SQLException in refreshDefaults hides potential connectivity or syntax issues during metadata retrieval.</note>
+</notesplit>

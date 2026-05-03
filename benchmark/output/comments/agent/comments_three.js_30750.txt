@@ -1,0 +1,38 @@
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>RIGHT</side>
+<from>166</from>
+<to>198</to>
+<note>**[Maintainability and Readability]** The `mergeOverlappingPoints` function is defined inside `addShape`, which is already a large function. This logic is complex enough to be a standalone utility function or a method on a geometry helper class to improve testability and readability.
+
+**[Code Defect]** The loop condition 'i <= points.length' causes an out-of-bounds access on the final iteration when 'i' equals 'points.length'. Accessing 'points[i % points.length]' is safe, but the loop logic is intended to process each point once; the current condition processes the first point twice and risks logic errors.
+
+**[Performance]** The `mergeOverlappingPoints` function uses `Array.prototype.splice` inside a loop. `splice` is an O(n) operation, making the overall complexity of this function O(n²) where n is the number of points. For large shapes, this will cause significant performance degradation.
+
+The variable name `thesholdSqScaled` contains a typo ('theshold' instead of 'threshold').
+
+The loop condition `i <= points.length` combined with `i % points.length` is non-standard and potentially confusing. While it handles the wrap-around, it makes the loop logic harder to reason about compared to standard iteration patterns.
+
+The variable 'thesholdSqScaled' is misspelled (missing 'r'). While not a syntax error, it is inconsistent with the naming convention.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>RIGHT</side>
+<from>215</from>
+<to>221</to>
+<note>The loop uses `vertices.concat(ahole)` repeatedly. `concat` creates a new array instance in every iteration, leading to O(n²) memory allocation and copying overhead as the geometry grows.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>RIGHT</side>
+<from>375</from>
+<to>375</to>
+<note>The variable 't' is used in the loop condition 'if ( t == 0 )', but 't' is not defined in the scope of this loop. It appears to be a reference to the bevel segment index, which is typically defined in an outer loop (not visible in this snippet but implied). If 't' is not defined, this will throw a ReferenceError.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>RIGHT</side>
+<from>396</from>
+<to>435</to>
+<note>The nested loop structure for bevel segments, contours, and holes is becoming deeply nested (4+ levels). This reduces readability and makes the flow of data (like `contractedContourVertices`) difficult to track.</note>
+</notesplit>

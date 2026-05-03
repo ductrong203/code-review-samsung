@@ -1,0 +1,35 @@
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>RIGHT</side>
+<from>125</from>
+<to>133</to>
+<note>**[Security Vulnerability]** The test uses `eval(code)` on user-controlled input provided to the REPL. This pattern is inherently unsafe and facilitates arbitrary code execution within the test process.
+
+**[Code Defect]** The regex construction `new RegExp(${escapedInput}
+// 'Hello custom eval World!')` is fragile. The newline character in the template literal is interpreted as a literal newline in the string, but the regex engine requires an escaped newline `\n` to match the actual newline character in the output stream.
+
+**[Performance]** The use of a global RegExp constructor with dynamic input inside a test loop can lead to unnecessary recompilation of the regular expression pattern.
+
+**[Maintainability and Readability]** The use of a manual regex escape for '+' is fragile and prone to errors if the input string changes. It relies on a TODO comment rather than a robust solution.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>RIGHT</side>
+<from>113</from>
+<to>116</to>
+<note>The test uses `eval(code)` on user-controlled input provided to the REPL. While this is a test file, using `eval` with arbitrary input is a dangerous pattern that can lead to Remote Code Execution (RCE) if the test environment is compromised or if the pattern is copied into production code.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>RIGHT</side>
+<from>11</from>
+<to>29</to>
+<note>The `getReplOutput` helper function has side effects (writing to streams) and manages state in a way that makes it difficult to track the lifecycle of the REPL instance. It does not explicitly close the REPL, which could lead to resource leaks in a larger test suite.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>RIGHT</side>
+<from>45</from>
+<to>54</to>
+<note>The test uses `r.write('\n.exit\n')` to clean up. This is a brittle way to manage test lifecycle and relies on the REPL's internal command processing rather than explicit teardown methods.</note>
+</notesplit>

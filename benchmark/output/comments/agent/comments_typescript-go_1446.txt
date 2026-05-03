@@ -1,0 +1,50 @@
+<notesplit>
+<path>internal/fourslash/_scripts/convertFourslash.mts</path>
+<side>RIGHT</side>
+<from>63</from>
+<to>63</to>
+<note>The logic `file.slice(0, -3)` assumes the file extension is exactly 3 characters (e.g., '.ts'). If a file name contains a dot before the extension (e.g., 'test.name.ts'), `file.slice(0, -3)` results in 'test.name', but the `manualTests.txt` entry might be 'testname' (based on the `makeManual.mts` logic which uses `testName` directly). This mismatch will cause the exclusion filter to fail, leading to duplicate test generation.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>RIGHT</side>
+<from>15</from>
+<to>18</to>
+<note>**[Security Vulnerability]** Command injection vulnerability: The `testName` argument is taken directly from user input and used to construct a file path for `fs.existsSync` and `fs.rmSync`. An attacker could provide a path like `../../some_sensitive_file` to delete arbitrary files on the system.
+
+**[Code Defect]** The script uses `testName` as the filename directly. If the generated test file in `genDir` has a suffix (e.g., `_test.go`), but the user passes the test name without it, `fs.existsSync(genTestFile)` will fail. Furthermore, `manualTests.txt` stores the name without the `_test.go` suffix, but the `convertFourslash.mts` logic compares this against the filename (minus extension). If the test name in `manualTests.txt` does not match the filename exactly, the exclusion logic will not work.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/convertFourslash.mts</path>
+<side>RIGHT</side>
+<from>24</from>
+<to>30</to>
+<note>**[Maintainability and Readability]** The logic for reading and parsing test lists (failingTests.txt and manualTests.txt) is duplicated with slight variations. This violates the DRY principle.
+
+**[Performance]** The getManualTests function reads and parses the entire manualTests.txt file every time it is called. If this function is called inside a loop or frequently, it causes redundant I/O operations.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>RIGHT</side>
+<from>34</from>
+<to>40</to>
+<note>**[Performance]** The script reads the entire manualTests.txt file, parses it into an array, performs an O(n) search with .includes(), and then writes the entire file back. This is inefficient for large lists of manual tests.
+
+**[Maintainability and Readability]** The logic for reading and parsing manualTests.txt is duplicated from convertFourslash.mts. This makes maintenance harder if the file format or parsing requirements change.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>RIGHT</side>
+<from>45</from>
+<to>50</to>
+<note>**[Maintainability and Readability]** The `renameAndRemoveSkip` function uses a regex to remove `t.Skip()` but does not account for potential variations in formatting (e.g., extra spaces, tabs, or comments on the same line), which could lead to silent failures or broken test files.
+
+**[Security Vulnerability]** Unsafe file deletion: `fs.rmSync(genFilePath)` is called on a path constructed from user input without sufficient validation, potentially leading to arbitrary file deletion if the input is manipulated.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/convertFourslash.mts</path>
+<side>RIGHT</side>
+<from>16</from>
+<to>16</to>
+<note>The `getFailingTests` function uses a hardcoded magic number `substring(4)` to strip prefixes from test names. This is fragile and lacks context on why the first 4 characters are being removed.</note>
+</notesplit>

@@ -1,0 +1,27 @@
+<notesplit>
+<path>crates/uv-cache-key/src/canonical_url.rs</path>
+<side>RIGHT</side>
+<from>75</from>
+<to>91</to>
+<note>**[Code Defect]** The logic for percent-decoding path segments is flawed because it decodes segments individually and then re-joins them. If a segment contains a percent-encoded slash (e.g., 'a%2Fb'), decoding it results in 'a/b', which is then treated as two separate path segments by the URL crate, fundamentally changing the path structure and breaking URL identity.
+
+**[Performance]** The path decoding logic performs multiple heap allocations per URL segment (collecting into a Vec, then extending the path segments). This is inefficient for URLs with many segments or frequent calls.
+
+**[Maintainability and Readability]** The logic for decoding path segments uses multiple unwrap() calls on path_segments() and path_segments_mut(). While likely safe given the context, these are fragile and could panic if the URL structure changes unexpectedly.</note>
+</notesplit>
+<notesplit>
+<path>crates/uv-distribution-types/src/any.rs</path>
+<side>RIGHT</side>
+<from>17</from>
+<to>27</to>
+<note>**[Maintainability and Readability]** The LocalDist enum now stores CanonicalVersion redundantly alongside the inner dist (CachedDist/InstalledDist). This creates a 'source of truth' problem where the version in the enum might diverge from the version inside the inner struct.
+
+The canonical_version() helper method uses manual pattern matching that must be updated every time a new variant is added to LocalDist, violating the Open/Closed principle.</note>
+</notesplit>
+<notesplit>
+<path>crates/uv-distribution-types/src/any.rs</path>
+<side>RIGHT</side>
+<from>46</from>
+<to>53</to>
+<note>The `From` implementations for `LocalDist` now perform `CanonicalUrl::new(url)` during conversion. This involves cloning the URL and performing string manipulations/allocations, which may be expensive if `LocalDist` objects are created frequently in hot loops.</note>
+</notesplit>

@@ -1,0 +1,23 @@
+<notesplit>
+<path>src/SignalR/server/StackExchangeRedis/test/Docker.cs</path>
+<side>RIGHT</side>
+<from>113</from>
+<to>115</to>
+<note>**[Maintainability and Readability]** The comment inside the Run() method still references the old container name 'redisTestContainer', which is now outdated and misleading after the rename to 'redisTestContainer74'.
+
+**[Security Vulnerability]** The application uses a hardcoded private container registry URL. If this registry is compromised or if the image tag is manipulated, it could lead to the execution of malicious code during the test suite execution.</note>
+</notesplit>
+<notesplit>
+<path>src/SignalR/server/StackExchangeRedis/test/Docker.cs</path>
+<side>RIGHT</side>
+<from>133</from>
+<to>133</to>
+<note>The monitor container command still uses the hardcoded 'redis' image name instead of the new _redisImageName variable. If the monitor container requires the same version/image as the main Redis container to function correctly (e.g., matching redis-cli version), this will cause a version mismatch.</note>
+</notesplit>
+<notesplit>
+<path>src/SignalR/server/StackExchangeRedis/test/Docker.cs</path>
+<side>RIGHT</side>
+<from>19</from>
+<to>19</to>
+<note>Hardcoding a specific Azure Container Registry (ACR) URL for a test image creates a dependency on external infrastructure and specific network access, which can make tests brittle or difficult to run in isolated environments.</note>
+</notesplit>

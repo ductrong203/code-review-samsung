@@ -1,0 +1,24 @@
+<notesplit>
+<path>packages/actions/src/Exports/Jobs/PrepareCsvExport.php</path>
+<side>RIGHT</side>
+<from>75</from>
+<to>81</to>
+<note>**[Performance]** Accessing collection elements via array syntax (e.g., $originalOrders[0]) on a collection that may have had keys re-indexed or modified can lead to 'Undefined offset' errors or performance overhead if the collection is not explicitly re-indexed. Using ->first() is safer and more idiomatic for collections.
+
+**[Code Defect]** The collection `originalOrders` is indexed by the original keys from the query array. Using `[0]` to access the first element will throw an 'Undefined offset' error if the collection keys are not sequential (e.g., if the first element was rejected).
+
+**[Maintainability and Readability]** The logic for reordering the query is becoming complex and relies on array index manipulation (forgetting index 0). This is fragile and hard to read.
+
+Similar to line 77, `forget(0)` assumes the collection has a key '0'. If the first element of the original query was not at index 0, this will fail to remove the intended element or throw an error.</note>
+</notesplit>
+<notesplit>
+<path>packages/actions/src/Exports/Jobs/PrepareCsvExport.php</path>
+<side>RIGHT</side>
+<from>151</from>
+<to>153</to>
+<note>**[Performance]** The use of in_array() inside a logic block that executes during query preparation is fine, but checking $query->getQuery()->orders[0] without verifying if the orders array is empty can trigger an 'Undefined offset' notice, which in some PHP configurations involves overhead or error handling logic that impacts performance.
+
+**[Maintainability and Readability]** The condition `in_array($query->getQuery()->orders[0]['column'] ?? null, [$keyName, $qualifiedKeyName])` is repeated later in the file (lines 163-164). This violates the DRY principle.
+
+Accessing `$query->getQuery()->orders[0]` directly is risky. If the `orders` array is empty, this could trigger an undefined offset error depending on PHP version/configuration, even with the null coalescing operator.</note>
+</notesplit>

@@ -1,0 +1,75 @@
+<notesplit>
+<path>packages/cli/src/config/extensions/extensionEnablement.ts</path>
+<side>RIGHT</side>
+<from>102</from>
+<to>114</to>
+<note>**[Code Defect]** The regex conversion logic for `*` is flawed. `globToRegex` uses `replace(/(\/?)\*/g, '($1.*)?')`. If the input is `/path/to/dir/*`, it becomes `^/path/to/dir/(/.*)?$`. This regex will fail to match `/path/to/dir/` because the `(/.*)?` group expects a slash if it matches anything, and the `^` and `$` anchors make it rigid. Furthermore, `Override.fromFileRule` strips the `*` before calling `asRegex`, which then re-adds it, leading to inconsistent behavior.
+
+**[Maintainability and Readability]** The `isEnabled` method performs redundant operations by re-parsing all rules into `Override` objects on every call. This is inefficient and makes the method harder to read.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/extensions/extensionEnablement.ts</path>
+<side>RIGHT</side>
+<note>[
+  {
+    "path": "packages/cli/src/config/extensions/extensionEnablement.ts",
+    "from_line": 86,
+    "to_line": 91,
+    "side": "right",
+    "severity": "high",
+    "confidence": 0.9,
+    "context_level": "diff",
+    "note": "The globToRegex function uses a regex replacement that can lead to ReDoS (Regular Expression Denial of Service). The pattern `(\/?)\*` combined with `.*` can cause catastrophic backtracking when processing deeply nested or specially crafted path strings.",
+    "suggested_fix": "Use a non-backtracking regex approach or a dedicated glob-to-regex library that handles path segments safely without exponential complexity."
+  },
+  {
+    "path": "packages/cli/src/config/extensions/extensionEnablement.ts",
+    "from_line": 155,
+    "to_line": 155,
+    "side": "right",
+    "severity": "medium",
+    "confidence": 0.7,
+    "context_level": "diff",
+    "note": "The writeConfig method uses JSON.stringify without atomic write operations. If the process crashes or the system l</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/extensions/extensionEnablement.ts</path>
+<side>RIGHT</side>
+<from>18</from>
+<to>90</to>
+<note>**[Maintainability and Readability]** The Override class is a data-heavy class that mixes data representation with complex logic (regex generation, path matching, and rule conflict resolution). This violates the Single Responsibility Principle.
+
+The `ensureLeadingAndTrailingSlash` function is defined as a standalone constant function outside the class. It would be cleaner as a private static method or a named utility function.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/extensions/extensionEnablement.ts</path>
+<side>RIGHT</side>
+<from>132</from>
+<to>145</to>
+<note>**[Performance]** The `isEnabled` method performs regex compilation inside a loop for every rule in the overrides list. Regex compilation is an expensive operation that should be hoisted or cached.
+
+The `isEnabled` method calls `readConfig()` on every invocation. If `isEnabled` is called frequently (e.g., in a loop or hot path), this results in repeated synchronous disk I/O.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/extensions/extensionEnablement.ts</path>
+<side>RIGHT</side>
+<from>175</from>
+<to>185</to>
+<note>**[Performance]** The `enable` method performs redundant object instantiation (`Override.fromFileRule`) inside a filter loop for every existing override rule. This creates unnecessary garbage collection pressure.
+
+**[Code Defect]** The `disable` method calls `this.enable` with `!${scopePath}`. If `scopePath` already starts with `!`, the resulting rule becomes `!!...`, which `Override.fromInput` does not correctly parse as a single disable flag, potentially causing logic errors in `isEnabled`.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/commands/extensions/disable.ts</path>
+<side>RIGHT</side>
+<from>17</from>
+<to>22</to>
+<note>The logic for mapping string input to `SettingScope` is duplicated in both `disable.ts` and `enable.ts`. This duplication makes the code harder to maintain if the scope logic changes.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/extensions/extensionEnablement.test.ts</path>
+<side>RIGHT</side>
+<from>253</from>
+<to>256</to>
+<note>The test case 'should disable a path based on a disable override rule' is a duplicate of a test case defined earlier in the file.</note>
+</notesplit>

@@ -1,0 +1,67 @@
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1630330987096-UpdateWorkflowCredentials.ts</path>
+<side>RIGHT</side>
+<from>26</from>
+<to>43</to>
+<note>**[Performance]** Inefficient search inside a loop: The code uses `credentialsEntities.find()` inside a nested loop over nodes. This results in O(N*M) complexity where N is the number of nodes and M is the number of credentials.
+
+Database update inside a loop: The migration performs an individual UPDATE query for every workflow that has updated credentials. This is highly inefficient for large datasets.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1620821879465-UniqueWorkflowNames.ts</path>
+<side>RIGHT</side>
+<from>10</from>
+<to>28</to>
+<note>N+1 query pattern: The migration executes a SELECT query inside a loop for every workflow name found. This will cause significant performance degradation as the number of workflows grows.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1669739707124-AddWorkflowVersionIdColumn.ts</path>
+<side>RIGHT</side>
+<from>13</from>
+<to>18</to>
+<note>N+1 query pattern: The migration executes an UPDATE query for every single workflow ID in a loop.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/ldap.ee/ldap.service.ee.ts</path>
+<side>RIGHT</side>
+<from>236</from>
+<to>240</to>
+<note>The LDAP service emits an event 'ldap-login-sync-failed' containing the error object 'e'. If this error object is passed to an event listener that logs it or exposes it to the UI, it could leak sensitive LDAP server details or credentials.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1714133768519-CreateProject.ts</path>
+<side>RIGHT</side>
+<from>213</from>
+<to>233</to>
+<note>**[Performance]** Database insertion inside a loop: The migration performs two individual INSERT queries for every user in the database.
+
+**[Security Vulnerability]** The personal project name generation includes the user's email address. If this name is exposed in UI components or logs, it may lead to PII leakage.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1724951148974-AddApiKeysTable.ts</path>
+<side>RIGHT</side>
+<from>40</from>
+<to>40</to>
+<note>The use of @ts-expect-error to bypass type checking for API key migration suggests potential data handling issues or lack of proper validation during the migration of sensitive credentials.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1658930531669-AddNodeIds.ts</path>
+<side>RIGHT</side>
+<from>16</from>
+<to>21</to>
+<note>Database update inside a loop: The migration performs an individual UPDATE query for every workflow. This will be slow for large numbers of workflows.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1671726148419-RemoveWorkflowDataLoadedFlag.ts</path>
+<side>RIGHT</side>
+<from>17</from>
+<to>27</to>
+<note>Database insertion inside a loop: The migration performs an individual INSERT query for every workflow that has dataLoaded set to true.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1711390882123-MoveSshKeysToDatabase.ts</path>
+<side>RIGHT</side>
+<from>71</from>
+<to>75</to>
+<note>The migration logs the full error object when failing to remove SSH keys from the filesystem. If the error object contains sensitive path information or system details, this could lead to information disclosure in logs.</note>
+</notesplit>

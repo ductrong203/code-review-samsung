@@ -1,0 +1,21 @@
+<notesplit>
+<path>linera-core/src/client/mod.rs</path>
+<side>RIGHT</side>
+<from>232</from>
+<to>243</to>
+<note>The Client::new function has 10 parameters, which exceeds the recommended limit of 5. This makes the constructor difficult to use and maintain. Consider using the Builder pattern.</note>
+</notesplit>
+<notesplit>
+<path>linera-core/src/client/mod.rs</path>
+<side>RIGHT</side>
+<from>105</from>
+<to>155</to>
+<note>The metrics module contains significant code duplication. Each static metric definition follows an identical pattern of registering a histogram with a name, description, and latency buckets.</note>
+</notesplit>
+<notesplit>
+<path>linera-base/src/prometheus_util.rs</path>
+<side>RIGHT</side>
+<from>87</from>
+<to>90</to>
+<note>The finish_measurement implementation for HistogramVec uses an empty slice for label values. This assumes that all metrics using this trait are label-less, which is a fragile design that limits the utility of the trait.</note>
+</notesplit>

@@ -1,0 +1,18 @@
+<notesplit>
+<path>packages/svelte/src/compiler/phases/2-analyze/index.js</path>
+<side>RIGHT</side>
+<from>435</from>
+<to>455</to>
+<note>**[Maintainability and Readability]** The 'maybe_runes' logic is highly complex, deeply nested, and contains significant business logic inside an object literal definition. This makes it difficult to read, debug, and maintain.
+
+**[Performance]** The `maybe_runes` calculation performs multiple O(n) operations (spread of references, array iteration, and nested array iteration) inside the `analyze_component` function, which is called for every component during compilation. This increases the compilation time complexity for every component processed.
+
+Hardcoded string literals '$$props' and '$$restProps' are repeated in the logic. This is prone to errors if these reserved names change.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/compiler/phases/3-transform/client/visitors/shared/utils.js</path>
+<side>RIGHT</side>
+<from>373</from>
+<to>373</to>
+<note>The comment describes the logic as 'Kind of an in-between-mode', which indicates a design smell. Relying on 'maybe_runes' suggests that the compiler's state machine is becoming ambiguous.</note>
+</notesplit>

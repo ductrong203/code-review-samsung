@@ -1,0 +1,11 @@
+<notesplit>
+<path>src/System.Management.Automation/engine/CommandCompletion/CompletionCompleters.cs</path>
+<side>RIGHT</side>
+<from>466</from>
+<to>481</to>
+<note>**[Code Defect]** The logic for filtering nested modules is placed after the 'continue' statement for the shortNamePattern check. If a module matches the shortNamePattern criteria, it will hit the 'continue' at line 481 and skip the nested module filter check entirely, potentially allowing nested modules to be returned if they happen to satisfy the shortNamePattern logic.
+
+**[Maintainability and Readability]** The logic for filtering modules is becoming cluttered within the loop. The `if` condition for filtering nested modules is separated from the existing filtering logic, making the loop body harder to follow.
+
+The comment block is quite verbose and explains the 'why' of the implementation, which is good, but it is placed inside the method body. This adds significant visual noise to the logic flow.</note>
+</notesplit>

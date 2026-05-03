@@ -1,0 +1,29 @@
+<notesplit>
+<path>middleware/cache_middleware.py</path>
+<side>RIGHT</side>
+<from>27</from>
+<to>37</to>
+<note>**[Performance]** Multiple calls to request.path.endswith() inside the middleware create redundant string operations for every request. Since this middleware runs on every request, these checks should be optimized.
+
+**[Maintainability and Readability]** The hardcoded list of file extensions for cache control creates a maintenance burden. If new file types need caching, this list must be manually updated, violating the Open/Closed principle.
+
+**[Code Defect]** The logic uses `request.path.endswith(...)` which is vulnerable to query string bypasses. A request to `/script.js?bypass=true` will not match the condition, causing the middleware to skip the 'no-cache' header for a file that should be cached as 'no-cache'.
+
+The logic for identifying cacheable files is tightly coupled to specific file extensions and paths. This makes it difficult to extend or reuse the middleware for different sets of static assets.</note>
+</notesplit>
+<notesplit>
+<path>middleware/cache_middleware.py</path>
+<side>RIGHT</side>
+<from>40</from>
+<to>48</to>
+<note>**[Code Defect]** Similar to the JS/CSS check, `request.path.lower().endswith(IMG_EXTENSIONS)` is vulnerable to query string bypasses. A request to `/image.jpg?v=1` will fail the check, meaning images with query parameters will not receive the intended cache headers.
+
+**[Maintainability and Readability]** The logic for determining cache duration based on status codes is hardcoded and mixed with the middleware execution flow. This makes the business rules for caching difficult to read and modify.</note>
+</notesplit>
+<notesplit>
+<path>middleware/cache_middleware.py</path>
+<side>RIGHT</side>
+<from>36</from>
+<to>36</to>
+<note>Calling request.path.lower() on every request is inefficient as it creates a new string object in memory for every single request processed by the server.</note>
+</notesplit>

@@ -1,0 +1,145 @@
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>144</from>
+<to>147</to>
+<note>**[Maintainability and Readability]** Hardcoded newline character '\n' is used repeatedly throughout the file. While the PR removes the dynamic NewLine() method, using a constant or a helper function for line endings improves maintainability if the project ever needs to support platform-specific output again.
+
+**[Code Defect]** The original code used `sys.NewLine()` to ensure cross-platform newline consistency. Hardcoding `
+` breaks output formatting on Windows where `
+` is expected.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>159</from>
+<to>161</to>
+<note>**[Code Defect]** Hardcoded `
+` replaces `sys.NewLine()`, causing potential formatting issues on Windows.
+
+Hardcoded `
+` replaces `sys.NewLine()`, causing potential formatting issues on Windows.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>209</from>
+<to>212</to>
+<note>**[Code Defect]** Hardcoded `
+` replaces `sys.NewLine()`, causing potential formatting issues on Windows.
+
+Hardcoded `
+` replaces `sys.NewLine()`, causing potential formatting issues on Windows.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>261</from>
+<to>261</to>
+<note>**[Code Defect]** Hardcoded `
+` replaces `sys.NewLine()`, causing potential formatting issues on Windows.
+
+**[Maintainability and Readability]** The logic `if len(lines) < 2 || lines[len(lines)-2] != "\n"` is brittle. It relies on the specific structure of the `lines` slice to ensure a blank line. If the output generation logic changes, this check may fail silently.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>331</from>
+<to>333</to>
+<note>**[Code Defect]** Hardcoded `
+` replaces `sys.NewLine()`, causing potential formatting issues on Windows.
+
+Hardcoded `
+` replaces `sys.NewLine()`, causing potential formatting issues on Windows.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>166</from>
+<to>166</to>
+<note>Hardcoded `
+` replaces `sys.NewLine()`, causing potential formatting issues on Windows.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>217</from>
+<to>217</to>
+<note>Hardcoded `
+` replaces `sys.NewLine()`, causing potential formatting issues on Windows.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>230</from>
+<to>230</to>
+<note>Hardcoded `
+` replaces `sys.NewLine()`, causing potential formatting issues on Windows.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>234</from>
+<to>234</to>
+<note>Hardcoded `
+` replaces `sys.NewLine()`, causing potential formatting issues on Windows.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>315</from>
+<to>315</to>
+<note>Hardcoded `
+` replaces `sys.NewLine()`, causing potential formatting issues on Windows.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>320</from>
+<to>320</to>
+<note>Hardcoded `
+` replaces `sys.NewLine()`, causing potential formatting issues on Windows.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>326</from>
+<to>326</to>
+<note>Hardcoded `
+` replaces `sys.NewLine()`, causing potential formatting issues on Windows.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>RIGHT</side>
+<from>234</from>
+<to>234</to>
+<note>The `NewCachedFSCompilerHost` is called inside `performCompilation` without passing an `extendedConfigCache`. This forces the compiler to re-parse and re-resolve extended configurations from the filesystem on every compilation cycle, which is an expensive I/O operation.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>RIGHT</side>
+<from>63</from>
+<to>63</to>
+<note>The `fmtMain` function now hardcodes "\n" for both the context format settings and the output. This creates a hidden dependency on the assumption that the system always requires LF, which might be fragile if this code is reused in different contexts.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watcher.go</path>
+<side>RIGHT</side>
+<from>63</from>
+<to>63</to>
+<note>The `NewCompilerHost` is called without an `extendedConfigCache` in the watcher loop. This causes redundant disk I/O and parsing overhead for tsconfig files during every watch cycle.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>RIGHT</side>
+<from>374</from>
+<to>374</to>
+<note>Using `fmt.Fprintln` inside a loop for file listing is inefficient as it triggers a system call/buffer flush for every single file path.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watcher.go</path>
+<side>RIGHT</side>
+<from>59</from>
+<to>59</to>
+<note>The `hasErrorsInTsConfig` method recreates a `compiler.NewCompilerHost` instance. This logic is duplicated in `internal/execute/watch.go` and `internal/execute/watcher.go`. This violates the DRY principle.</note>
+</notesplit>

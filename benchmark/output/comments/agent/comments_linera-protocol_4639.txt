@@ -1,0 +1,33 @@
+<notesplit>
+<path>linera-core/src/client/mod.rs</path>
+<side>RIGHT</side>
+<from>858</from>
+<to>858</to>
+<note>The loop condition `if received_entries < max_entries { break; }` is incorrect if the validator returns exactly `max_entries` items. In that case, there might be more items available, but the loop terminates prematurely, causing the client to miss subsequent certificates.</note>
+</notesplit>
+<notesplit>
+<path>linera-core/src/client/mod.rs</path>
+<side>RIGHT</side>
+<from>850</from>
+<to>865</to>
+<note>**[Maintainability and Readability]** The loop in `client/mod.rs` manually implements pagination logic that mirrors the logic in `chain_worker/state.rs`. This duplication increases the risk of off-by-one errors or inconsistent behavior if the pagination strategy changes.
+
+**[Performance]** The loop performs sequential network requests to fetch the received log. If the log is large, this results in high latency due to multiple round-trips to the remote node.
+
+Reading the environment variable inside the loop causes redundant lookups on every iteration.
+
+**[Security Vulnerability]** The loop in `synchronize_chain_state` fetches received logs from a remote node. If the remote node returns a small number of entries repeatedly (or if the logic is manipulated), this could lead to an unbounded loop or excessive network requests, potentially causing a DoS on the client side.</note>
+</notesplit>
+<notesplit>
+<path>linera-core/src/chain_worker/state.rs</path>
+<side>RIGHT</side>
+<from>1414</from>
+<to>1423</to>
+<note>**[Maintainability and Readability]** Environment variable parsing logic is duplicated between `chain_worker/state.rs` and `client/mod.rs`. This violates the DRY principle and makes it harder to update the configuration logic consistently.
+
+The environment variable is read and parsed on every request. While likely acceptable, it is inefficient and makes the code more verbose. It would be cleaner to read this configuration once during initialization or via a configuration object.
+
+**[Performance]** Reading the environment variable inside the request handler function causes a syscall/lookup on every single chain info query, which is inefficient in a hot path.
+
+**[Security Vulnerability]** The environment variable `LINERA_CHAIN_INFO_RECEIVED_LOG_MAX_ENTRIES` is parsed without validation. If an attacker or misconfiguration sets this to a very large value, it could lead to excessive memory allocation or denial of service (DoS) when reading the received log.</note>
+</notesplit>

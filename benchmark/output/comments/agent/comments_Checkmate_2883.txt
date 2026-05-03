@@ -1,0 +1,75 @@
+<notesplit>
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>RIGHT</side>
+<from>155</from>
+<to>175</to>
+<note>**[Code Defect]** The logic for matching expected values is flawed. If 'expectedValue' is provided but 'jsonPath' is also provided, the function returns early after checking 'expectedValue', completely ignoring the 'jsonPath' validation logic that follows.
+
+**[Maintainability and Readability]** The logic for matching expected values is hardcoded with multiple 'if' statements. This violates the Open/Closed principle; adding a new match method requires modifying this function.</note>
+</notesplit>
+<notesplit>
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>RIGHT</side>
+<from>265</from>
+<to>315</to>
+<note>**[Security Vulnerability]** The code uses `new RegExp(expectedValue)` where `expectedValue` is user-controlled input. This allows for ReDoS (Regular Expression Denial of Service) attacks if a malicious regex is provided.
+
+**[Maintainability and Readability]** The requestDocker method has become too long and handles multiple responsibilities: container discovery, ambiguity resolution, and status inspection. This makes it difficult to test and maintain.</note>
+</notesplit>
+<notesplit>
+<path>server/src/db/mongo/migration/0001_migrateStatusWindowThreshold.js</path>
+<side>RIGHT</side>
+<from>1</from>
+<to>18</to>
+<note>**[Performance]** The migration performs a database update inside a loop (await monitor.save()). This results in an N+1 query pattern where each document is updated individually, which is highly inefficient for large datasets.
+
+**[Maintainability and Readability]** The migration script uses console.log for logging. In a production server environment, this should ideally use the application's configured logger for consistency and better observability.
+
+**[Security Vulnerability]** The migration script performs a bulk update without checking for potential overflow or invalid values resulting from the multiplication, which could lead to inconsistent monitor states.</note>
+</notesplit>
+<notesplit>
+<path>client/src/Components/Table/index.jsx</path>
+<side>RIGHT</side>
+<from>101</from>
+<to>155</to>
+<note>**[Performance]** The Tooltip component is being rendered inside a map loop for every single row in the table. If the 'data' array is large, this creates a significant number of DOM nodes and event listeners, which can lead to performance degradation and increased memory usage.
+
+**[Maintainability and Readability]** The DataTable component has become overly complex due to the addition of the Tooltip logic directly within the map function. This increases nesting and makes the component harder to read and maintain.</note>
+</notesplit>
+<notesplit>
+<path>client/src/Pages/Incidents/Components/IncidentTable/index.jsx</path>
+<side>RIGHT</side>
+<from>25</from>
+<to>84</to>
+<note>The 'GetTooltip' function is defined inside the component file but contains significant UI logic and styling. It is also not memoized, which may cause unnecessary re-renders when passed as a prop to DataTable.</note>
+</notesplit>
+<notesplit>
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>RIGHT</side>
+<from>285</from>
+<to>285</to>
+<note>The docker container matching logic uses `monitor.url` directly. While normalized, if `monitor.url` is not strictly validated, it could potentially lead to unexpected container selection or information disclosure if the user can influence the container name/ID mapping.</note>
+</notesplit>
+<notesplit>
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>RIGHT</side>
+<from>298</from>
+<to>298</to>
+<note>Typo in assignment: 'dockerResponse.status = 404;' is used instead of 'dockerResponse.code = 404;'. This overwrites the boolean status field with a numeric code.</note>
+</notesplit>
+<notesplit>
+<path>server/src/db/models/Monitor.js</path>
+<side>RIGHT</side>
+<from>164</from>
+<to>172</to>
+<note>The 'deleteMany' pre-hook fetches all monitors and then iterates through them to perform individual 'deleteMany' and 'updateMany' operations for each monitor. This is an O(n) query pattern that will cause performance issues as the number of monitors grows.</note>
+</notesplit>
+<notesplit>
+<path>server/src/service/infrastructure/SuperSimpleQueue/SuperSimpleQueue.js</path>
+<side>RIGHT</side>
+<from>105</from>
+<to>135</to>
+<note>**[Performance]** The 'getMetrics' function performs a full array reduction and object creation on every call. If this is called frequently (e.g., via an API endpoint), it can become a bottleneck.
+
+**[Code Defect]** Typo in property access: 'job.lsatRunAt' is likely a typo for 'job.lastRunAt'. This will result in 'undefined' and potentially incorrect failure metrics.</note>
+</notesplit>

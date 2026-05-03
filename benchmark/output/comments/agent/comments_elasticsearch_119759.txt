@@ -1,0 +1,55 @@
+<notesplit>
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/TestSnapshotCases.java</path>
+<side>RIGHT</side>
+<from>18</from>
+<to>22</to>
+<note>**[Maintainability and Readability]** The constants ES_VERSION_6 and ES_VERSION_6_STANDARD_TOKEN_FILTER are incorrectly assigned the values for version 5. This is misleading and likely a copy-paste error that will cause confusion for future maintainers.
+
+**[Code Defect]** The constant ES_VERSION_6 is incorrectly assigned the value "5" instead of "6". This will cause the test to attempt to load a version 5 snapshot when it expects a version 6 snapshot.
+
+The constant ES_VERSION_6_STANDARD_TOKEN_FILTER is incorrectly assigned the value "5_custom_analyzer" instead of a version 6 specific identifier. This will cause the test to load the wrong snapshot file.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/AbstractUpgradeCompatibilityTestCase.java</path>
+<side>RIGHT</side>
+<from>195</from>
+<to>199</to>
+<note>**[Performance]** The getIndices method performs a synchronous network request to _cat/indices. In a test suite, calling this repeatedly or in loops can lead to unnecessary latency and resource consumption.
+
+EntityUtils.toString(response.getEntity()) reads the entire response body into memory as a String. For large index lists, this can cause unnecessary memory allocation.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/AbstractUpgradeCompatibilityTestCase.java</path>
+<side>RIGHT</side>
+<from>143</from>
+<to>143</to>
+<note>The method verifyCompatibility is marked as 'protected final', but it is only used within the same class. If it is intended to be part of the public API of the test suite, it should be public; otherwise, it should be private.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/archiveindex/RestoreFromVersion5CustomAnalyzerIT.java</path>
+<side>RIGHT</side>
+<from>46</from>
+<to>49</to>
+<note>The warning assertion logic is duplicated across multiple IT classes (RestoreFromVersion5CustomAnalyzerIT, RestoreFromVersion6CustomAnalyzerIT, etc.). This violates the DRY principle.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/archiveindex/ArchiveIndexTestCase.java</path>
+<side>RIGHT</side>
+<from>61</from>
+<to>61</to>
+<note>The use of WarningsHandler.PERMISSIVE in the REST client configuration ignores potential security-related warnings returned by the Elasticsearch server during snapshot restoration. This could mask misconfigurations or security policy violations.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/searchablesnapshot/SearchableSnapshotTestCase.java</path>
+<side>RIGHT</side>
+<from>56</from>
+<to>56</to>
+<note>The use of WarningsHandler.PERMISSIVE in the REST client configuration ignores potential security-related warnings returned by the Elasticsearch server during snapshot mounting. This could mask misconfigurations or security policy violations.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/archiveindex/ArchiveIndexTestCase.java</path>
+<side>RIGHT</side>
+<from>32</from>
+<to>36</to>
+<note>Constructor chaining is used, but the default consumer `o -> {}` is repeated in multiple test base classes. This logic could be centralized or handled via a protected constant.</note>
+</notesplit>

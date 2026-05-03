@@ -1,0 +1,94 @@
+<notesplit>
+<path>server/internal/cache/blob/cache.go</path>
+<side>RIGHT</side>
+<from>450</from>
+<to>450</to>
+<note>The checkWriter.Write method uses w.w (the underlying writer) but the struct field is named 'w'. However, in the previous version, it used 'f'. The logic change to use 'w' is correct, but the struct initialization in copyNamedFile (line 497) sets 'w: f', which is correct, but the 'f' field in checkWriter is now redundant or potentially misused if 'w' is the intended target for all writes.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/client/ollama/registry.go</path>
+<side>RIGHT</side>
+<from>464</from>
+<to>466</to>
+<note>**[Code Defect]** The variable 'c' is used in the loop (c.Chunked) but is not defined in the scope of the Pull method. It appears to be a reference to the cache, but the variable name 'c' is missing from the function scope.
+
+**[Performance]** The code performs a linear scan of the layers slice to check for existence and update traces before starting the errgroup. While not O(N²) yet, this pattern of repeated iteration over the same slice can be optimized by combining the existence check and trace initialization into a single pass.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/registry/server.go</path>
+<side>RIGHT</side>
+<from>255</from>
+<to>285</to>
+<note>**[Performance]** The pushUpdate function iterates over the entire progress map and encodes every layer's status on every tick. As the number of layers grows, this becomes an O(N) operation per tick, leading to excessive JSON encoding and network traffic for unchanged layers.
+
+**[Maintainability and Readability]** The handlePull method uses a complex combination of sync.OnceFunc, tickers, and mutex-protected maps to manage progress updates. This is error-prone and hard to maintain.
+
+The progressCopy map is allocated and copied inside the pushUpdate function, which is called repeatedly by a ticker. This creates unnecessary garbage collection pressure.
+
+**[Code Defect]** The progressCopy map is initialized but never populated or used correctly before the pushUpdate function attempts to copy from 'progress' to 'progressCopy'. The logic inside pushUpdate is also incomplete/cut off.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/client/ollama/registry.go</path>
+<side>RIGHT</side>
+<from>483</from>
+<to>540</to>
+<note>The Pull method is becoming a 'God function' with deep nesting (loops, errgroup, backoff loops, and nested anonymous functions). This makes the logic flow extremely difficult to follow and test.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/client/ollama/registry.go</path>
+<side>RIGHT</side>
+<from>776</from>
+<to>776</to>
+<note>The code uses bufio.Scanner with ScanWords to parse chunk range strings. If the registry returns malicious or malformed input, this could lead to unexpected behavior or potential resource exhaustion.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/registry/server_test.go</path>
+<side>RIGHT</side>
+<from>235</from>
+<to>236</to>
+<note>**[Maintainability and Readability]** The test file contains a syntax error at the end of the file ('fun'), which will prevent compilation.
+
+**[Code Defect]** The test case for non-streaming pulls expects 'success' status but the implementation of handlePull (in server.go) for non-streaming returns a JSON object with 'status: success'. The test logic seems to be missing the actual verification of the JSON structure.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/cache/blob/cache.go</path>
+<side>RIGHT</side>
+<from>414</from>
+<to>423</to>
+<note>The checkWriter struct has become cluttered with mixed concerns (hashing, file writing, error tracking, and test hooks). The addition of 'w io.Writer' alongside 'f *os.File' creates ambiguity about which writer is the primary target.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/cache/blob/cache.go</path>
+<side>RIGHT</side>
+<from>74</from>
+<to>74</to>
+<note>The cache directory is created with 0o777 permissions, which allows any user on the system to read, write, or delete files within the cache directory, potentially leading to unauthorized access or data tampering.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/cache/blob/chunked.go</path>
+<side>RIGHT</side>
+<from>28</from>
+<to>28</to>
+<note>The file is opened with 0o666 permissions, which may allow other users on the system to modify the blob files if the directory permissions are not sufficiently restrictive.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/registry/server.go</path>
+<side>RIGHT</side>
+<from>277</from>
+<to>277</to>
+<note>The progress update loop uses a ticker of 100ms but does not explicitly limit the number of updates or the total size of the response, which could be exploited to cause high CPU or memory usage on the server if many requests are made.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/registry/server.go</path>
+<side>RIGHT</side>
+<from>193</from>
+<to>203</to>
+<note>The comment describing the API design as 'Gross' is unprofessional and does not provide actionable guidance for future maintainers.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/cache/blob/chunked.go</path>
+<side>RIGHT</side>
+<from>12</from>
+<to>12</to>
+<note>The TODO comment 'move chunks here?' suggests a potential architectural issue regarding package boundaries and dependency management.</note>
+</notesplit>

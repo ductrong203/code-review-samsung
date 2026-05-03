@@ -1,0 +1,48 @@
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>264</from>
+<to>331</to>
+<note>**[Code Defect]** The code calls `panic("no value candidate for list or element")` for `CommandLineOptionTypeListOrElement`. This will crash the compiler whenever this option type is encountered during help generation.
+
+The function `showAdditionalInfoOutput` compares `option.DefaultValueDescription` (which is an `any` type) directly to the string `"false"`. This will always be false if the underlying value is a boolean `false` or another type, leading to incorrect help output logic.
+
+**[Maintainability and Readability]** The function 'generateOptionOutput' has become significantly complex with deep nesting and mixed responsibilities (formatting logic, terminal width handling, and conditional output generation).
+
+The variable 'terminalWidth' is initialized to 0 and never updated, rendering the entire 'if terminalWidth >= 80' block dead code.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>154</from>
+<to>162</to>
+<note>The loop iterates over all entries in the EnumMap to find matches for a single defaultValue. This is an O(n) operation where n is the number of enum entries, performed every time an option is formatted.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>245</from>
+<to>247</to>
+<note>The logic for ensuring a blank line at the end of the output is flawed. If `lines` is empty, `lines[len(lines)-2]` will cause an index out of range panic.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>395</from>
+<to>423</to>
+<note>The function 'getPossibleValues' has a large switch statement that handles complex logic for different option kinds. The 'default' case is particularly dense, involving map inversion and string manipulation.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>196</from>
+<to>202</to>
+<note>Inside the loop, `append(inverted.GetOrZero(value), name)` is called. If `GetOrZero` returns a slice, this creates a new slice and potentially copies elements on every iteration, leading to O(n²) behavior for building the inverted map.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>RIGHT</side>
+<from>357</from>
+<to>368</to>
+<note>The function 'showAdditionalInfoOutput' contains hardcoded magic strings ('string', 'false', 'n/a') which makes the logic fragile and difficult to maintain if these values change in the compiler options.</note>
+</notesplit>

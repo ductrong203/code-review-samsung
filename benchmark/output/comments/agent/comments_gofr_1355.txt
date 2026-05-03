@@ -1,0 +1,31 @@
+<notesplit>
+<path>pkg/gofr/datasource/mongo/mongo.go</path>
+<side>RIGHT</side>
+<from>94</from>
+<to>154</to>
+<note>**[Code Defect]** The `Connect` method logs the connection status using `c.config.Host` before verifying if the connection is actually successful. If the user provided a custom `URI` (which might contain a different host or multiple hosts), the log will be misleading.
+
+**[Maintainability and Readability]** The generateMongoURI function violates the Single Responsibility Principle by handling both URI generation logic and validation logic. It also mixes configuration parsing with URL construction.
+
+The Connect method has become too long and is performing too many distinct tasks: URI generation, logging, context management, driver connection, pinging, and metrics initialization.
+
+**[Security Vulnerability]** The code uses url.QueryEscape for username and password. While this prevents injection into the URI structure, it does not prevent potential credential leakage if the resulting URI is logged or exposed in monitoring tools, despite the attempt to use 'host' in some logs.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/mongo/mongo.go</path>
+<side>RIGHT</side>
+<from>155</from>
+<to>172</to>
+<note>**[Maintainability and Readability]** The getDBHost function is tightly coupled to the 'mongodb' scheme and assumes specific URL structures. It lacks robustness for different MongoDB connection string formats (e.g., SRV records or multiple hosts).
+
+**[Code Defect]** The `generateMongoURI` function returns `u.Hostname()` as the host. If the URI contains multiple hosts (e.g., a replica set `mongodb://host1,host2/db`), `Hostname()` only returns the first one, which may be inaccurate for logging purposes.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/mongo/mongo.go</path>
+<side>RIGHT</side>
+<from>138</from>
+<to>145</to>
+<note>**[Maintainability and Readability]** The switch statement for validation uses multiple return points with repetitive error wrapping, which makes the validation logic harder to extend or modify.
+
+**[Security Vulnerability]** The getDBHost function uses url.ParseRequestURI on a user-provided URI string. If the URI is malformed or contains unexpected characters, it may lead to information disclosure or unexpected behavior in downstream logging or connection logic.</note>
+</notesplit>

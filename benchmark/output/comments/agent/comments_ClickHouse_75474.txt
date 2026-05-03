@@ -1,0 +1,42 @@
+<notesplit>
+<path>src/Dictionaries/PolygonDictionaryUtils.h</path>
+<side>RIGHT</side>
+<from>258</from>
+<to>258</to>
+<note>Creating a new ThreadPool instance inside a function that is likely called frequently (e.g., during dictionary construction or query execution) causes significant overhead due to thread creation and destruction.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/MergeTree/MergePlainMergeTreeTask.cpp</path>
+<side>RIGHT</side>
+<from>42</from>
+<to>42</to>
+<note>The `ThreadGroupSwitcher` constructor is called with `allow_existing_group=true`. If `merge_list_entry` is valid, it attaches to the group. However, if `merge_list_entry` is null, the switcher is not initialized, which is correct, but the logic relies on `switcher` being optional. The issue is that `ThreadGroupSwitcher` is designed to handle RAII for thread groups, and passing `allow_existing_group=true` when the thread might already be in a different group could lead to unexpected behavior if the previous group is not correctly restored or if the thread is left in an inconsistent state.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/MergeTree/MutatePlainMergeTreeTask.cpp</path>
+<side>RIGHT</side>
+<from>86</from>
+<to>86</to>
+<note>Similar to `MergePlainMergeTreeTask`, the `ThreadGroupSwitcher` is initialized with `allow_existing_group=true`. If the thread is already attached to a group, `ThreadGroupSwitcher` will detach it and attach to the new one. If an exception occurs during the `switcher.emplace` call, the thread might be left in a detached state or attached to the wrong group, potentially causing issues with memory tracking or profile events.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/MergeTree/ReplicatedMergeMutateTaskBase.cpp</path>
+<side>RIGHT</side>
+<from>147</from>
+<to>147</to>
+<note>The `ThreadGroupSwitcher` is initialized with `allow_existing_group=true`. In the context of `ReplicatedMergeMutateTaskBase`, if the thread is already part of a group, it detaches and re-attaches. If the task is executed in a thread pool that already manages thread groups, this could lead to race conditions or incorrect accounting of metrics if the thread group is switched while the thread is still performing other tasks.</note>
+</notesplit>
+<notesplit>
+<path>src/Interpreters/ConcurrentHashJoin.cpp</path>
+<side>RIGHT</side>
+<from>115</from>
+<to>121</to>
+<note>The ThreadPool is initialized with max_free_threads=0 and queue_size=slots. This configuration may lead to excessive thread creation/destruction cycles if the workload is bursty, as threads are not kept alive in the pool.</note>
+</notesplit>
+<notesplit>
+<path>src/Processors/Formats/Impl/PrettyBlockOutputFormat.cpp</path>
+<side>RIGHT</side>
+<from>160</from>
+<to>168</to>
+<note>The code creates a new thread for every PrettyBlockOutputFormat instance if squashing is enabled. If many such formatters are created, this can lead to thread explosion.</note>
+</notesplit>

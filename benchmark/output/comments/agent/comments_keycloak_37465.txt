@@ -1,0 +1,43 @@
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/integration/resteasy/QuarkusHttpRequest.java</path>
+<side>RIGHT</side>
+<from>165</from>
+<to>171</to>
+<note>**[Maintainability and Readability]** The `isProxyTrusted` implementation relies on a hardcoded header name 'X-Forwarded-Trusted-Proxy'. This magic string is not defined as a constant, making it difficult to track or update if the header name changes.
+
+**[Security Vulnerability]** The `isProxyTrusted` method relies on a custom HTTP header `X-Forwarded-Trusted-Proxy` to determine if a proxy is trusted. If the application is not behind a strictly configured network or if the proxy does not strip this header from incoming client requests, an attacker can spoof this header to bypass security checks, leading to potential authentication bypass or unauthorized access to sensitive features.
+
+**[Code Defect]** The implementation of isProxyTrusted() relies on a custom header 'X-Forwarded-Trusted-Proxy' without verifying the source IP address of the request. This allows any client to spoof the 'trusted' status by simply adding this header to their request, bypassing the security intended by proxy-trusted-addresses.
+
+**[Performance]** The isProxyTrusted method performs a configuration lookup (Configuration.getOptionalKcValue) on every single HTTP request. Configuration lookups can involve map lookups or string parsing, which is inefficient in a hot path.</note>
+</notesplit>
+<notesplit>
+<path>services/src/main/java/org/keycloak/services/x509/AbstractClientCertificateFromHttpHeadersLookup.java</path>
+<side>RIGHT</side>
+<from>120</from>
+<to>128</to>
+<note>**[Code Defect]** The log message uses 'sslClientCertHttpHeader' which is a field name, but the logic implies it is checking the trust status of the proxy. If isProxyTrusted() returns false, it logs that the header is not trusted, which might be misleading if the issue is actually that the request source is not in the trusted list.
+
+**[Maintainability and Readability]** The `getCertificateChain` method logs a warning when a proxy is not trusted, but returns `null`. This forces all callers to handle null checks, which is error-prone. Returning an empty array is generally preferred over null for collection-like return types.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/configuration/mappers/ProxyPropertyMappers.java</path>
+<side>RIGHT</side>
+<from>42</from>
+<to>45</to>
+<note>The `mapFrom` logic for `PROXY_TRUSTED_HEADER_ENABLED` passes `null` as the first argument to `proxyEnabled`. This makes the `proxyEnabled` method signature confusing, as it relies on a null check to determine behavior, which is a fragile design pattern.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/tests/integration/src/test/java/org/keycloak/it/cli/dist/ProxyHostnameV2DistTest.java</path>
+<side>RIGHT</side>
+<from>74</from>
+<to>74</to>
+<note>Duplicate call to `assertForwardedHeaderIsIgnored()` in `testProxyNotTrusted` test method.</note>
+</notesplit>
+<notesplit>
+<path>services/src/main/java/org/keycloak/services/x509/AbstractClientCertificateFromHttpHeadersLookup.java</path>
+<side>RIGHT</side>
+<from>135</from>
+<to>147</to>
+<note>String.format is used inside a loop to construct header keys. This creates unnecessary temporary objects and performs regex-like parsing on every iteration.</note>
+</notesplit>

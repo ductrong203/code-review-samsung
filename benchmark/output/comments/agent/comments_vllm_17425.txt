@@ -1,0 +1,42 @@
+<notesplit>
+<path>vllm/model_executor/layers/quantization/awq_marlin.py</path>
+<side>RIGHT</side>
+<from>138</from>
+<to>138</to>
+<note>Typo in method name 'warning_one' instead of 'warning_once'. This will cause an AttributeError at runtime when the code path is executed.</note>
+</notesplit>
+<notesplit>
+<path>vllm/model_executor/layers/quantization/awq_marlin.py</path>
+<side>RIGHT</side>
+<from>142</from>
+<to>142</to>
+<note>Typo in method name 'warning_one' instead of 'warning_once'. This will cause an AttributeError at runtime when the code path is triggered.</note>
+</notesplit>
+<notesplit>
+<path>vllm/model_executor/models/qwen3_moe.py</path>
+<side>RIGHT</side>
+<from>526</from>
+<to>526</to>
+<note>Incomplete implementation: The __init__ method for Qwen3MoeAttention is cut off mid-line, which will cause a SyntaxError.</note>
+</notesplit>
+<notesplit>
+<path>vllm/model_executor/guided_decoding/xgrammar_decoding.py</path>
+<side>RIGHT</side>
+<from>216</from>
+<to>216</to>
+<note>Incomplete code: The variable 'convert_lar' is referenced but not defined or completed, leading to a NameError.</note>
+</notesplit>
+<notesplit>
+<path>vllm/model_executor/model_loader/weight_utils.py</path>
+<side>RIGHT</side>
+<from>766</from>
+<to>766</to>
+<note>Syntax error: The string 'modelo' is cut off inside the JSON config logic, likely intended to be 'modelopt'.</note>
+</notesplit>
+<notesplit>
+<path>vllm/model_executor/models/qwen3_moe.py</path>
+<side>RIGHT</side>
+<from>484</from>
+<to>484</to>
+<note>Redundant assignment 'final_hidden_states = final_hidden_states' does nothing and reduces code clarity.</note>
+</notesplit>

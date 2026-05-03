@@ -1,0 +1,35 @@
+<notesplit>
+<path>graphrag/general/extractor.py</path>
+<side>RIGHT</side>
+<from>204</from>
+<to>204</to>
+<note>**[Code Defect]** The list method `.extend()` returns `None` in Python. Calling `sorted(set(None))` will raise a `TypeError` at runtime, causing the node merging process to crash.
+
+**[Maintainability and Readability]** The code uses `list.extend()` inside a `sorted(set(...))` call. `list.extend()` returns `None` in Python, which will cause a `TypeError` when passed to `set()`. This logic is broken.
+
+**[Performance]** The list.extend() method returns None in Python. Calling sorted(set(list.extend(...))) will result in a TypeError because set() will receive None, and the original list will be modified in-place to None, causing subsequent operations to fail or produce incorrect data.
+
+**[Security Vulnerability]** The code uses list.extend() which returns None in Python. Calling sorted(set(None)) will raise a TypeError at runtime, potentially leading to a Denial of Service (DoS) when the graph merging logic is triggered.</note>
+</notesplit>
+<notesplit>
+<path>graphrag/general/extractor.py</path>
+<side>RIGHT</side>
+<from>214</from>
+<to>215</to>
+<note>**[Maintainability and Readability]** The code uses `list.extend()` inside a `sorted(set(...))` call. `list.extend()` returns `None` in Python, which will cause a `TypeError` when passed to `set()`. This logic is broken.
+
+**[Code Defect]** The list method `.extend()` returns `None` in Python. Calling `sorted(set(None))` will raise a `TypeError` at runtime, causing the edge merging process to crash.
+
+**[Performance]** Similar to the previous issue, list.extend() returns None. The code attempts to perform set operations on the result of extend(), which will raise a TypeError and break the merging logic.
+
+**[Security Vulnerability]** The code uses list.extend() which returns None in Python. Calling sorted(set(None)) will raise a TypeError at runtime, potentially leading to a Denial of Service (DoS) when the graph merging logic is triggered.</note>
+</notesplit>
+<notesplit>
+<path>graphrag/utils.py</path>
+<side>RIGHT</side>
+<from>442</from>
+<to>442</to>
+<note>**[Maintainability and Readability]** The line is excessively long and contains nested lambda functions, making it difficult to read and debug. The logic is also tightly coupled to global `settings` and `search` objects.
+
+**[Performance]** The code spawns a new thread for every single edge deletion in a loop. If there are many edges to remove, this creates significant overhead due to thread creation and context switching.</note>
+</notesplit>

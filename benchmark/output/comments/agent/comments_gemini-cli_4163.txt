@@ -1,0 +1,51 @@
+<notesplit>
+<path>packages/core/src/tools/read-many-files.ts</path>
+<side>RIGHT</side>
+<from>378</from>
+<to>381</to>
+<note>The tool processes files sequentially using `await processSingleFileContent` inside a loop. For a large number of files, this will be significantly slower than parallel processing.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/tools/read-many-files.ts</path>
+<side>RIGHT</side>
+<from>305</from>
+<to>315</to>
+<note>**[Performance]** The code performs `path.relative` and `path.resolve` inside a loop over file entries. While not critical for small sets, this is redundant and inefficient for large file discovery results.
+
+**[Maintainability and Readability]** The logic for filtering files (git-ignore, path resolution) is becoming complex and deeply nested within the `execute` method. This makes the tool harder to test and maintain.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/tools/edit.ts</path>
+<side>RIGHT</side>
+<from>73</from>
+<to>73</to>
+<note>The class `EditTool` now relies on `this.config.getTargetDir()` throughout its methods. While this removes the need for a local `rootDirectory` property, it creates a tight coupling where every method must access the config object. Consider passing the target directory as a constructor dependency or a dedicated property to improve encapsulation.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/tools/read-many-files.ts</path>
+<side>RIGHT</side>
+<from>293</from>
+<to>293</to>
+<note>The `ReadManyFilesTool` class uses `this.config.getTargetDir()` repeatedly in loops and logic. This is less efficient and less readable than caching the value in a private property during initialization.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/tools/glob.ts</path>
+<side>RIGHT</side>
+<from>155</from>
+<to>155</to>
+<note>The `execute` method performs path resolution and validation logic that is partially duplicated in `validateToolParams`. This violates the DRY principle and increases the risk of inconsistent path handling.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/utils/fileUtils.ts</path>
+<side>RIGHT</side>
+<from>39</from>
+<to>40</to>
+<note>`path.resolve` is called repeatedly on the same `rootDirectory` inside `isWithinRoot`. This function is called frequently in loops (e.g., in `ReadManyFilesTool` and `GlobTool`).</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/tools/write-file.ts</path>
+<side>RIGHT</side>
+<from>122</from>
+<to>122</to>
+<note>The `WriteFileTool` performs a manual `fs.existsSync` check followed by `fs.lstatSync`. This is prone to race conditions (TOCTOU) and is slightly verbose for a validation method.</note>
+</notesplit>

@@ -1,0 +1,46 @@
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/SearchService.java</path>
+<side>RIGHT</side>
+<from>578</from>
+<to>591</to>
+<note>**[Maintainability and Readability]** The `maybeWrapListenerForStackTrace` method has grown to include logging logic, violating the Single Responsibility Principle. It is now responsible for both wrapping listeners and determining/executing logging policy.
+
+**[Performance]** The messageSupplier lambda captures variables and performs string formatting inside a hot path (search failure). While it uses a supplier, the underlying format() call is still executed whenever the log level is enabled, which can be frequent during search failures.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/search/ErrorTraceHelper.java</path>
+<side>RIGHT</side>
+<from>63</from>
+<to>125</to>
+<note>**[Maintainability and Readability]** The methods `addSeenLoggingExpectations` and `addUnseenLoggingExpectations` contain significant code duplication in how they construct the log expectation patterns and iterate over shards.
+
+**[Performance]** The addSeenLoggingExpectations method performs stream operations and string concatenation inside a loop over shards. While this is test code, it can become a bottleneck if numShards is large.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/SearchService.java</path>
+<side>RIGHT</side>
+<from>593</from>
+<to>593</to>
+<note>The check `ExceptionsHelper.status(e).getStatus() < 500` is potentially unsafe if `ExceptionsHelper.status(e)` returns null, which can happen for certain types of exceptions (e.g., those not mapping to a RestStatus).</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/SearchService.java</path>
+<side>RIGHT</side>
+<from>564</from>
+<to>572</to>
+<note>The method `maybeWrapListenerForStackTrace` now requires 6 parameters. This exceeds the recommended limit for function parameters, making the method signature hard to read and maintain.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/test/MockLog.java</path>
+<side>RIGHT</side>
+<from>345</from>
+<to>345</to>
+<note>Potential NullPointerException: `event.getThrown().getMessage()` is called without checking if `event.getThrown()` returns a null message.</note>
+</notesplit>
+<notesplit>
+<path>server/src/test/java/org/elasticsearch/search/SearchServiceTests.java</path>
+<side>RIGHT</side>
+<from>151</from>
+<to>151</to>
+<note>The test `testMaybeWrapListenerForStackTrace` now requires passing multiple dummy values (node, shardId, taskId) to satisfy the new method signature, which adds noise to the test setup.</note>
+</notesplit>

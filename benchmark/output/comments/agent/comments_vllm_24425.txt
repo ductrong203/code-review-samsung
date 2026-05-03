@@ -1,0 +1,9 @@
+<notesplit>
+<path>vllm/distributed/kv_transfer/kv_connector/v1/multi_connector.py</path>
+<side>RIGHT</side>
+<from>90</from>
+<to>100</to>
+<note>**[Maintainability and Readability]** The shutdown implementation swallows all but the last exception. If multiple connectors fail during shutdown, the earlier exceptions are lost, making debugging difficult.
+
+**[Code Defect]** The shutdown method overwrites the 'exception' variable if multiple connectors fail. Only the exception from the last failing connector is raised, causing previous exceptions to be swallowed and lost.</note>
+</notesplit>

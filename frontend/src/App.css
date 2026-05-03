@@ -7,7 +7,7 @@
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background: var(--bg-primary);
+  background: transparent;
 }
 
 .app-main {
@@ -16,4 +16,25 @@
   flex-direction: column;
   height: 100vh;
   min-width: 0;
+  position: relative;
+}
+
+.app-main::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    160deg,
+    rgba(11, 92, 255, 0.1) 0%,
+    rgba(11, 92, 255, 0) 34%,
+    rgba(45, 125, 255, 0.09) 78%,
+    rgba(45, 125, 255, 0) 100%
+  );
+}
+
+@media (max-width: 960px) {
+  .app-layout {
+    flex-direction: column;
+  }
 }

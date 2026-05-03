@@ -1,0 +1,27 @@
+<notesplit>
+<path>src/Disks/DiskLocalCheckThread.cpp</path>
+<side>RIGHT</side>
+<from>88</from>
+<to>89</to>
+<note>**[Code Defect]** The CurrentMetrics update logic is flawed because it is called at the end of the run() method, but the run() method can return early (line 49) or schedule tasks and exit without reaching the update logic. This leads to inconsistent metric states if the disk status changes during these early exits.
+
+**[Performance]** The metrics are updated on every iteration of the disk check loop, even if the disk status has not changed. This results in redundant atomic operations (CurrentMetrics::add) which can cause unnecessary cache contention in high-concurrency environments.
+
+The metric update logic is executed even when the disk check is in the 'retry' phase (lines 73-77). If the disk is temporarily inaccessible but not yet marked 'broken', the metrics will be updated based on the current state, potentially causing unnecessary metric churn or incorrect reporting if the state hasn't actually transitioned.
+
+**[Maintainability and Readability]** The metrics update logic is duplicated at the end of the 'run' method. If more status flags are added in the future, this will become harder to maintain.</note>
+</notesplit>
+<notesplit>
+<path>src/Disks/DiskLocalCheckThread.cpp</path>
+<side>RIGHT</side>
+<from>37</from>
+<to>40</to>
+<note>The helper function 'diskStatusChange' is defined in the global namespace of a source file. This can lead to naming collisions and pollutes the global scope.</note>
+</notesplit>
+<notesplit>
+<path>tests/integration/test_disk_checker/test.py</path>
+<side>RIGHT</side>
+<from>56</from>
+<to>113</to>
+<note>The test methods 'test_disk_readonly_status' and 'test_disk_broken_status' contain significant code duplication regarding setup, teardown, and retry logic for metric assertions.</note>
+</notesplit>

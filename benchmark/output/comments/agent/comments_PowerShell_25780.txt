@@ -1,0 +1,20 @@
+<notesplit>
+<path>src/System.Management.Automation/engine/remoting/common/RunspaceConnectionInfo.cs</path>
+<side>RIGHT</side>
+<from>2206</from>
+<to>2255</to>
+<note>**[Maintainability and Readability]** The manual PATH lookup logic duplicates functionality already provided by the .NET framework (e.g., searching PATH for an executable). This increases maintenance burden and risks subtle bugs compared to using standard APIs.
+
+**[Code Defect]** The check 'Path.IsPathFullyQualified(path)' will cause the manual PATH lookup to fail on Unix-like systems if the PATH contains relative paths (which are valid and common in shell environments). This prevents finding the ssh executable if it resides in a directory listed as a relative path in the environment variable.
+
+The StartSSHProcess method has become significantly more complex due to the addition of the manual PATH lookup logic, violating the Single Responsibility Principle. It now handles both process orchestration and environment-specific path resolution.
+
+**[Security Vulnerability]** The manual PATH lookup logic is vulnerable to DLL hijacking or binary planting. By iterating through the PATH environment variable and checking for the existence of 'sshCommand' (which is user-controlled or environment-controlled), an attacker who can influence the PATH or place a malicious executable in a directory listed in the PATH can cause the application to execute arbitrary code with the privileges of the PowerShell process.</note>
+</notesplit>
+<notesplit>
+<path>src/System.Management.Automation/engine/remoting/common/RunspaceConnectionInfo.cs</path>
+<side>RIGHT</side>
+<from>243</from>
+<to>253</to>
+<note>The code performs a synchronous File.Exists check inside a loop over the PATH environment variable. If the PATH contains many entries or network-mounted drives, this can cause significant latency and blocking I/O on the calling thread.</note>
+</notesplit>

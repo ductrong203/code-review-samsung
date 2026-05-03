@@ -1,0 +1,50 @@
+<notesplit>
+<path>spring-ai-alibaba-jmanus/src/main/java/com/alibaba/cloud/ai/example/manus/tool/browser/actions/NavigateAction.java</path>
+<side>RIGHT</side>
+<from>41</from>
+<to>44</to>
+<note>SSRF (Server-Side Request Forgery) vulnerability. The application allows an AI agent to navigate to arbitrary URLs provided by the user/model without validation or allowlisting. An attacker could use this to scan internal networks, access metadata services (e.g., 169.254.169.254), or perform unauthorized requests.</note>
+</notesplit>
+<notesplit>
+<path>spring-ai-alibaba-jmanus/src/main/java/com/alibaba/cloud/ai/example/manus/dynamic/agent/service/AgentServiceImpl.java</path>
+<side>RIGHT</side>
+<from>198</from>
+<to>201</to>
+<note>**[Code Defect]** Setting the deprecated systemPrompt to a single space (' ') instead of null or empty string may cause unexpected behavior in downstream logic that checks for blank strings or expects a null value, potentially leading to unnecessary processing or incorrect prompt concatenation.
+
+**[Maintainability and Readability]** Setting a system prompt to a single space (' ') as a workaround for a deprecated field is a 'magic value' hack that can lead to unexpected behavior in downstream LLM prompts.</note>
+</notesplit>
+<notesplit>
+<path>spring-ai-alibaba-jmanus/src/main/java/com/alibaba/cloud/ai/example/manus/tool/browser/actions/MoveToAndClickAction.java</path>
+<side>RIGHT</side>
+<from>46</from>
+<to>75</to>
+<note>**[Performance]** The code performs a synchronous scroll operation using 'instant' behavior and then immediately proceeds to mouse actions. In complex web pages, 'instant' scrolling may not trigger layout updates or element visibility before the click occurs, potentially leading to failed clicks or redundant retries.
+
+**[Maintainability and Readability]** The 'execute' method is becoming a 'God method' that handles scrolling, UI injection (debug markers), mouse interaction, and window management. The injection of raw JavaScript strings for DOM manipulation is error-prone and hard to read.
+
+**[Code Defect]** Potential NullPointerException: page.viewportSize() can return null if the page is closed or not fully initialized, which would cause a crash when calling .width or .height.
+
+**[Security Vulnerability]** DOM-based injection vulnerability. The code injects user-controlled coordinates (x, y) directly into a JavaScript string executed in the browser context via page.evaluate(). While the coordinates are integers, the lack of sanitization in the DOM injection logic could potentially be exploited if the input source is manipulated.</note>
+</notesplit>
+<notesplit>
+<path>spring-ai-alibaba-jmanus/src/main/java/com/alibaba/cloud/ai/example/manus/tool/browser/actions/InputTextAction.java</path>
+<side>RIGHT</side>
+<from>65</from>
+<to>88</to>
+<note>The 'execute' method uses a deeply nested try-catch-catch-catch structure to handle input strategies. This makes the logic hard to follow and maintain. It should be refactored into a strategy pattern or a cleaner sequence of attempts.</note>
+</notesplit>
+<notesplit>
+<path>spring-ai-alibaba-jmanus/src/main/java/com/alibaba/cloud/ai/example/manus/dynamic/agent/service/AgentServiceImpl.java</path>
+<side>RIGHT</side>
+<from>155</from>
+<to>165</to>
+<note>The 'updateEntityFromConfig' method performs business logic (adding TerminateTool) and entity mapping in one place. This violates the Single Responsibility Principle.</note>
+</notesplit>
+<notesplit>
+<path>spring-ai-alibaba-jmanus/src/main/java/com/alibaba/cloud/ai/example/manus/tool/browser/actions/MoveToAndClickAction.java</path>
+<side>RIGHT</side>
+<from>78</from>
+<to>85</to>
+<note>The code uses a stream filter to find a new page by URL after a click. If the browser context contains many open pages, this O(n) linear search on every click action is inefficient.</note>
+</notesplit>

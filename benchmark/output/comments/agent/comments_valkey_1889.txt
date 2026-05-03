@@ -1,0 +1,21 @@
+<notesplit>
+<path>src/networking.c</path>
+<side>RIGHT</side>
+<from>2785</from>
+<to>2785</to>
+<note>The variable 'client' is used in the serverLog call, but 'client' is a type name in this codebase (struct client). The variable holding the client string representation is 'client' (the sds string), but the code previously used 'client' as a variable name in the log call. However, looking at the context, 'client' is a type. The previous code likely had a variable named 'client' (the sds string) shadowing the type, or it was a bug in the original code. In the new code, 'client' is passed to serverLog, but it is not defined as a local variable in this scope.</note>
+</notesplit>
+<notesplit>
+<path>src/networking.c</path>
+<side>RIGHT</side>
+<from>2767</from>
+<to>2781</to>
+<note>The function setProtocolError has become overly complex due to nested conditional logic for log redaction. This violates the Single Responsibility Principle as the function is now responsible for both error handling and data sanitization logic.</note>
+</notesplit>
+<notesplit>
+<path>tests/integration/logging.tcl</path>
+<side>RIGHT</side>
+<from>113</from>
+<to>132</to>
+<note>The test code for 'hide-user-data-from-log' is duplicated with only minor variations in configuration. This makes the test suite harder to maintain if the testing pattern needs to change.</note>
+</notesplit>

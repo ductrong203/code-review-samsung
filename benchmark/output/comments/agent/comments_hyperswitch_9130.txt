@@ -1,0 +1,34 @@
+<notesplit>
+<path>crates/router/src/core/payments.rs</path>
+<side>RIGHT</side>
+<from>6943</from>
+<to>6947</to>
+<note>The logic in `is_payment_method_tokenization_enabled_for_connector` uses `&&` to chain the new `is_google_pay_pre_decrypt_type_connector_tokenization` check. If this function returns `false`, the entire expression short-circuits, potentially incorrectly disabling tokenization for other valid payment methods.</note>
+</notesplit>
+<notesplit>
+<path>crates/hyperswitch_connectors/src/connectors/checkout/transformers.rs</path>
+<side>RIGHT</side>
+<from>470</from>
+<to>515</to>
+<note>**[Maintainability and Readability]** The match block in `TryFrom` for `PaymentsRequest` has become significantly complex and deeply nested. This violates the Single Responsibility Principle for this conversion logic and makes it harder to read and maintain as more payment methods are added.
+
+**[Performance]** Unnecessary cloning of a large data structure (google_pay_decrypted_data) inside a hot path.
+
+Unnecessary cloning of the cryptogram field.</note>
+</notesplit>
+<notesplit>
+<path>crates/router/src/core/payments.rs</path>
+<side>RIGHT</side>
+<from>6985</from>
+<to>7008</to>
+<note>**[Maintainability and Readability]** The function `is_google_pay_pre_decrypt_type_connector_tokenization` duplicates the structural pattern of `is_apple_pay_pre_decrypt_type_connector_tokenization`. This is code duplication that should be abstracted.
+
+**[Code Defect]** The logic `!matches!(google_pay_pre_decrypt_flow_filter, Some(GooglePayPreDecryptFlow::NetworkTokenization))` returns `true` if the filter is `None` or `ConnectorTokenization`. This effectively forces `ConnectorTokenization` as the default behavior even if the configuration is missing or misconfigured, which might lead to unexpected behavior if the connector expects a different flow.</note>
+</notesplit>
+<notesplit>
+<path>crates/hyperswitch_connectors/src/connectors/checkout/transformers.rs</path>
+<side>RIGHT</side>
+<from>234</from>
+<to>242</to>
+<note>The field `_type` in `GooglePayPredecrypt` uses a leading underscore to avoid keyword collision, which is a common but slightly unidiomatic way to handle serialization in Rust.</note>
+</notesplit>

@@ -4,13 +4,14 @@ import { sendChatMessage } from '../api/chatApi';
 /**
  * Custom hook for managing chat state.
  * Handles message history, sending, loading state, and auto-scroll.
+ * Extended to pass through multi-agent review data (risk, stats, metadata).
  */
 export function useChat() {
   const [messages, setMessages] = useState([
     {
       id: 'welcome',
       role: 'bot',
-      content: '👋 Welcome to **CodeReview Bot**!\n\nPaste a GitHub Pull Request URL and I\'ll review the code changes for you.\n\n**Example:**\n`https://github.com/facebook/react/pull/28000`',
+      content: '👋 Welcome to **SSCR-BOT** — AI Code Review Agent!\n\nI use **4 specialized agents** to analyze your PR:\n- 🐛 **Defect Agent** — bugs, logic errors\n- 🔒 **Security Agent** — vulnerabilities, OWASP Top 10\n- ⚡ **Performance Agent** — bottlenecks, resource leaks\n- 📖 **Maintainability Agent** — code quality, SOLID\n\nPaste a GitHub PR URL to start!',
       timestamp: new Date(),
     },
   ]);
@@ -46,6 +47,11 @@ export function useChat() {
         comments: response.comments || [],
         prUrl: response.pr_url || null,
         metadata: response.metadata || null,
+        // Multi-agent extensions
+        riskAssessment: response.risk_assessment || null,
+        categoryStats: response.category_stats || null,
+        agentMetadata: response.agent_metadata || null,
+        reviewSummary: response.review_summary || '',
         timestamp: new Date(),
       };
 
@@ -69,7 +75,7 @@ export function useChat() {
       {
         id: 'welcome',
         role: 'bot',
-        content: '👋 Chat cleared! Paste a GitHub PR URL to start a new review.',
+        content: '👋 Chat cleared! Paste a GitHub PR URL to start a new multi-agent review.',
         timestamp: new Date(),
       },
     ]);

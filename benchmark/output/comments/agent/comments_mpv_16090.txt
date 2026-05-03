@@ -1,0 +1,55 @@
+<notesplit>
+<path>filters/f_auto_filters.c</path>
+<side>RIGHT</side>
+<from>33</from>
+<to>40</to>
+<note>**[Performance]** The vflip_process function performs a full filter drain and re-creation whenever the image format or vflip status changes. This is an expensive operation that can cause frame drops if it happens frequently during playback.
+
+**[Code Defect]** The vflip_process function reads a frame and then immediately returns if it's not a video frame, but it fails to call mp_subfilter_continue(&p->sub) or handle the frame reference, potentially causing a leak or stalling the filter chain.</note>
+</notesplit>
+<notesplit>
+<path>video/mp_image.c</path>
+<side>RIGHT</side>
+<from>1110</from>
+<to>1116</to>
+<note>**[Code Defect]** The vflip calculation uses matrix[0], matrix[4], matrix[1], and matrix[3]. In the context of a 3x3 display matrix, these indices correspond to the 2D affine transformation components. However, the logic assumes a specific matrix layout that may not hold for all display matrices, potentially resulting in incorrect flip detection.
+
+**[Maintainability and Readability]** The calculation of `vflip` using a determinant of the display matrix is complex and lacks explanatory comments regarding the math involved, making it difficult to verify or maintain.</note>
+</notesplit>
+<notesplit>
+<path>video/out/gpu/video.c</path>
+<side>RIGHT</side>
+<from>3753</from>
+<to>3756</to>
+<note>**[Performance]** The code calls mp_image_vflip(mpi) inside the render loop (pass_upload_image). This performs a CPU-based memory copy/reordering of the entire image buffer for every frame that requires a vertical flip, which is extremely inefficient for high-resolution video.
+
+**[Code Defect]** Calling mp_image_vflip(mpi) inside the render loop modifies the image data in-place. If this image is shared across multiple render passes or used by other parts of the pipeline, this will cause data corruption or inconsistent state.</note>
+</notesplit>
+<notesplit>
+<path>filters/f_auto_filters.c</path>
+<side>RIGHT</side>
+<from>332</from>
+<to>458</to>
+<note>The `vflip_process` function contains significant logic duplication with `rotate_process` (e.g., frame type checking, signaling, format checking, and filter insertion patterns). This logic should be abstracted into a shared helper or a more generic filter structure to improve maintainability.</note>
+</notesplit>
+<notesplit>
+<path>filters/f_auto_filters.c</path>
+<side>RIGHT</side>
+<from>46</from>
+<to>51</to>
+<note>When the filter state matches (vflip and imgfmt are unchanged), the code updates img->params.vflip to p->target_vflip. This modifies the input frame's parameters in-place, which is dangerous if the frame is shared or reused by other filters.</note>
+</notesplit>
+<notesplit>
+<path>video/out/vo_dmabuf_wayland.c</path>
+<side>RIGHT</side>
+<from>873</from>
+<to>878</to>
+<note>The addition of `0x0` in the `caps` bitmask is redundant and potentially confusing for future maintainers.</note>
+</notesplit>
+<notesplit>
+<path>video/out/vo_gpu_next.c</path>
+<side>RIGHT</side>
+<from>923</from>
+<to>924</to>
+<note>The matrix `{{1, 0}, {0, -1}}` is a magic constant. While mathematically correct for a vertical flip, it should be defined as a named constant or documented for clarity.</note>
+</notesplit>

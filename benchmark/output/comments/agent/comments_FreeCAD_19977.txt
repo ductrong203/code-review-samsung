@@ -1,0 +1,58 @@
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>RIGHT</side>
+<from>3516</from>
+<to>3525</to>
+<note>**[Code Defect]** The variable 'buf' is declared inside the 'if' condition scope (const auto buf = new char[++sz];) and then immediately used in the same expression. However, the 'delete [] buf;' call is outside that scope, leading to a compilation error (buf is undefined) and a memory leak if the scope were different.
+
+**[Maintainability and Readability]** The use of 'new char[++sz]' followed by a manual 'delete [] buf' is manual memory management that is prone to leaks if an exception occurs or if the function returns early. It also uses a raw pointer for a buffer.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>RIGHT</side>
+<from>302</from>
+<to>360</to>
+<note>The repeated calls to 'Base::InterpreterSingleton::addType' create a long, repetitive block of code that is difficult to maintain. Adding new types requires manual updates to this list, which is prone to error.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>RIGHT</side>
+<from>612</from>
+<to>612</to>
+<note>The vector 'docs' is populated by iterating over a map. While reserve() is used, the iteration itself is O(N). If this method is called frequently in a hot path, consider if the full vector copy is necessary or if a view/iterator could be used instead.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>RIGHT</side>
+<from>988</from>
+<to>989</to>
+<note>The variable name 'obj2' is non-descriptive and follows a 'numbered' naming pattern, which is a code smell indicating poor naming strategy.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>RIGHT</side>
+<from>1413</from>
+<to>1413</to>
+<note>The method performs a full copy of modules into a vector, followed by a sort and unique operation. This is O(N log N) complexity. If this is called frequently, the result should be cached.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>RIGHT</side>
+<from>1536</from>
+<to>1536</to>
+<note>Similar to getImportModules, this performs an O(N log N) sort and unique operation on every call. This is inefficient for repeated access.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>RIGHT</side>
+<from>386</from>
+<to>400</to>
+<note>The 'setupPythonException' function uses a lambda that captures 'module' by reference and 'str' by value. While functional, the manual registration of 13 different exception types is verbose and violates the DRY (Don't Repeat Yourself) principle.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>RIGHT</side>
+<from>2404</from>
+<to>2408</to>
+<note>The variable name 'args2' is non-descriptive and follows a 'numbered' naming pattern, which is a code smell.</note>
+</notesplit>

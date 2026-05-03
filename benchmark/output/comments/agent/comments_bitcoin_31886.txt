@@ -1,0 +1,27 @@
+<notesplit>
+<path>src/bitcoin-cli.cpp</path>
+<side>RIGHT</side>
+<from>466</from>
+<to>475</to>
+<note>**[Code Defect]** The logic `services.size() ? services[0].get_str() : ""` assumes that `services` is a UniValue array. If `services` is not an array (e.g., null or a different type), `services[0]` will trigger an assertion failure or crash in UniValue.
+
+**[Performance]** String concatenation in a loop using operator+ creates multiple temporary string objects, leading to O(n^2) complexity relative to the number of services.
+
+**[Maintainability and Readability]** The `ServicesList` function performs string manipulation (joining and case conversion) in a single pass that is hard to read and potentially inefficient. The logic for joining strings and then iterating to modify characters is non-idiomatic and obscures the intent.
+
+The loop `for (size_t i{1}; i < services.size(); ++i)` assumes `services` is an array. If `services` is not an array, `services.size()` may return 0 or behave unexpectedly, but accessing `services[i]` on a non-array UniValue is unsafe.</note>
+</notesplit>
+<notesplit>
+<path>src/bitcoin-cli.cpp</path>
+<side>RIGHT</side>
+<from>569</from>
+<to>569</to>
+<note>The `result` string construction is becoming overly complex with nested `strprintf` calls and conditional logic. This makes the output format difficult to maintain or adjust in the future.</note>
+</notesplit>
+<notesplit>
+<path>test/functional/interface_bitcoin_cli.py</path>
+<side>RIGHT</side>
+<from>93</from>
+<to>93</to>
+<note>The regex `r"^Local services:.+network"` is fragile. It assumes a specific output format that might change if the underlying service naming or formatting logic is updated, making the test brittle.</note>
+</notesplit>

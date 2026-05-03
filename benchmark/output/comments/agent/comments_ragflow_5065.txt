@@ -1,0 +1,30 @@
+<notesplit>
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>RIGHT</side>
+<from>34</from>
+<to>43</to>
+<note>**[Code Defect]** The `generateIframeSrc` function uses `location.origin`, which will cause a runtime error if accessed during Server-Side Rendering (SSR) or if the code is executed in an environment where `location` is not defined.
+
+**[Security Vulnerability]** The generateIframeSrc function constructs a URL using user-controlled input (token, form, beta, locale) without proper validation or sanitization. This can lead to Open Redirect or Cross-Site Scripting (XSS) if the iframe source is manipulated to point to malicious domains or inject malicious parameters.</note>
+</notesplit>
+<notesplit>
+<path>web/src/locales/config.ts</path>
+<side>RIGHT</side>
+<from>67</from>
+<to>76</to>
+<note>The `languageOptions` array is duplicated in `web/src/locales/config.ts`. This violates the DRY (Don't Repeat Yourself) principle and creates a maintenance burden where adding a new language requires updating multiple locations.</note>
+</notesplit>
+<notesplit>
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>RIGHT</side>
+<from>42</from>
+<to>52</to>
+<note>The `generateIframeSrc` function is tightly coupled to the component's state and external variables. It reconstructs the URL string manually, which is error-prone and hard to maintain as more parameters are added.</note>
+</notesplit>
+<notesplit>
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>RIGHT</side>
+<from>63</from>
+<to>82</to>
+<note>The 'Option' header is hardcoded as an `<h2>` tag inside the component. This lacks internationalization (i18n) support, unlike the other labels in the form.</note>
+</notesplit>

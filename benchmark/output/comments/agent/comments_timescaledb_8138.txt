@@ -1,0 +1,81 @@
+<notesplit>
+<path>tsl/src/compression/compression.c</path>
+<side>RIGHT</side>
+<from>1177</from>
+<to>1185</to>
+<note>The function `row_compressor_flush` calls `row_compressor_build_tuple` which switches to `per_row_ctx`, but then `row_compressor_flush` switches to `per_row_ctx` again before performing `heap_insert`. If `row_compressor_build_tuple` returns a tuple allocated in `per_row_ctx`, the subsequent `heap_insert` and `ts_catalog_index_insert` are safe, but the logic is redundant and potentially confusing regarding memory ownership.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression.c</path>
+<side>RIGHT</side>
+<from>1490</from>
+<to>1490</to>
+<note>The code uses `decompressor->attrmap->attnums[col]` to get the decompressed column number. If `col` exceeds the size of the `attrmap` (which is initialized based on `compressed_desc->natts`), this will cause an out-of-bounds memory access.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression.c</path>
+<side>RIGHT</side>
+<from>1343</from>
+<to>1410</to>
+<note>**[Performance]** The build_decompress_attrmap function uses a nested loop (O(N*M)) to map attributes by name. While N and M are typically small (number of columns), this is called during decompressor initialization and could be optimized to O(N+M) using a hash map or by sorting attributes if the number of columns is large.
+
+**[Maintainability and Readability]** The function build_decompress_attrmap is quite complex with nested loops and manual index tracking, making it hard to read and maintain.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression.c</path>
+<side>RIGHT</side>
+<from>1130</from>
+<to>1130</to>
+<note>The function row_compressor_append_row is marked as static but is called from other files (e.g., via function pointers or logic flow). It should be declared in the header if intended for external use, or the design should be reviewed.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression.c</path>
+<side>RIGHT</side>
+<from>1845</from>
+<to>1865</to>
+<note>**[Performance]** The index update logic in row_decompressor_decompress_row_to_table performs a nested loop over indexes and rows (O(Indexes * Rows)). While necessary for index maintenance, the repeated creation of a temporary ResultRelInfo and EState setup inside the loop is inefficient.
+
+**[Code Defect]** The logic for `indexstate_copy` creates a shallow copy of the `ResultRelInfo` and modifies `ri_IndexRelationDescs` and `ri_IndexRelationInfo` pointers. If the original `writer->indexstate` is modified or freed during the loop, this will lead to a dangling pointer or crash.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression_dml.c</path>
+<side>RIGHT</side>
+<from>555</from>
+<to>565</to>
+<note>The manual table_tuple_delete call inside decompress_batches_scan duplicates logic that should ideally be handled by the BulkWriter or a dedicated DML helper.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>RIGHT</side>
+<from>1942</from>
+<to>1945</to>
+<note>The function hypercore_decompress_update_segment manually manages the lifecycle of RowDecompressor and BulkWriter. If an error occurs between these calls, resources might leak.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression.c</path>
+<side>RIGHT</side>
+<from>1214</from>
+<to>1214</to>
+<note>The `row_compressor_clear_batch` function resets `per_row_ctx`. If `row_compressor_flush` is called, it performs `heap_insert` and `ts_catalog_index_insert` *before* calling `row_compressor_clear_batch`. This is correct, but if any future code adds logic that relies on the tuple existing after `row_compressor_clear_batch` is called, it will result in a use-after-free or invalid memory access.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression.c</path>
+<side>RIGHT</side>
+<from>1439</from>
+<to>1439</to>
+<note>The function row_decompressor_decompress_row_to_table now takes a BulkWriter, but the logic inside performs index updates by manually copying and modifying a ResultRelInfo struct. This is fragile and violates encapsulation.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression.c</path>
+<side>RIGHT</side>
+<from>1639</from>
+<to>1685</to>
+<note>The decompress_batch function performs multiple passes over the columns for every row in the batch. This can lead to cache misses and redundant iterator lookups.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression.h</path>
+<side>RIGHT</side>
+<from>121</from>
+<to>133</to>
+<note>The BulkWriter struct contains an EState pointer, but it is not clear who owns the lifecycle of this state (creation vs destruction).</note>
+</notesplit>

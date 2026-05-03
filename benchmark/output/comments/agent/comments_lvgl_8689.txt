@@ -1,0 +1,60 @@
+<notesplit>
+<path>src/others/xml/lv_xml_utils.c</path>
+<side>RIGHT</side>
+<from>266</from>
+<to>269</to>
+<note>**[Code Defect]** The loop `while(*src[0] == delimiter) { src++; }` increments the pointer to the pointer (src), not the pointer itself. This will cause an out-of-bounds read or crash when dereferencing the incremented pointer.
+
+**[Security Vulnerability]** Potential out-of-bounds read. The loop `while(*src[0] == delimiter)` increments the pointer `src` itself, but `src` is a pointer to a pointer (`char **`). This modifies the caller's pointer incorrectly and may read past the buffer if the string is malformed.
+
+**[Performance]** The `lv_xml_split_str` function uses a loop to skip multiple delimiters by incrementing the pointer `src`. However, `src` is a pointer to a pointer (`char **`), so `src++` increments the pointer to the pointer, not the string pointer itself. This is likely a logic error that could lead to incorrect string processing or memory access issues.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/lv_xml_style.c</path>
+<side>RIGHT</side>
+<from>281</from>
+<to>320</to>
+<note>**[Maintainability and Readability]** The logic for parsing grid column/row descriptor arrays is duplicated in both `lv_xml_style_register` and `apply_styles` in `lv_xml_obj_parser.c`. This violates the DRY (Don't Repeat Yourself) principle.
+
+**[Performance]** The code performs a linear scan of the string to count spaces, followed by another pass to split and parse the string. This can be optimized into a single pass.
+
+**[Security Vulnerability]** Potential heap-based buffer overflow. The code calculates `item_cnt` by counting spaces in `value`, but `lv_xml_split_str` might return more tokens than spaces if there are multiple spaces or trailing/leading spaces, leading to an out-of-bounds write in `dsc_array`.
+
+**[Code Defect]** The loop variable 'item_cnt' is used to allocate memory, but it is not initialized to 0 before the loop that counts spaces. This will lead to an incorrect allocation size.
+
+The code allocates memory for `dsc_array` but explicitly comments that it is not freed. This creates a memory leak, as the style system does not provide a mechanism to clean up these arrays.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/parsers/lv_xml_obj_parser.c</path>
+<side>RIGHT</side>
+<from>900</from>
+<to>913</to>
+<note>**[Code Defect]** The loop variable 'item_cnt' is used to allocate memory, but it is not initialized to 0 before the loop that counts spaces. This will lead to an incorrect allocation size.
+
+**[Performance]** Similar to the style parser, this performs a redundant linear scan to count spaces before parsing the grid descriptor array.
+
+**[Security Vulnerability]** Potential heap-based buffer overflow. Similar to the issue in lv_xml_style.c, the allocation size is based on space count, which is unreliable for tokenizing strings. This can lead to writing past the end of `dsc_array`.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/parsers/lv_xml_obj_parser.c</path>
+<side>RIGHT</side>
+<from>905</from>
+<to>937</to>
+<note>**[Maintainability and Readability]** The logic for parsing grid column/row descriptor arrays is duplicated in both `lv_xml_style_register` and `apply_styles` in `lv_xml_obj_parser.c`. This violates the DRY (Don't Repeat Yourself) principle.
+
+The code allocates memory for `dsc_array` and relies on `lv_event_free_user_data_cb` to free it on `LV_EVENT_DELETE`. This is fragile because it assumes the object will always be deleted and that the event callback is correctly registered, which is a common source of memory leaks in complex UI trees.</note>
+</notesplit>
+<notesplit>
+<path>src/others/observer/lv_observer.c</path>
+<side>RIGHT</side>
+<from>796</from>
+<to>837</to>
+<note>The function `lv_spangroup_bind_span_text` contains significant logic for type checking and format string validation that is repeated in other binding functions. This logic should be centralized.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/parsers/lv_xml_label_parser.c</path>
+<side>RIGHT</side>
+<from>73</from>
+<to>73</to>
+<note>The code uses `(void *) fmt` cast. While functional, it is cleaner to pass `fmt` directly as `void *` since `lv_event_free_user_data_cb` expects a `void *`.</note>
+</notesplit>

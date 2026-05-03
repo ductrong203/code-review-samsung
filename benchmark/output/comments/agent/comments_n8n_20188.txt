@@ -1,0 +1,24 @@
+<notesplit>
+<path>packages/cli/src/controllers/users.controller.ts</path>
+<side>RIGHT</side>
+<from>74</from>
+<to>105</to>
+<note>**[Performance]** The code performs Zod schema parsing inside a loop over the user list. Zod parsing is computationally expensive due to object creation and validation logic. For large user lists, this will significantly increase CPU usage and latency.
+
+**[Maintainability and Readability]** The logic for determining which schema to use is tightly coupled to the controller. Using 'parse' inside a loop for every user is inefficient and makes the controller logic harder to read as more authorization rules are added.
+
+**[Code Defect]** The `removeSupplementaryFields` method uses `userDetailSchema.parse(user)` and `userBaseSchema.parse(user)`. If the `publicUsers` objects (which are `Partial<PublicUser>`) contain extra fields not defined in the Zod schemas, `parse` will throw an error. Since `PublicUser` objects often contain database-specific fields, this will cause the API to crash for users who don't have the `user:create` scope.
+
+**[Security Vulnerability]** The use of `zod.parse()` on database-retrieved objects (`publicUsers`) can lead to runtime exceptions if the database schema and Zod schema drift, potentially causing a Denial of Service (DoS) for the API endpoint. Furthermore, if the `publicUsers` object contains unexpected properties that are not stripped by `parse()`, it may lead to information disclosure if those properties are serialized into the response.
+
+The method performs direct mutation of the 'publicUsers' array elements (using 'delete'). Mutating input parameters in a controller method is a side effect that can lead to unpredictable behavior if the array is referenced elsewhere.
+
+The method 'removeSupplementaryFields' violates the Single Responsibility Principle. It is responsible for both cleaning up database-specific fields (deleting properties from objects) and enforcing authorization-based schema validation. These concerns should be separated.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/test/integration/users.api.test.ts</path>
+<side>RIGHT</side>
+<from>785</from>
+<to>803</to>
+<note>The test uses a hardcoded array of 'restrictionsFields' and iterates through them with manual 'expect' calls. This is brittle and creates duplication if the schema changes.</note>
+</notesplit>

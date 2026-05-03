@@ -1,0 +1,30 @@
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/lucene/search/uhighlight/QueryMaxAnalyzedOffset.java</path>
+<side>RIGHT</side>
+<from>1</from>
+<to>30</to>
+<note>**[Maintainability and Readability]** The class name 'QueryMaxAnalyzedOffset' is misleading. It acts as a wrapper/factory for an integer offset value, not an offset itself. A name like 'MaxAnalyzedOffsetResolver' or 'AnalyzedOffsetConfig' would better reflect its responsibility.
+
+The method name 'getNotNull()' is non-standard and slightly confusing. It implies a null-check, but the class is designed to be instantiated only when a value exists. 'getValue()' or 'offset()' would be more idiomatic.</note>
+</notesplit>
+<notesplit>
+<path>server/src/test/java/org/elasticsearch/search/fetch/subphase/highlight/HighlightBuilderTests.java</path>
+<side>RIGHT</side>
+<from>580</from>
+<to>580</to>
+<note>The test case `testInvalidMaxAnalyzedOffset` uses `randomIntBetween(-100, -1)` to test invalid values. However, -1 is now a valid value (as per the PR description and implementation), so this test will fail or produce false negatives.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/lucene/search/uhighlight/CustomUnifiedHighlighter.java</path>
+<side>RIGHT</side>
+<from>125</from>
+<to>145</to>
+<note>The error message construction in 'highlightField' is extremely long and complex, making it hard to read and maintain. It mixes logic, string concatenation, and multiple variable references.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/fetch/subphase/highlight/PlainHighlighter.java</path>
+<side>RIGHT</side>
+<from>122</from>
+<to>142</to>
+<note>There is significant code duplication between 'PlainHighlighter.java' and 'CustomUnifiedHighlighter.java' regarding the validation and error reporting of 'max_analyzed_offset'.</note>
+</notesplit>

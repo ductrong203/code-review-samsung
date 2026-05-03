@@ -1,0 +1,71 @@
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>RIGHT</side>
+<from>114</from>
+<to>117</to>
+<note>**[Maintainability and Readability]** The function segmentby_qual_walker fetches HypercoreInfo inside a loop/walker. This is redundant and potentially expensive if called frequently during plan processing.
+
+**[Code Defect]** RelationGetHypercoreInfo(qpc->rel) is called inside a walker. If any operation within the walker triggers a table_open or other cache-invalidating operation, the returned pointer becomes dangling. While this specific walker is simple, it is part of a pattern in this PR that ignores the documented risk of rd_amcache invalidation.
+
+**[Performance]** Calling RelationGetHypercoreInfo() inside a recursive walker (segmentby_qual_walker) is inefficient. This function is called for every node in the expression tree, leading to redundant cache lookups.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>RIGHT</side>
+<from>236</from>
+<to>239</to>
+<note>**[Code Defect]** RelationGetHypercoreInfo(qpi->rel) is called after potential operations that could invalidate the cache. This is a recurring pattern in the PR that violates the safety requirement noted in the comments of hypercore_handler.c.
+
+**[Maintainability and Readability]** Redundant fetching of HypercoreInfo in process_opexpr. This function is called repeatedly during qualification processing.
+
+**[Performance]** Calling RelationGetHypercoreInfo() inside process_opexpr, which is called repeatedly during qual processing, causes redundant lookups.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>RIGHT</side>
+<from>1770</from>
+<to>1773</to>
+<note>The call to RelationGetHypercoreInfo(rel) inside whole_segment_delete_state_create is unsafe because it is called after table_open() (which can trigger cache invalidation) and the result is used to access fields of the HypercoreInfo structure. If the cache was invalidated, this pointer could be dangling or point to invalid memory.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>RIGHT</side>
+<from>1864</from>
+<to>1864</to>
+<note>The code fetches HypercoreInfo via RelationGetHypercoreInfo(relation) and then calls is_whole_segment_delete. Inside that function, it calls whole_segment_delete_state_create, which again calls RelationGetHypercoreInfo(rel). Since table_open() was called in between, the first pointer is potentially invalid, and the second call is also unsafe as it relies on the relation's rd_amcache which may have been cleared.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>RIGHT</side>
+<from>1748</from>
+<to>1752</to>
+<note>Repeated calls to RelationGetHypercoreInfo() inside a loop or hot path can be inefficient as it performs cache lookups and potential memory management checks. The info should be fetched once and passed as a parameter.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>RIGHT</side>
+<from>1760</from>
+<to>1763</to>
+<note>Repeated calls to RelationGetHypercoreInfo() inside a function that already takes 'rel' as an argument. This is inefficient and obscures the fact that the info is being re-fetched due to potential invalidation.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>RIGHT</side>
+<from>1843</from>
+<to>1843</to>
+<note>The code relies on the side effect that RelationGetHypercoreInfo() might return different data after table_open(). This is a fragile design pattern that makes the code hard to reason about.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>RIGHT</side>
+<from>3892</from>
+<to>3895</to>
+<note>Calling RelationGetHypercoreInfo() inside a loop over index attributes (convert_index_only_scans) is inefficient. The info should be fetched once outside the loop.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>RIGHT</side>
+<from>1033</from>
+<to>1033</to>
+<note>The QualProcessState struct is initialized with a Relation, but the code often needs the HypercoreInfo. This leads to repeated calls to RelationGetHypercoreInfo throughout the file.</note>
+</notesplit>

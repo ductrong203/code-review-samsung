@@ -1,0 +1,30 @@
+<notesplit>
+<path>packages/react-reconciler/src/ReactFiberComponentStack.js</path>
+<side>RIGHT</side>
+<from>135</from>
+<to>141</to>
+<note>**[Code Defect]** The logic inside the ViewTransitionComponent case in getOwnerStackByFiberInDev contains a copy-paste error where it incorrectly references 'SuspenseList' instead of 'ViewTransition' when adding to the info string.
+
+**[Maintainability and Readability]** The 'ViewTransitionComponent' case in 'getOwnerStackByFiberInDev' contains a logic error where it was previously using 'SuspenseList' as the frame name, which is now corrected but highlights a fragile pattern of manual string-based frame naming.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-devtools-shared/src/__tests__/storeComponentFilters-test.js</path>
+<side>RIGHT</side>
+<from>135</from>
+<to>306</to>
+<note>Significant code duplication across 'should filter Suspense', 'should filter Activity', and 'should filter ViewTransition' tests. These tests share identical logic patterns (render, check snapshot, update filter, check snapshot, update filter, check snapshot).</note>
+</notesplit>
+<notesplit>
+<path>packages/react-devtools-shared/src/backend/fiber/renderer.js</path>
+<side>RIGHT</side>
+<from>388</from>
+<to>537</to>
+<note>The 'getInternalReactConstants' function contains massive, repetitive blocks of code for different React versions. This makes the function extremely long and difficult to maintain.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-reconciler/src/ReactFiberBeginWork.js</path>
+<side>RIGHT</side>
+<from>871</from>
+<to>911</to>
+<note>The 'updateActivityComponent' function duplicates logic found in 'updateOffscreenComponent'. This violates the DRY principle and increases the risk of divergence if the underlying logic for offscreen/activity components changes.</note>
+</notesplit>

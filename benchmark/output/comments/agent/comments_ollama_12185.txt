@@ -1,0 +1,47 @@
+<notesplit>
+<path>runner/ollamarunner/runner.go</path>
+<side>RIGHT</side>
+<from>554</from>
+<to>557</to>
+<note>**[Code Defect]** The logic for appending to batchOutputs uses `len(batchInputs)-1`. If `batchInputs` is empty (which can happen at the start of a batch), this results in an index of -1, causing an out-of-bounds error or incorrect data.
+
+**[Performance]** The logic inside the loop appends to batchOutputs based on conditions. If the number of sequences or inputs is large, this slice growth can cause frequent reallocations.
+
+**[Security Vulnerability]** The logic for appending to batchOutputs relies on the length of batchInputs. If batchInputs is manipulated or if the sequence logic is flawed, this could lead to an out-of-bounds access or incorrect indexing when the model later processes these indices in the forward pass, potentially leading to memory corruption or information disclosure.
+
+**[Maintainability and Readability]** The logic for appending to batchOutputs is now conditional on 'seq.embeddingOnly'. This introduces a side effect where the batch structure depends on the sequence type, making the batch construction logic harder to reason about and test.</note>
+</notesplit>
+<notesplit>
+<path>runner/ollamarunner/runner.go</path>
+<side>RIGHT</side>
+<from>707</from>
+<to>708</to>
+<note>**[Code Defect]** The variable `outputs` is used to calculate `vocabSize`, but `outputs` is a `ml.Tensor` (from `model.Forward`), not a slice. Accessing `len(outputs)` on a tensor object in this codebase typically returns the number of dimensions or a specific dimension, not the total element count, leading to an incorrect `vocabSize` calculation.
+
+**[Performance]** Accessing Dim(0) on a tensor inside a loop for every sequence is potentially expensive depending on the underlying implementation of the tensor object.
+
+**[Security Vulnerability]** The calculation of vocabSize uses division of the total output length by the number of output indices. If activeBatch.batch.Outputs.Dim(0) is zero, this will cause a runtime panic (division by zero), leading to a Denial of Service (DoS) for the runner.
+
+**[Maintainability and Readability]** Accessing 'activeBatch.batch.Outputs.Dim(0)' repeatedly in logs and calculations is verbose. Since this value is used for vocab size calculation, it should be extracted into a descriptive variable.</note>
+</notesplit>
+<notesplit>
+<path>model/input/input.go</path>
+<side>RIGHT</side>
+<from>54</from>
+<to>68</to>
+<note>The Batch struct fields are reordered, which is fine, but the 'Outputs' field type was changed from []int32 to ml.Tensor. This change is inconsistent with other fields like 'Positions' and 'Sequences' which remain as slices. This inconsistency increases cognitive load for developers interacting with the Batch struct.</note>
+</notesplit>
+<notesplit>
+<path>model/models/gemma3/model_text.go</path>
+<side>RIGHT</side>
+<from>196</from>
+<to>196</to>
+<note>The code now directly accesses 'batch.Outputs' inside the loop. This creates a tight coupling between the model's internal layer iteration and the batch structure. If the batch structure changes, this logic breaks in multiple places across different model implementations.</note>
+</notesplit>
+<notesplit>
+<path>model/models/gemma3/model_text.go</path>
+<side>RIGHT</side>
+<from>184</from>
+<to>188</to>
+<note>The loop appends to the 'except' slice for every image patch. This causes repeated memory allocations as the slice grows.</note>
+</notesplit>

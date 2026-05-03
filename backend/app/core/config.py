@@ -2,6 +2,7 @@
 Code Review Bot — Core Configuration
 
 Loads environment variables and provides typed settings via Pydantic.
+Extended with multi-agent system settings.
 """
 from pydantic_settings import BaseSettings
 from pydantic import Field
@@ -28,6 +29,24 @@ class Settings(BaseSettings):
 
     # --- AACR-Bench ---
     AACR_BENCH_PATH: str = Field(default="../../aacr-bench", description="Path to AACR-Bench repo")
+
+    # --- Multi-Agent System ---
+    AGENT_PARALLEL: bool = Field(
+        default=True,
+        description="Run agents in parallel (True) or sequential (False)",
+    )
+    AGENT_CONFIDENCE_THRESHOLD: float = Field(
+        default=0.3,
+        description="Minimum confidence threshold for findings (0.0-1.0)",
+    )
+    MAX_FILE_CONTEXT_CHARS: int = Field(
+        default=10000,
+        description="Maximum characters of full file content to include per file",
+    )
+    VERIFICATION_ENABLED: bool = Field(
+        default=True,
+        description="Enable consensus verification and deduplication",
+    )
 
     # --- Server ---
     HOST: str = Field(default="0.0.0.0", description="Server host")

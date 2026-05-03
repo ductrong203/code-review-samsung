@@ -1,0 +1,70 @@
+<notesplit>
+<path>src/nodes/utils/RemapNode.js</path>
+<side>RIGHT</side>
+<from>24</from>
+<to>24</to>
+<note>The JSDoc parameter name 'inLowNode' is duplicated, and the second one should be 'inHighNode' to match the constructor signature.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/pmrem/PMREMNode.js</path>
+<side>RIGHT</side>
+<from>200</from>
+<to>200</to>
+<note>The setter for 'value' is defined, but the corresponding getter was moved below it, potentially causing issues if the class is instantiated or accessed before the getter is defined in the prototype chain.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/geometry/RangeNode.js</path>
+<side>RIGHT</side>
+<from>105</from>
+<to>113</to>
+<note>The loop performs random number generation and array assignment for every instance in the range. For large instance counts, this is an O(n) operation that blocks the main thread during setup.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/pmrem/PMREMNode.js</path>
+<side>RIGHT</side>
+<from>175</from>
+<to>175</to>
+<note>The updateBefore method performs a version check and potential texture regeneration every frame. If the texture is not changing, this is redundant work.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/NodeBuilder.js</path>
+<side>RIGHT</side>
+<from>1871</from>
+<to>1871</to>
+<note>The parameter name 'shaderNode' in the JSDoc is descriptive, but the implementation logic for flowShaderNode is complex and lacks internal comments explaining the flow generation process.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/Node.js</path>
+<side>RIGHT</side>
+<from>125</from>
+<to>128</to>
+<note>The JSDoc @param tag for 'value' is redundant and potentially confusing because the setter 'needsUpdate' is a property accessor, not a function call in the traditional sense.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/utils/SplitNode.js</path>
+<side>RIGHT</side>
+<from>42</from>
+<to>45</to>
+<note>The JSDoc type for 'components' was changed from {Node} to {string}, which is correct, but the property name 'components' is slightly ambiguous as it refers to swizzle characters.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/utils/StorageArrayElementNode.js</path>
+<side>RIGHT</side>
+<from>44</from>
+<to>47</to>
+<note>The JSDoc @param {Node} value tag is present on a setter, which is redundant as the type is already defined by the @type tag.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/utils/MaxMipLevelNode.js</path>
+<side>RIGHT</side>
+<from>65</from>
+<to>75</to>
+<note>The update method is called every frame and performs property access and Math.log2 calculations. While cheap, it is redundant if the texture dimensions have not changed.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/Node.js</path>
+<side>RIGHT</side>
+<from>532</from>
+<to>532</to>
+<note>The @abstract tag is added to methods that are likely intended to be overridden, but the base class does not throw an error if they are not implemented, which can lead to silent failures.</note>
+</notesplit>

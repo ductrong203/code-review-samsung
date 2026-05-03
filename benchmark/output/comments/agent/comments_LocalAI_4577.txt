@@ -1,0 +1,79 @@
+<notesplit>
+<path>backend/cpp/llama/grpc-server.cpp</path>
+<side>RIGHT</side>
+<from>2417</from>
+<to>2417</to>
+<note>The code uses `result.result_json.at("timings")` which throws an exception if the key does not exist, despite the preceding `contains` check. While the `contains` check prevents the crash, using `at` is brittle. More importantly, the `value` method is used correctly on the result of `at`, but if `timings` is not an object (e.g., null or a different type), `at` will still succeed but the subsequent `value` call will throw an exception.</note>
+</notesplit>
+<notesplit>
+<path>backend/cpp/llama/grpc-server.cpp</path>
+<side>RIGHT</side>
+<from>2465</from>
+<to>2465</to>
+<note>Same as above: `result.result_json.at("timings")` is used inside a `contains` block. If `timings` is not a JSON object, the code will crash with a `nlohmann::json::type_error` when calling `.value()` on the result of `.at()`.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/chat.go</path>
+<side>RIGHT</side>
+<from>30</from>
+<to>30</to>
+<note>The 'process' and 'processTools' closures have grown to include an 'extraUsage' boolean parameter, increasing the complexity of the function signature and internal logic. This logic should be encapsulated into a dedicated struct or service to improve readability and testability.</note>
+</notesplit>
+<notesplit>
+<path>core/http/routes/openai.go</path>
+<side>RIGHT</side>
+<from>130</from>
+<to>133</to>
+<note>The 'RegisterOpenAIRoutes' function is suffering from 'parameter bloat'. It is passing 'application.BackendLoader()', 'application.ModelLoader()', and 'application.ApplicationConfig()' to every single endpoint registration. This makes the route registration code extremely verbose and hard to maintain.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/completion.go</path>
+<side>RIGHT</side>
+<from>33</from>
+<to>33</to>
+<note>The 'process' closure in 'CompletionEndpoint' is becoming cluttered with logic for handling 'extraUsage'. This violates the Single Responsibility Principle as the function is now responsible for both streaming orchestration and usage data formatting.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/completion.go</path>
+<side>RIGHT</side>
+<from>173</from>
+<to>174</to>
+<note>The code accumulates `TimingTokenGeneration` and `TimingPromptProcessing` into `totalTokenUsage`, but it fails to accumulate `Prompt` and `Completion` token counts in the loop, which were present in the original code.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/completion.go</path>
+<side>RIGHT</side>
+<from>125</from>
+<to>125</to>
+<note>Similar to the chat endpoint, spawning a goroutine per completion request without a limit can lead to unbounded resource consumption.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/chat.go</path>
+<side>RIGHT</side>
+<from>319</from>
+<to>323</to>
+<note>The use of 'go process(...)' inside the request handler creates a new goroutine for every chat request. While Go handles goroutines efficiently, this lacks backpressure or rate limiting, which could lead to resource exhaustion under high load.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/chat.go</path>
+<side>RIGHT</side>
+<from>174</from>
+<to>174</to>
+<note>The application reads a custom header 'LocalAI-Extra-Usage' to toggle sensitive timing information. Relying on client-side headers for feature toggling can lead to unexpected information disclosure if not properly restricted to authorized users.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/inference.go</path>
+<side>RIGHT</side>
+<from>45</from>
+<to>55</to>
+<note>**[Maintainability and Readability]** The manual accumulation of timing fields in 'ComputeChoices' is repetitive and error-prone. If more metrics are added in the future, this will lead to further code duplication.
+
+**[Performance]** The loop iterates 'n' times (number of completions). If 'n' is large, this could block the request handler for a significant duration, potentially causing timeouts.</note>
+</notesplit>
+<notesplit>
+<path>core/http/app.go</path>
+<side>RIGHT</side>
+<from>92</from>
+<to>97</to>
+<note>The 'Machine-Tag' header is set on every response based on user-provided configuration. If the 'Machine-Tag' value is sourced from untrusted input (e.g., environment variables or config files that can be manipulated), this could lead to HTTP Header Injection or information disclosure.</note>
+</notesplit>

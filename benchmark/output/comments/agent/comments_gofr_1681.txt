@@ -1,0 +1,27 @@
+<notesplit>
+<path>pkg/gofr/service/health.go</path>
+<side>RIGHT</side>
+<from>21</from>
+<to>21</to>
+<note>**[Code Defect]** The use of 'strings.TrimPrefix(AlivePath, "/")' is incorrect because AlivePath is defined as '/.well-known/alive'. Trimming the leading slash results in '.well-known/alive'. If the underlying HTTP client or router expects a path starting with '/', this will cause 404 errors for health checks.
+
+**[Maintainability and Readability]** The use of 'strings.TrimPrefix(AlivePath, "/")' is fragile. It assumes 'AlivePath' always starts with a slash. If the constant definition changes, this logic will break silently.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/middleware/logger.go</path>
+<side>RIGHT</side>
+<from>127</from>
+<to>148</to>
+<note>**[Performance]** The isLogProbeDisabled function performs a linear search (O(n)) over the probes.Paths slice for every single incoming HTTP request. While the current slice is small, this is an inefficient pattern for a hot path (middleware) that executes on every request.
+
+**[Code Defect]** The logic in isLogProbeDisabled is flawed. It checks 'probes.Disabled' inside the loop, but the loop condition already implies the function is only called if the path matches. More importantly, the logic 'if urlPath == path && probes.Disabled' is redundant because the function already returns false if !probes.Disabled at the start. While not a crash, it is logically confusing and fragile if the path matching logic needs to expand.
+
+**[Maintainability and Readability]** The function 'isLogProbeDisabled' contains redundant logic. The condition 'probes.Disabled' is checked both in the caller and inside the loop, and the loop itself is unnecessary as it only checks for equality against a slice of paths.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/middleware/config.go</path>
+<side>RIGHT</side>
+<from>45</from>
+<to>50</to>
+<note>The error handling for 'strconv.ParseBool' is swallowed silently. While this might be intentional for a default-false configuration, it makes debugging configuration issues difficult if a user provides an invalid string (e.g., 'LOG_DISABLE_PROBES=yes').</note>
+</notesplit>

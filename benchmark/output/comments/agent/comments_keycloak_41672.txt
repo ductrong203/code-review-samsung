@@ -1,0 +1,16 @@
+<notesplit>
+<path>adapters/saml/wildfly/wildfly-subsystem/src/main/java/org/keycloak/subsystem/adapter/saml/extension/KeycloakDependencyProcessorWildFly.java</path>
+<side>RIGHT</side>
+<from>38</from>
+<to>48</to>
+<note>**[Maintainability and Readability]** The code throws a generic 'RuntimeException' when the legacy security layer is not supported. This is poor practice as it makes it difficult for calling code to catch and handle this specific failure scenario programmatically.
+
+The method 'isJakarta' is defined but never used within the class. Dead code reduces readability and maintainability.</note>
+</notesplit>
+<notesplit>
+<path>adapters/saml/wildfly/wildfly-subsystem/src/main/java/org/keycloak/subsystem/adapter/saml/extension/KeycloakDependencyProcessor.java</path>
+<side>RIGHT</side>
+<from>36</from>
+<to>39</to>
+<note>The module identifiers are now stored as raw Strings. This loses type safety and the ability to leverage the JBoss ModuleIdentifier API for validation or manipulation, increasing the risk of typos in module names that won't be caught at compile time.</note>
+</notesplit>

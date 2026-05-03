@@ -1,0 +1,50 @@
+<notesplit>
+<path>browser_use/browser/browser.py</path>
+<side>RIGHT</side>
+<from>224</from>
+<to>234</to>
+<note>**[Code Defect]** The `chrome_launch_args` is defined as a set (using `{...}`), which is unordered. When passed to `asyncio.create_subprocess_exec`, the order of arguments is non-deterministic. Chrome command-line arguments are order-sensitive, and some flags (like `--remote-debugging-port`) may be ignored or cause errors if not positioned correctly relative to other flags.
+
+**[Performance]** Synchronous 'requests.get' is used inside an 'async' loop. This blocks the event loop during the retry logic, which can significantly degrade performance if the browser takes time to start.
+
+**[Maintainability and Readability]** The retry loop for connecting to the browser uses a hardcoded range of 10. This is a 'magic number' that makes the connection logic less flexible and harder to tune for different environments.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/browser/browser.py</path>
+<side>RIGHT</side>
+<from>273</from>
+<to>278</to>
+<note>**[Code Defect]** Similar to the previous issue, `chrome_args` is initialized as a set `{...}`. This makes the order of arguments passed to the browser non-deterministic. Chrome requires specific ordering for certain flags, and this will lead to inconsistent browser behavior or launch failures.
+
+**[Maintainability and Readability]** The logic to check if a port is taken and remove the argument is duplicated across `_setup_user_provided_browser` and `_setup_builtin_browser`. This violates the DRY (Don't Repeat Yourself) principle.</note>
+</notesplit>
+<notesplit>
+<path>examples/custom-functions/file_upload.py</path>
+<side>RIGHT</side>
+<from>70</from>
+<to>70</to>
+<note>Path Traversal vulnerability: The `read_file` function accepts a user-provided `path` string. While there is a check against `available_file_paths`, if the application logic or the list of available paths is misconfigured or manipulated, an attacker could read arbitrary files on the system.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/browser/browser.py</path>
+<side>RIGHT</side>
+<from>204</from>
+<to>220</to>
+<note>**[Maintainability and Readability]** The code uses `asyncio.create_subprocess_exec` but does not explicitly handle potential `OSError` or `FileNotFoundError` exceptions when launching the browser process. This can lead to unhandled exceptions crashing the agent.
+
+The use of a set comprehension to remove duplicates from `chrome_launch_args` is clever but relies on the assumption that order doesn't matter for Chrome arguments. While usually true, it makes the code harder to reason about for developers unfamiliar with Chrome's argument parsing.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/browser/browser.py</path>
+<side>RIGHT</side>
+<from>190</from>
+<to>192</to>
+<note>Synchronous 'requests.get' is used inside an 'async' method. This blocks the event loop, preventing other concurrent tasks from executing while waiting for the network response.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/browser/browser.py</path>
+<side>RIGHT</side>
+<from>197</from>
+<to>200</to>
+<note>Insecure configuration: The browser is configured to connect to a remote debugging port on localhost. If the user-provided browser is already running with `--remote-debugging-port` exposed to the network (or if the machine is multi-user), an attacker could potentially connect to the CDP and execute arbitrary commands in the browser context.</note>
+</notesplit>

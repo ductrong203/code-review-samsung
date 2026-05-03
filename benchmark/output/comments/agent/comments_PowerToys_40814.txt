@@ -1,0 +1,16 @@
+<notesplit>
+<path>src/modules/cmdpal/Microsoft.CmdPal.UI.ViewModels/TopLevelViewModel.cs</path>
+<side>RIGHT</side>
+<from>63</from>
+<to>75</to>
+<note>**[Performance]** The LINQ .Select(...).ToArray() chain is executed every time the 'MoreCommands' property is accessed. If this property is accessed frequently (e.g., during UI layout or binding updates), it will cause excessive allocations and CPU overhead due to repeated enumeration and array creation.
+
+**[Maintainability and Readability]** The logic for mapping items to IContextItem is tightly coupled to specific concrete implementations (CommandContextItemViewModel). This violates the Open/Closed principle; adding new item types requires modifying this method.</note>
+</notesplit>
+<notesplit>
+<path>src/modules/cmdpal/Microsoft.CmdPal.UI/Converters/ContextItemTemplateSelector.cs</path>
+<side>RIGHT</side>
+<from>33</from>
+<to>44</to>
+<note>The template selector uses explicit type checking (is/else if) to determine templates. This is fragile and violates the Open/Closed principle as it must be updated whenever a new item type is added.</note>
+</notesplit>

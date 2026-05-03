@@ -1,0 +1,56 @@
+<notesplit>
+<path>codex-rs/core/src/client.rs</path>
+<side>RIGHT</side>
+<from>170</from>
+<to>177</to>
+<note>**[Code Defect]** The logic for `include` was changed to only check `reasoning.is_some()`. Previously, it also checked `!store`. By removing the `!store` check, the client now requests `reasoning.encrypted_content` even when `store` is true. If the server expects this field only when storage is disabled, this will cause API errors.
+
+**[Maintainability and Readability]** The `include` vector logic is now trivial (always returns a single-element vector or empty). This conditional logic adds unnecessary cognitive load for a simple static assignment.
+
+**[Performance]** The `include` vector is re-allocated on every request. While small, this is a hot path.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/src/client_common.rs</path>
+<side>RIGHT</side>
+<from>48</from>
+<to>60</to>
+<note>**[Performance]** The `is_apply_patch_tool_present` check performs a linear scan (O(n)) over the tools list every time `get_full_instructions` is called. If this is called frequently in a hot loop, it could be optimized by caching the presence of the tool.
+
+The `sections.join("
+")` operation creates a new String allocation on every call to `get_full_instructions`. If this is called repeatedly for the same prompt, it causes unnecessary heap allocations.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/src/client_common.rs</path>
+<side>RIGHT</side>
+<from>128</from>
+<to>128</to>
+<note>The `store` field remains in `ResponsesApiRequest` despite being hardcoded to `false` in `client.rs`. This creates a misleading API contract where callers might assume they can control storage behavior.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/src/client.rs</path>
+<side>RIGHT</side>
+<from>197</from>
+<to>197</to>
+<note>The `store` field in `ResponsesApiRequest` is now hardcoded to `false`. If the intention of the previous code was to allow toggling storage (as indicated by the removal of the `store` field from `Prompt` and `TurnContext`), this hardcoding prevents any future ability to enable server-side storage, potentially breaking features that rely on it.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/src/client.rs</path>
+<side>RIGHT</side>
+<from>204</from>
+<to>204</to>
+<note>Hardcoding `store: false` in the payload construction suggests that the `store` field in `ResponsesApiRequest` may now be dead code or redundant, as it is no longer configurable.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/src/client_common.rs</path>
+<side>RIGHT</side>
+<from>199</from>
+<to>225</to>
+<note>Multiple test cases in `client_common.rs` manually construct `ResponsesApiRequest` with `store: false`. This duplication makes tests brittle if the struct definition changes.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/src/codex.rs</path>
+<side>RIGHT</side>
+<from>1604</from>
+<to>1858</to>
+<note>The removal of `disable_response_storage` from `TurnContext` and `Prompt` is good, but ensure that any remaining references to 'storage' in documentation or comments are updated to avoid confusion.</note>
+</notesplit>

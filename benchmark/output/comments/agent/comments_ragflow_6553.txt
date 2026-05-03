@@ -1,0 +1,40 @@
+<notesplit>
+<path>api/apps/api_app.py</path>
+<side>RIGHT</side>
+<from>649</from>
+<to>655</to>
+<note>**[Maintainability and Readability]** The manual creation of a dictionary for lookup (doc_dic) is redundant and adds unnecessary memory overhead. Since DocumentService.get_by_ids(doc_ids) is already called, the logic should ideally be handled by a single query or a more efficient lookup mechanism if the ORM supports it.
+
+**[Security Vulnerability]** Insecure Direct Object Reference (IDOR): The code retrieves documents using IDs provided directly from the user request without verifying that the current user or tenant has authorization to access these specific documents.
+
+**[Performance]** The code fetches all documents into memory using `DocumentService.get_by_ids(doc_ids)` and then builds a dictionary. If `doc_ids` is large, this consumes significant memory. If only existence checks are needed, fetching only the IDs or using a count query would be more memory-efficient.</note>
+</notesplit>
+<notesplit>
+<path>api/db/services/user_canvas_version.py</path>
+<side>RIGHT</side>
+<from>33</from>
+<to>39</to>
+<note>**[Performance]** The code fetches all records for a canvas and then iterates through them in Python to collect IDs for deletion. This is inefficient as it loads all objects into memory and performs an O(N) loop. It should be handled entirely at the database level using a subquery or a limit/offset delete.
+
+**[Maintainability and Readability]** The loop used to collect IDs for deletion is inefficient. It iterates through a Peewee query object, which may trigger multiple lazy-loading database hits if not handled carefully, and it manually builds a list that could be generated via a slice or list comprehension.
+
+The 'delete_all_versions' method swallows exceptions in a generic 'except Exception' block, which hides potential database connectivity or integrity issues.</note>
+</notesplit>
+<notesplit>
+<path>api/apps/api_app.py</path>
+<side>RIGHT</side>
+<from>631</from>
+<to>634</to>
+<note>The logic for merging doc_ids from names and doc_ids from IDs is broken. The original code used a list comprehension to get IDs from names and then appended IDs from the request. The new code calls `get_doc_ids_by_doc_names` which returns a list, but then the loop `for doc_id in req.get("doc_ids", [])` is redundant because `doc_ids` is already a list, and the logic `if doc_id not in doc_ids: doc_ids.append(doc_id)` is now operating on a list of IDs, but the variable `doc_ids` is reassigned to the result of the service call, potentially losing the original list structure or causing type errors if the service returns something unexpected.</note>
+</notesplit>
+<notesplit>
+<path>api/db/services/common_service.py</path>
+<side>RIGHT</side>
+<from>266</from>
+<to>276</to>
+<note>**[Maintainability and Readability]** The method 'delete_by_ids' lacks type hinting for the 'pids' parameter, making the API less clear for consumers.
+
+**[Code Defect]** The `delete_by_ids` method does not handle the case where `pids` is an empty list. Passing an empty list to `IN` clause in Peewee can result in invalid SQL or unexpected behavior depending on the database driver.
+
+**[Security Vulnerability]** Potential Denial of Service (DoS) via large input: The `delete_by_ids` method accepts a list of IDs and performs a database operation without limiting the size of the input list, which could lead to excessively large SQL queries.</note>
+</notesplit>

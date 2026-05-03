@@ -1,0 +1,91 @@
+<notesplit>
+<path>comfy_extras/nodes_clip_sdxl.py</path>
+<side>RIGHT</side>
+<note>[
+  {
+    "path": "comfy/controlnet.py",
+    "from_line": 824,
+    "to_line": 824,
+    "side": "right",
+    "severity": "critical",
+    "confidence": 1.0,
+    "context_level": "diff",
+    "note": "The string formatting index 'i' is missing its second argument in the format string, and the tuple index is incomplete. This will raise an IndexError or KeyError at runtime.",
+    "suggested_fix": "Change to: prefix_replace[\"adapter.body.{}.resnets.{}.".format(i, j)] = \"body.{}.".format(i * 2 + j)"
+  },
+  {
+    "path": "comfy_extras/nodes_clip_sdxl.py",
+    "from_line": 25,
+    "to_line": 32,
+    "side": "right",
+    "severity": "high",
+    "confidence": 1.0,
+    "context_level": "diff",
+    "note": "The 'clip' key is defined twice in the INPUT_TYPES dictionary. In Python dictionaries, the second definition will overwrite the first, potentially causing issues if the structure is expected to be different.",
+    "suggested_fix": "Remove the duplicate 'clip' entry and ensure it is defined only</note>
+</notesplit>
+<notesplit>
+<path>comfy/controlnet.py</path>
+<side>RIGHT</side>
+<from>824</from>
+<to>824</to>
+<note>**[Maintainability and Readability]** The change introduces a syntax error by leaving a trailing comma inside the format string index placeholder `i, )`. This will cause a KeyError or ValueError at runtime when the string is formatted.
+
+**[Performance]** The change to the prefix_replace key construction `adapter.body.{}.)` is syntactically valid but likely results in an incorrect key format (e.g., 'adapter.body.0.)'), which may cause dictionary lookup misses or logic errors in state_dict_prefix_replace, leading to unnecessary model weight re-initialization or failure to load weights.</note>
+</notesplit>
+<notesplit>
+<path>api_server/routes/internal/internal_routes.py</path>
+<side>RIGHT</side>
+<from>43</from>
+<to>43</to>
+<note>The /logs/raw endpoint exposes internal system logs to any user who can access the internal API. If this API is exposed to the network, it may leak sensitive information, system paths, or environment details.</note>
+</notesplit>
+<notesplit>
+<path>api_server/routes/internal/internal_routes.py</path>
+<side>RIGHT</side>
+<from>50</from>
+<to>58</to>
+<note>The /logs/subscribe endpoint allows any user to subscribe to system logs using a client ID. This could be used to monitor system activity or potentially facilitate a denial-of-service if the subscription mechanism is resource-intensive.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_clip_sdxl.py</path>
+<side>RIGHT</side>
+<from>25</from>
+<to>31</to>
+<note>The INPUT_TYPES dictionary defines the 'clip' key twice (once at the top level and once inside the text_l definition). While Python dictionaries handle duplicate keys by overwriting, this is confusing and error-prone for maintainers.</note>
+</notesplit>
+<notesplit>
+<path>api_server/routes/internal/internal_routes.py</path>
+<side>RIGHT</side>
+<from>32</from>
+<to>32</to>
+<note>String concatenation in a loop using list comprehension and join is generally efficient, but calling app.logger.get_logs() inside the loop or repeatedly for every request without caching can be expensive if the log history is large.</note>
+</notesplit>
+<notesplit>
+<path>comfy/ldm/modules/sub_quadratic_attention.py</path>
+<side>RIGHT</side>
+<from>25</from>
+<to>25</to>
+<note>Removing the 'from torch import Tensor' import while the file still uses 'Tensor' as a type hint in multiple function signatures (e.g., dynamic_slice, _summarize_chunk) will cause a NameError at runtime.</note>
+</notesplit>
+<notesplit>
+<path>server.py</path>
+<side>RIGHT</side>
+<from>587</from>
+<to>589</to>
+<note>The /history/{prompt_id} endpoint takes a user-provided prompt_id directly from the URL. While the underlying queue likely handles lookups, this is a potential vector for IDOR if the history retrieval logic does not verify that the requesting user owns the prompt_id.</note>
+</notesplit>
+<notesplit>
+<path>execution.py</path>
+<side>RIGHT</side>
+<from>763</from>
+<to>763</to>
+<note>While removing the f-string is a minor micro-optimization, the primary performance concern in this file is the potential for redundant validation logic inside the execution loop.</note>
+</notesplit>
+<notesplit>
+<path>server.py</path>
+<side>RIGHT</side>
+<from>834</from>
+<to>834</to>
+<note>The log message uses a hardcoded '[ERROR]' prefix. Standard logging practices suggest using the logging level (e.g., logging.error) rather than embedding the level in the message string.</note>
+</notesplit>

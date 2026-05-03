@@ -1,0 +1,38 @@
+<notesplit>
+<path>src/core/storage/state.ts</path>
+<side>RIGHT</side>
+<from>32</from>
+<to>34</to>
+<note>**[Code Defect]** The `updateSecretsBatch` function calls `storeSecret` for every key-value pair. `storeSecret` internally handles both storing and deleting (if value is undefined). However, `Object.entries(updates)` will include keys with `undefined` values, which will trigger `context.secrets.delete(key)`. If the intention of the batch update is to only update provided values, this logic is correct, but if the caller expects to only update existing secrets and not delete them, this will cause data loss.
+
+**[Performance]** Using Promise.all for storage updates triggers multiple concurrent I/O operations. While this improves latency, it can lead to race conditions or excessive resource contention if the underlying storage implementation (VS Code globalState) is not thread-safe or has internal locking mechanisms that serialize these requests anyway.</note>
+</notesplit>
+<notesplit>
+<path>src/core/storage/state.ts</path>
+<side>RIGHT</side>
+<from>67</from>
+<to>280</to>
+<note>**[Performance]** The getAllExtensionState function performs a massive number of individual I/O requests (over 70) in a single Promise.all block. This creates a significant spike in I/O activity and memory pressure during extension initialization.
+
+**[Maintainability and Readability]** The function 'getAllExtensionState' has become a 'God function' that manually manages over 70 individual state keys. This is highly fragile, difficult to read, and violates the Single Responsibility Principle. Adding or removing a state key requires updating the function signature, the array of keys, and the destructuring assignment.
+
+The performance instrumentation (firstBatchStart, secondBatchStart, processingStart) is dead code in production. It clutters the business logic without providing any runtime benefit or logging.</note>
+</notesplit>
+<notesplit>
+<path>src/core/storage/state.ts</path>
+<side>RIGHT</side>
+<from>510</from>
+<to>620</to>
+<note>**[Maintainability and Readability]** The 'updateApiConfiguration' function manually constructs two massive objects ('batchedGlobalUpdates' and 'batchedSecretUpdates'). This is highly redundant as it essentially duplicates the structure of the 'ApiConfiguration' type. If a new field is added to the configuration, it must be manually added to these objects, leading to maintenance overhead.
+
+**[Code Defect]** The `batchedGlobalUpdates` object includes `openAiHeaders: openAiHeaders || {}`. If `openAiHeaders` is undefined, it sets an empty object. However, `getGlobalState` might return `undefined` for this key in the future. If the application logic expects `undefined` to mean 'no headers', forcing an empty object `{}` might break downstream code that checks for the existence of the key.</note>
+</notesplit>
+<notesplit>
+<path>src/core/storage/state.ts</path>
+<side>RIGHT</side>
+<from>36</from>
+<to>39</to>
+<note>**[Performance]** Similar to globalState updates, batching secret updates via Promise.all may trigger multiple concurrent I/O operations to the OS keychain/secret storage, which is often a bottleneck and may be rate-limited by the OS.
+
+**[Security Vulnerability]** The `updateSecretsBatch` function iterates over an object and calls `storeSecret` for every entry. If the `updates` object contains sensitive keys that are not explicitly intended to be stored as secrets, or if the input is improperly sanitized, it could lead to unintended persistence of sensitive data in the VS Code SecretStorage. Furthermore, using Promise.all for secret storage operations can lead to race conditions or partial failures where some secrets are updated and others are not, potentially leaving the application in an inconsistent security state.</note>
+</notesplit>

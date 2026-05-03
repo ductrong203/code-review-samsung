@@ -1,0 +1,44 @@
+<notesplit>
+<path>internal/ast/ast.go</path>
+<side>RIGHT</side>
+<from>3715</from>
+<to>3715</to>
+<note>The `Clone` method for `TypeAliasDeclaration` was updated to use `newTypeAliasOrJSTypeAliasDeclaration`, but it passes `node.Kind` directly. If `node` is a `KindTypeAliasDeclaration`, the factory will create a new node with that kind, but the `Clone` logic for `JSTypeAliasDeclaration` previously had specific handling in `VisitEachChild` that is now lost or potentially inconsistent with the factory's internal state management.</note>
+</notesplit>
+<notesplit>
+<path>internal/transformers/typeeraser.go</path>
+<side>RIGHT</side>
+<from>98</from>
+<to>98</to>
+<note>**[Code Defect]** The `TypeEraserTransformer` now elides `KindJSImportDeclaration`. If this node is used for type-checking or later stages, eliding it here might cause 'Cannot find name' errors if the type-only import was intended to provide type information to the checker.
+
+**[Maintainability and Readability]** The comment 'reparsed commonjs are elided' is slightly misleading because the code now also elides 'JSImportDeclaration', which is not strictly 'commonjs'.</note>
+</notesplit>
+<notesplit>
+<path>internal/ast/ast.go</path>
+<side>RIGHT</side>
+<from>3689</from>
+<to>3689</to>
+<note>The function name 'newTypeAliasOrJSTypeAliasDeclaration' is overly verbose and descriptive of its implementation details rather than its intent. It suggests a violation of the Single Responsibility Principle by combining two distinct factory methods into one.</note>
+</notesplit>
+<notesplit>
+<path>internal/ast/ast.go</path>
+<side>RIGHT</side>
+<from>4047</from>
+<to>4047</to>
+<note>The function 'newImportOrJSImportDeclaration' is a private helper that introduces unnecessary complexity by parameterizing the 'Kind'. This makes the factory logic harder to follow and less type-safe.</note>
+</notesplit>
+<notesplit>
+<path>internal/checker/checker.go</path>
+<side>RIGHT</side>
+<from>29417</from>
+<to>29417</to>
+<note>The conditional expression in 'getSymbolAtLocation' has become excessively long and complex, making it difficult to read and maintain. It checks multiple node kinds and parent relationships in a single line.</note>
+</notesplit>
+<notesplit>
+<path>internal/parser/reparser.go</path>
+<side>RIGHT</side>
+<from>120</from>
+<to>120</to>
+<note>The `importClause` is cloned, but `IsTypeOnly` is set to `true` on the clone. If the original `importClause` was already `IsTypeOnly`, this is redundant, but if it was `false`, it forces a type-only import. This logic assumes all `@import` tags are type-only, which might conflict with future support for value imports.</note>
+</notesplit>

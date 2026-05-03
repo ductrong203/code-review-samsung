@@ -1,0 +1,83 @@
+<notesplit>
+<path>packages/cli/src/ui/hooks/slashCommandProcessor.ts</path>
+<side>RIGHT</side>
+<from>250</from>
+<to>340</to>
+<note>**[Maintainability and Readability]** The `handleSlashCommand` function has become a 'God function' that handles command execution, UI updates, dialog management, and error handling, leading to deep nesting and poor readability.
+
+**[Security Vulnerability]** The application uses `process.exit(0)` inside a `setTimeout` callback within the command processor. This can lead to an abrupt termination of the process, potentially leaving resources in an inconsistent state or bypassing necessary cleanup logic.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>RIGHT</side>
+<from>136</from>
+<to>139</to>
+<note>The application uses JSON.stringify on the prompt response content before submitting it as a prompt. If the server response contains malicious payloads or unexpected characters, this could lead to prompt injection or unexpected behavior in the downstream model processing.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>RIGHT</side>
+<from>165</from>
+<to>185</to>
+<note>**[Maintainability and Readability]** The `parseArgs` method is overly complex and contains manual regex-based argument parsing logic that is difficult to maintain and prone to edge-case bugs.
+
+**[Security Vulnerability]** The completion logic for MCP prompts constructs suggestions by injecting user-provided input directly into a string template. While this is for CLI completion, improper handling of special characters in prompt arguments could lead to unexpected command-line behavior.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/ui/commands/mcpCommand.ts</path>
+<side>RIGHT</side>
+<from>190</from>
+<to>236</to>
+<note>**[Maintainability and Readability]** The rendering logic for prompts is nearly identical to the rendering logic for tools, leading to significant code duplication.
+
+**[Performance]** The code uses array.filter() inside a loop over serverNames to find tools for each server. This is an O(N*M) operation where N is the number of servers and M is the total number of tools. As the number of tools grows, this becomes inefficient.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/ui/hooks/useCompletion.ts</path>
+<side>RIGHT</side>
+<from>648</from>
+<to>648</to>
+<note>The logic for appending a space after a command completion is applied unconditionally. This causes double spaces if the user already typed a space, or adds a space when completing a command that might not require one (e.g., a command that takes no arguments).</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/ui/commands/mcpCommand.ts</path>
+<side>RIGHT</side>
+<from>101</from>
+<to>104</to>
+<note>The getMcpStatus function performs an await on config.getPromptRegistry() and then calls getPromptsByServer(serverName) inside a loop over serverNames. If there are many MCP servers, this results in multiple asynchronous lookups and potential redundant registry access.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/ui/commands/mcpCommand.ts</path>
+<side>RIGHT</side>
+<from>166</from>
+<to>182</to>
+<note>The logic for formatting the tool/prompt count string is repetitive and verbose, violating the DRY principle.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/ui/commands/mcpCommand.ts</path>
+<side>RIGHT</side>
+<from>268</from>
+<to>268</to>
+<note>The logic `if (serverTools.length === 0 && serverPrompts.length === 0)` handles the empty case, but the subsequent `else if (serverTools.length === 0)` block will still execute if `serverPrompts.length > 0` but `serverTools.length === 0`, potentially leading to redundant or confusing output messages.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>RIGHT</side>
+<from>204</from>
+<to>228</to>
+<note>The parseArgs method uses a global regex with the 'g' flag and a while loop to parse arguments. While functional, it performs multiple string operations and regex executions inside a loop for every command invocation. For large argument strings, this is inefficient.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/tools/mcp-client.ts</path>
+<side>RIGHT</side>
+<from>445</from>
+<to>465</to>
+<note>The `invokeMcpPrompt` function swallows errors if the method is 'Method not found', which might hide configuration issues or server-side incompatibilities.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/prompts/prompt-registry.ts</path>
+<side>RIGHT</side>
+<from>18</from>
+<to>22</to>
+<note>The `registerPrompt` method modifies the prompt object by renaming it when a collision occurs, but it does not update the `serverName` or other internal references that might be expected to remain consistent with the original object.</note>
+</notesplit>

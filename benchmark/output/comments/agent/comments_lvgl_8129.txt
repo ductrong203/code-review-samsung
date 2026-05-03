@@ -1,0 +1,27 @@
+<notesplit>
+<path>src/draw/lv_draw_label.c</path>
+<side>RIGHT</side>
+<from>221</from>
+<to>230</to>
+<note>**[Code Defect]** Potential null pointer dereference. 'base_dsc' is initialized from 't->draw_dsc' at line 203, but 't' is passed as an argument and 't->draw_dsc' is not checked for NULL before accessing 'base_dsc->obj'.
+
+**[Maintainability and Readability]** Logic duplication: The logic to calculate text size is now split between a cached value and a fallback calculation. This increases the risk of inconsistent behavior if the cache is not updated correctly.
+
+The logic assumes that if 'base_dsc->obj' exists, 'dsc->text_size' is correctly populated. However, 'text_size' is a new field in 'lv_draw_label_dsc_t' and may not be initialized for all draw tasks (e.g., those created via 'lv_draw_character' or 'lv_draw_letter'), leading to usage of uninitialized or zeroed data.</note>
+</notesplit>
+<notesplit>
+<path>src/widgets/label/lv_label.c</path>
+<side>RIGHT</side>
+<from>968</from>
+<to>969</to>
+<note>**[Performance]** The `lv_label_refr_text` function is called whenever text changes, and it now performs an additional `lv_text_get_size` calculation to update `label->text_size`. While this caches the result, `lv_text_get_size` is an O(n) operation (where n is text length). If this is called frequently (e.g., during rapid text updates or animations), it may cause frame drops.
+
+**[Maintainability and Readability]** Implicit dependency: The update of `label->text_size` is performed inside `lv_label_refr_text`. If other functions modify the text or font without calling this specific refresh function, the cache will become stale.</note>
+</notesplit>
+<notesplit>
+<path>src/widgets/label/lv_label_private.h</path>
+<side>RIGHT</side>
+<from>53</from>
+<to>53</to>
+<note>Redundant data member: The struct already contains `lv_point_t size_cache` (line 44), and now adds `lv_point_t text_size` (line 53). Having two fields for the same purpose creates ambiguity and potential for synchronization bugs.</note>
+</notesplit>

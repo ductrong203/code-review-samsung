@@ -1,0 +1,43 @@
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/HttpCertificateCommand.java</path>
+<side>RIGHT</side>
+<from>1039</from>
+<to>1065</to>
+<note>**[Maintainability and Readability]** The 'readKeyUsage' method contains hardcoded logic for printing and validating key usage, which is duplicated in the 'createNewCA' method. This violates the DRY (Don't Repeat Yourself) principle.
+
+**[Code Defect]** The `readKeyUsage` method does not handle the case where the user provides an empty string or just whitespace, potentially leading to an empty list being returned which might not be the intended default behavior for the certificate generation logic.
+
+**[Performance]** The readKeyUsage method performs string splitting and repeated trimming inside a loop. For large inputs, this creates unnecessary intermediate objects.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/CertificateTool.java</path>
+<side>RIGHT</side>
+<from>322</from>
+<to>339</to>
+<note>**[Performance]** The getCaKeyUsage method uses a stream with flatMap and filter inside a loop-like structure for every call. While not critical for CLI tools, it performs redundant string splitting and stream allocation for every validation check.
+
+**[Maintainability and Readability]** The 'getCaKeyUsage' method uses a functional stream approach that is slightly over-engineered for a simple comma-separated string split, making it harder to debug.
+
+**[Code Defect]** The `getCaKeyUsage` method uses `Strings.splitStringByCommaToArray(v)` which may return empty strings if the input contains trailing commas or multiple consecutive commas. These empty strings are filtered out, but the logic might result in an empty list, which then falls back to `DEFAULT_CA_KEY_USAGE`. This is inconsistent with how other parameters are handled.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/CertGenUtils.java</path>
+<side>RIGHT</side>
+<from>168</from>
+<to>185</to>
+<note>The method 'generateSignedCertificate' has 10 parameters, which exceeds the recommended limit of 5. This makes the method signature difficult to read and prone to argument order errors.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/CertGenUtils.java</path>
+<side>RIGHT</side>
+<from>263</from>
+<to>267</to>
+<note>The keyUsage extension is marked as critical (isCritical = true) in the code, but the comment says 'if the key usage is present, then it SHOULD be marked as critical'. While this is compliant with RFC 5280, if the tool is used to generate certificates for legacy systems that do not support critical keyUsage extensions, this will cause certificate validation failures.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/HttpCertificateCommand.java</path>
+<side>RIGHT</side>
+<from>710</from>
+<to>750</to>
+<note>The 'getCertificateConfiguration' method is becoming a 'God method' that handles terminal I/O, validation, and configuration object construction. It is too long and violates the Single Responsibility Principle.</note>
+</notesplit>

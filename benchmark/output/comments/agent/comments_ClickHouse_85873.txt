@@ -1,0 +1,53 @@
+<notesplit>
+<path>src/Functions/concatWithSeparator.cpp</path>
+<side>RIGHT</side>
+<from>180</from>
+<to>268</to>
+<note>**[Code Defect]** The implementation of `concatWithSeparator` in the diff is truncated/incomplete, leading to a syntax error (missing closing braces and incomplete code block).
+
+**[Maintainability and Readability]** The documentation for `concatWithSeparator` and `concatWithSeparatorAssumeInjective` is highly repetitive. The logic for defining arguments, examples, and categories is copy-pasted with minor variations.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/compareSubstrings.cpp</path>
+<side>RIGHT</side>
+<from>414</from>
+<to>414</to>
+<note>The code block is truncated at the end of the file, resulting in an incomplete `isOverflowComparison` function and missing closing braces for the namespace and file.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/decodeXMLComponent.cpp</path>
+<side>RIGHT</side>
+<from>261</from>
+<to>261</to>
+<note>The code block is truncated at the end of the file, resulting in an incomplete `REGISTER_FUNCTION` block and missing closing braces.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/empty.cpp</path>
+<side>RIGHT</side>
+<from>197</from>
+<to>241</to>
+<note>**[Code Defect]** The code block is truncated at the end of the file, resulting in an incomplete comment and missing closing braces.
+
+**[Maintainability and Readability]** The documentation for `empty` and `notEmpty` is being redefined for strings inside the `REGISTER_FUNCTION` block, despite existing documentation for arrays/UUIDs earlier in the file. This creates fragmented documentation logic.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/concat.cpp</path>
+<side>RIGHT</side>
+<from>253</from>
+<to>315</to>
+<note>The documentation for `concat` and `concatAssumeInjective` is duplicated in the source code. This violates the DRY (Don't Repeat Yourself) principle and makes maintenance harder if the documentation structure changes.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/compareSubstrings.cpp</path>
+<side>RIGHT</side>
+<from>385</from>
+<to>391</to>
+<note>The `arguments` definition uses `UInt*` as a type hint, which is ambiguous. It is better to be explicit about the expected type (e.g., `UInt64` or `UInt32`) to improve clarity for users reading the documentation.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/convertCharset.cpp</path>
+<side>RIGHT</side>
+<from>224</from>
+<to>252</to>
+<note>The documentation block is manually constructed inside the `REGISTER_FUNCTION` macro. As more functions are moved to source code, this pattern leads to very large registration blocks that obscure the actual registration logic.</note>
+</notesplit>

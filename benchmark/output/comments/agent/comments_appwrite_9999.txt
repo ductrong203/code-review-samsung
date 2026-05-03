@@ -1,0 +1,57 @@
+<notesplit>
+<path>app/controllers/general.php</path>
+<side>RIGHT</side>
+<from>79</from>
+<to>79</to>
+<note>**[Code Defect]** The variable $url is constructed using System::getEnv('_APP_CONSOLE_DOMAIN', System::getEnv('_APP_DOMAIN', '')). If both are empty, the URL will be 'http://://', which is malformed and will cause issues when used in CTAs.
+
+**[Maintainability and Readability]** Inconsistent comparison operator: The code uses `== 'disabled'` in some places and `=== 'disabled'` in others. While PHP handles this, it reduces readability and consistency.
+
+**[Security Vulnerability]** The application constructs URLs using environment variables (_APP_CONSOLE_DOMAIN). This pattern is repeated across multiple files. If the environment configuration is compromised, it allows for the generation of arbitrary URLs, which can be used for malicious redirects or credential harvesting.</note>
+</notesplit>
+<notesplit>
+<path>app/controllers/api/vcs.php</path>
+<side>RIGHT</side>
+<from>118</from>
+<to>120</to>
+<note>**[Maintainability and Readability]** Code duplication: The logic to determine the protocol and hostname is repeated across multiple files (vcs.php, general.php, site.php, Comment.php). This violates the DRY principle and makes configuration changes difficult to maintain.
+
+**[Security Vulnerability]** The application constructs URLs using user-influenced environment variables (_APP_CONSOLE_DOMAIN). If an attacker can influence these environment variables or if the configuration is mismanaged, this could lead to Open Redirect or phishing vulnerabilities by redirecting users to malicious domains.</note>
+</notesplit>
+<notesplit>
+<path>src/Appwrite/Vcs/Comment.php</path>
+<side>RIGHT</side>
+<from>154</from>
+<to>155</to>
+<note>**[Code Defect]** The $consoleUrl is constructed using $hostname. If _APP_CONSOLE_DOMAIN and _APP_DOMAIN are both empty, the generated QR code URL will be malformed (e.g., 'http:////v1/avatars/qr...').
+
+**[Security Vulnerability]** The application generates QR code URLs using user-controlled input (previewUrl) concatenated into a URL. While this is an internal service, if the previewUrl is not properly sanitized or if the service is exposed, it could lead to SSRF or malicious link injection.</note>
+</notesplit>
+<notesplit>
+<path>app/controllers/api/vcs.php</path>
+<side>RIGHT</side>
+<from>440</from>
+<to>441</to>
+<note>Logic duplication: The protocol/hostname resolution is repeated inside a function body. This logic should be abstracted to avoid maintenance overhead when the URL structure changes.</note>
+</notesplit>
+<notesplit>
+<path>app/controllers/api/vcs.php</path>
+<side>RIGHT</side>
+<from>451</from>
+<to>451</to>
+<note>The redirect_uri is constructed using $hostname, which defaults to an empty string if both _APP_CONSOLE_DOMAIN and _APP_DOMAIN are missing. This will result in an invalid redirect_uri for GitHub OAuth.</note>
+</notesplit>
+<notesplit>
+<path>src/Appwrite/Vcs/Comment.php</path>
+<side>RIGHT</side>
+<from>203</from>
+<to>204</to>
+<note>Typo in method name: `generatImage` should be `generateImage`.</note>
+</notesplit>
+<notesplit>
+<path>app/config/templates/site.php</path>
+<side>RIGHT</side>
+<from>10</from>
+<to>10</to>
+<note>The fallback logic `System::getEnv('_APP_CONSOLE_DOMAIN', System::getEnv('_APP_DOMAIN', ''))` is becoming a common pattern. If this is the standard way to resolve the console domain, it should be encapsulated in a single location.</note>
+</notesplit>

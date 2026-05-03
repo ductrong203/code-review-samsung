@@ -1,0 +1,44 @@
+<notesplit>
+<path>lib/internal/bootstrap/realm.js</path>
+<side>RIGHT</side>
+<from>327</from>
+<to>331</to>
+<note>**[Performance]** The `getAllBuiltinModuleIds` method performs redundant array allocations and transformations. It creates an array from `canBeRequiredByUsersWithoutSchemeList`, then creates another array from `schemelessBlockList` via `ArrayFrom` with a mapping function, and finally pushes the second array into the first. This can be optimized by pre-calculating the size or using a more efficient iteration pattern to avoid intermediate array creation.
+
+**[Code Defect]** The use of ArrayPrototypePushApply with a second argument that is an array (the result of ArrayFrom) is incorrect. ArrayPrototypePushApply expects the second argument to be an array-like object, but the second argument here is the result of ArrayFrom, which is an array. This will likely cause a TypeError or incorrect behavior depending on the environment's implementation of primordials.</note>
+</notesplit>
+<notesplit>
+<path>lib/internal/bootstrap/realm.js</path>
+<side>RIGHT</side>
+<from>68</from>
+<to>72</to>
+<note>The method `getAllBuiltinModuleIds` manually constructs a list by pushing prefixed versions of schemeless modules. This logic is duplicated in intent with how `canBeRequiredByUsersWithoutSchemeList` is derived. Centralizing the definition of what constitutes a 'builtin' and its 'prefixed' variant would reduce maintenance burden.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-repl-tab-complete.js</path>
+<side>RIGHT</side>
+<from>278</from>
+<to>278</to>
+<note>The condition `lib.startsWith('node:') || data[0].includes('node:' + lib)` is becoming complex and hard to read. It obscures the intent of the test, which is to verify that both prefixed and unprefixed modules are discoverable.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-process-get-builtin.mjs</path>
+<side>RIGHT</side>
+<from>44</from>
+<to>44</to>
+<note>The logic `if (!id.startsWith('node:'))` inside the loop over `publicBuiltins` skips testing `process.getBuiltinModule(id)` for modules that already have the `node:` prefix, even though `publicBuiltins` might contain them. This reduces test coverage for the `node:` prefixed modules.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-internal-module-require.js</path>
+<side>RIGHT</side>
+<from>90</from>
+<to>92</to>
+<note>The logic `if (!id.startsWith('node:')) { require('node:' + id); }` is repeated across multiple test files (test-internal-module-require.js, test-parallel/test-process-get-builtin.mjs, test-require-resolve.js). This is a violation of the DRY principle in test code.</note>
+</notesplit>
+<notesplit>
+<path>lib/repl.js</path>
+<side>RIGHT</side>
+<from>134</from>
+<to>134</to>
+<note>The filter logic `(e) => e[0] !== '_' && !StringPrototypeStartsWith(e, 'node:')` is becoming a 'magic' filter. As more module types are added, this list of conditions will grow, making it brittle.</note>
+</notesplit>

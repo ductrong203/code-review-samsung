@@ -1,0 +1,20 @@
+<notesplit>
+<path>internal/ls/diagnostics.go</path>
+<side>RIGHT</side>
+<from>13</from>
+<to>25</to>
+<note>**[Performance]** The current logic executes diagnostic retrieval calls sequentially. If these calls (Semantic, Suggestion, Declaration) are independent and involve I/O or heavy computation, they should be executed concurrently to reduce latency in the LSP request cycle.
+
+**[Code Defect]** The logic change introduces a bug where semantic, suggestion, and declaration diagnostics are only computed if there are NO syntactic diagnostics. Previously, the code would return syntactic diagnostics if present, but the new logic completely skips semantic/suggestion/declaration checks if any syntactic diagnostic exists, leading to incomplete diagnostic reporting.
+
+**[Maintainability and Readability]** The logic for gathering diagnostics is becoming complex and tightly coupled to the specific diagnostic types (syntactic, semantic, suggestion, declaration). This violates the Open/Closed principle as adding new diagnostic types requires modifying this function.
+
+The 'if-else' structure creates a dependency where semantic/suggestion/declaration diagnostics are only fetched if syntactic diagnostics are empty. This behavior is implicit and might lead to unexpected results if the requirements for diagnostic reporting change.</note>
+</notesplit>
+<notesplit>
+<path>internal/ls/diagnostics.go</path>
+<side>RIGHT</side>
+<from>35</from>
+<to>48</to>
+<note>The function 'toLSPDiagnostics' performs a manual two-pass approach (calculating size then appending) to optimize slice allocation. While efficient, it is slightly verbose.</note>
+</notesplit>

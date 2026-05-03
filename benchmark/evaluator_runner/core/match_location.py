@@ -158,7 +158,9 @@ def match_location(
             return LocationMatchResult(is_match=False, path_match=False)
 
     if generated_loc.side is not None and reference_loc.side is not None:
-        if generated_loc.side != reference_loc.side:
+        gen_side = str(generated_loc.side).strip().lower()
+        ref_side = str(reference_loc.side).strip().lower()
+        if gen_side != ref_side:
             logging.debug(f"Skip {comment_id}: side mismatch")
             return LocationMatchResult(is_match=False, side_match=False)
 

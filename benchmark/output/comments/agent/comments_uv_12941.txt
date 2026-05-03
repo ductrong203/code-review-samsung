@@ -1,0 +1,11 @@
+<notesplit>
+<path>crates/uv/tests/it/pip_install.rs</path>
+<side>RIGHT</side>
+<from>135</from>
+<to>175</to>
+<note>**[Maintainability and Readability]** The `start_requirements_server` function creates a mock server that registers two conflicting handlers for the same path (`/requirements.txt`). While this works for the specific test case, it relies on the order of registration and is fragile. If the server implementation changes or if more complex routing is needed, this pattern will lead to unpredictable behavior.
+
+The test `install_remote_requirements_txt` performs multiple sequential operations (server setup, snapshot, re-setup, snapshot) within a single test function. This makes the test harder to debug if a specific step fails and violates the principle of having a single clear assertion per test.
+
+**[Code Defect]** The `start_requirements_server` function registers two mocks for the same path (`/requirements.txt`) and method (`GET`). In `wiremock`, when multiple mocks match a request, the one registered *last* takes precedence. Because the second mock (the 401 response) is registered after the first (the 200 response), the server will always return 401, causing the tests to fail or behave incorrectly.</note>
+</notesplit>

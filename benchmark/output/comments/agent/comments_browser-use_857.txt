@@ -1,0 +1,59 @@
+<notesplit>
+<path>browser_use/browser/browser.py</path>
+<side>RIGHT</side>
+<from>294</from>
+<to>294</to>
+<note>**[Code Defect]** Hardcoding `channel='chrome'` in `_setup_builtin_browser` forces the use of the installed Chrome browser, which will crash if Chrome is not installed on the system, even if the user intended to use the default Playwright-managed Chromium binary.
+
+**[Performance]** Hardcoding channel='chrome' in browser launch forces the use of the installed Chrome browser, which can lead to performance overhead or compatibility issues if the environment is not optimized for the system-installed Chrome compared to the bundled Chromium.
+
+**[Maintainability and Readability]** Hardcoding 'channel=chrome' in _setup_builtin_browser limits the browser to Chrome only, even if the user configures 'firefox' or 'webkit' in BrowserConfig. This violates the principle of least astonishment and makes the browser configuration inconsistent.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/browser/context.py</path>
+<side>RIGHT</side>
+<from>443</from>
+<to>455</to>
+<note>**[Security Vulnerability]** The code dynamically applies 'bypass_csp: True' and 'ignore_https_errors: True' based on the 'disable_security' configuration. This effectively disables the browser's primary defenses against malicious content injection and intercepted traffic.
+
+**[Maintainability and Readability]** The logic for constructing browser context arguments is becoming complex and fragmented. Using a dictionary 'kwargs' and conditionally updating it makes it harder to track the final configuration state.
+
+**[Code Defect]** The logic `**({'bypass_csp': True, 'ignore_https_errors': True} if self.config.disable_security else {})` is passed to `browser.new_context`. However, `BrowserContext` in Playwright/Patchright does not accept `bypass_csp` as a parameter in `new_context`. This will likely cause a TypeError at runtime.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/browser/browser.py</path>
+<side>RIGHT</side>
+<from>135</from>
+<to>135</to>
+<note>The 'disable_security' configuration flag, when enabled, disables critical browser security features (like CSP and HTTPS error validation). This exposes the user to cross-site scripting (XSS), man-in-the-middle (MITM) attacks, and unauthorized access to sensitive data if the agent visits malicious websites.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/agent/service.py</path>
+<side>RIGHT</side>
+<from>261</from>
+<to>261</to>
+<note>Directly modifying 'self.browser.config.new_context_config' inside the Agent's __init__ is a side effect that mutates a shared configuration object. This can lead to unexpected behavior if the same browser instance is reused across multiple agents with different requirements.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/dom/service.py</path>
+<side>RIGHT</side>
+<from>105</from>
+<to>105</to>
+<note>The `js_code` is read from disk every time `DomService` is instantiated. In a long-running agent, this is redundant I/O.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/browser/context.py</path>
+<side>RIGHT</side>
+<from>489</from>
+<to>505</to>
+<note>**[Maintainability and Readability]** The anti-detection script was significantly reduced, leaving only a single permission override. If the other parts (webdriver, languages, plugins) were removed, the remaining code block is now sparse and potentially misleading if it was intended to be a comprehensive anti-detection suite.
+
+**[Performance]** The `add_init_script` is called inside a lambda on the 'page' event. If many pages are opened, this script is re-injected repeatedly, which can lead to memory bloat and redundant execution overhead in the browser context.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/dom/service.py</path>
+<side>RIGHT</side>
+<from>158</from>
+<to>160</to>
+<note>Manual deletion of large dictionaries (`del node_map`, etc.) is generally unnecessary in Python due to reference counting and garbage collection, and can sometimes interfere with Python's internal memory management optimizations.</note>
+</notesplit>

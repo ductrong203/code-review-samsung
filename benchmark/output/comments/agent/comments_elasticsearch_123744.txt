@@ -1,0 +1,26 @@
+<notesplit>
+<path>libs/entitlement/src/main/java/org/elasticsearch/entitlement/runtime/policy/PolicyManager.java</path>
+<side>RIGHT</side>
+<from>311</from>
+<to>324</to>
+<note>**[Code Defect]** The method `isPathOnDefaultFilesystem` calls `path.getFileSystem()` which can throw a `ProviderNotFoundException` or other runtime exceptions if the path is invalid or the filesystem provider is not available, potentially crashing the entitlement check.
+
+**[Security Vulnerability]** The introduction of `isPathOnDefaultFilesystem` creates a security bypass. By returning `true` (effectively allowing access) when a path belongs to a non-default `FileSystem` (e.g., a `ZipFileSystem` or a custom malicious `FileSystem` implementation), the entitlement check is completely skipped. An attacker could potentially use crafted `Path` objects that resolve to sensitive files but bypass the `PolicyManager` checks entirely.
+
+**[Maintainability and Readability]** The method `isPathOnDefaultFilesystem` performs a side-effect (logging) while acting as a predicate. This violates the principle of least astonishment, as callers might not expect a simple check to trigger logging infrastructure.
+
+**[Performance]** String concatenation and object allocation inside logger.trace are performed regardless of whether the trace level is enabled.
+
+The check `path.getFileSystem().getClass() != DEFAULT_FILESYSTEM_CLASS` is redundant because the class is already retrieved in the line above. More importantly, comparing classes for FileSystem equality is fragile; `FileSystem.equals()` should be used instead to correctly handle different instances of the same provider.
+
+Redundant call to `getClass()` on the same object. `path.getFileSystem().getClass()` is called twice in immediate succession.
+
+The logic for checking the filesystem is duplicated across `checkFileRead` and `checkFileWrite`. While the current implementation is small, this pattern is prone to drift if the criteria for 'default filesystem' becomes more complex.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/src/main/java/org/elasticsearch/entitlement/runtime/policy/FileAccessTree.java</path>
+<side>RIGHT</side>
+<from>205</from>
+<to>205</to>
+<note>String.join inside a logger.trace call is evaluated even if the trace level is disabled, causing unnecessary string allocation and array joining in hot paths.</note>
+</notesplit>

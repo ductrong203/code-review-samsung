@@ -1,0 +1,27 @@
+<notesplit>
+<path>comfy/clip_model.py</path>
+<side>RIGHT</side>
+<from>104</from>
+<to>110</to>
+<note>**[Performance]** The causal mask is being re-allocated and re-filled on every forward pass. Since the mask depends only on the sequence length (x.shape[1]), this can be cached to avoid repeated memory allocation and initialization overhead in the hot path.
+
+**[Code Defect]** Using float('-inf') in a tensor created with dtype=x.dtype (which is likely float16) can cause overflow or NaN issues on some hardware/backends, as float16 cannot represent negative infinity in the same way as float32. The original code used -torch.finfo(x.dtype).max, which is the standard safe way to represent negative infinity for a specific dtype.
+
+**[Maintainability and Readability]** The logic for creating `causal_mask` is duplicated with slight variations for DirectML vs other devices. This creates a maintenance burden where changes to mask initialization must be applied in two places.</note>
+</notesplit>
+<notesplit>
+<path>comfy/ldm/flux/math.py</path>
+<side>RIGHT</side>
+<from>25</from>
+<to>25</to>
+<note>**[Maintainability and Readability]** The conditional check `comfy.model_management.is_device_mps(pos.device) or comfy.model_management.is_intel_xpu() or comfy.model_management.is_directml_enabled()` is becoming a 'feature flag soup'. As more backends are added, this line will become unreadable.
+
+**[Performance]** Moving tensors to CPU for RoPE calculation in the middle of a GPU-bound forward pass forces a synchronization point between the GPU and CPU, which significantly degrades performance due to latency.</note>
+</notesplit>
+<notesplit>
+<path>comfy/model_management.py</path>
+<side>RIGHT</side>
+<from>990</from>
+<to>996</to>
+<note>The function `is_directml_enabled` uses a redundant if-else structure to return a boolean. This can be simplified to `return bool(directml_enabled)` or just `return directml_enabled`.</note>
+</notesplit>

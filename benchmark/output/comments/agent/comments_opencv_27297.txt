@@ -1,0 +1,11 @@
+<notesplit>
+<path>modules/imgcodecs/test/test_png.cpp</path>
+<side>RIGHT</side>
+<from>123</from>
+<to>145</to>
+<note>**[Code Defect]** The test assumes a fixed byte offset (8+4) for the chunk type field. While this works for a standard PNG file structure, it is fragile and relies on the assumption that the IHDR chunk immediately follows the 8-byte signature and the 4-byte length field of the first chunk. If the encoder changes or if there are preceding chunks, this test will fail or corrupt memory/logic.
+
+**[Maintainability and Readability]** The test uses hardcoded magic numbers (8+4+0, 8+4+1, etc.) to access specific bytes in the PNG buffer. This makes the test fragile and difficult to read. These offsets should be defined as named constants (e.g., PNG_SIG_LEN, CHUNK_LEN_FIELD_SIZE).
+
+The test logic for modifying the buffer to simulate malformed chunks is repeated three times with slight variations. This duplication could be abstracted into a helper function that takes the desired chunk signature as a parameter.</note>
+</notesplit>

@@ -1,0 +1,33 @@
+<notesplit>
+<path>player/command.c</path>
+<side>RIGHT</side>
+<from>7706</from>
+<to>7721</to>
+<note>**[Performance]** The coalescing logic uses an O(n) loop with an O(n) array shift (via manual assignment) inside the loop, resulting in O(n²) complexity for every option change. As the number of callbacks grows, this will cause significant performance degradation in the main thread.
+
+**[Maintainability and Readability]** The manual array shifting logic for coalescing callbacks is error-prone and difficult to read. It reimplements functionality that could be handled more cleanly with a dedicated data structure or a simpler filtering approach.
+
+**[Code Defect]** The loop logic for coalescing callbacks is flawed. When `drop` is set to true, the loop continues to iterate and potentially overwrites subsequent elements with the current one, but the `drop` flag is never reset. This causes all subsequent callbacks in the array to be incorrectly shifted or dropped, leading to data loss in the callback queue.
+
+**[Security Vulnerability]** Potential out-of-bounds write or memory corruption in the option_callbacks array. The logic shifts elements within the array while iterating, but the bounds check and index management for `mpctx->option_callbacks` are fragile. If `num_option_callbacks` is modified during the loop or if the array is reallocated via `MP_TARRAY_APPEND` (which may trigger a realloc), the pointer `mpctx->option_callbacks` could become invalid, leading to a use-after-free or heap corruption.
+
+The loop logic for coalescing updates modifies the array while iterating over it, which is a common source of off-by-one errors and makes the control flow hard to follow.
+
+The condition `if (i == mpctx->num_option_callbacks - 1)` inside the loop is problematic because `num_option_callbacks` is not decremented after a shift. If a shift occurs, the last element is duplicated, and the logic attempts to overwrite the last element, which may lead to inconsistent state if the array size isn't updated correctly.</note>
+</notesplit>
+<notesplit>
+<path>player/playloop.c</path>
+<side>RIGHT</side>
+<from>126</from>
+<to>131</to>
+<note>**[Maintainability and Readability]** The `handle_option_callbacks` function clears the callback queue by setting `num_option_callbacks = 0`. If `mp_option_run_callback` triggers a process that adds new callbacks, this could lead to unexpected behavior or lost updates.
+
+**[Code Defect]** The `handle_option_callbacks` function clears the callback queue by setting `num_option_callbacks = 0`. However, the `mp_option_change_callback` function uses `MP_TARRAY_APPEND` to grow the array. If the memory allocated for the array is not freed or managed, this will lead to a memory leak over time as new callbacks are appended to the existing (but logically cleared) array.</note>
+</notesplit>
+<notesplit>
+<path>player/command.c</path>
+<side>RIGHT</side>
+<from>7724</from>
+<to>7731</to>
+<note>The function `mp_option_run_callback` relies on `mpctx->option_callbacks[index]` without verifying that `index` is within the bounds of `num_option_callbacks`.</note>
+</notesplit>

@@ -37,7 +37,7 @@ export default function ChatInput({ onSend, isLoading }) {
         <textarea
           ref={textareaRef}
           className="chat-input__textarea"
-          placeholder="Paste a GitHub PR URL to review... (e.g. https://github.com/owner/repo/pull/123)"
+          placeholder="Message SSCR-BOT or paste a GitHub pull request URL..."
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -52,11 +52,11 @@ export default function ChatInput({ onSend, isLoading }) {
           title="Send message"
           id="send-btn"
         >
-          ➤
+          Send
         </button>
       </div>
       <div className="chat-input__hint">
-        Press Enter to send • Shift+Enter for new line
+        Enter to send - Shift + Enter for a new line
       </div>
     </div>
   );

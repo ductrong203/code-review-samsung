@@ -1,0 +1,16 @@
+<notesplit>
+<path>server/src/services/trash.service.ts</path>
+<side>RIGHT</side>
+<from>56</from>
+<to>66</to>
+<note>**[Code Defect]** The `handleQueueEmptyTrash` method queues deletion jobs for all assets in the trash with `deleteOnDisk: true`. However, this ignores the `isOffline` status of the assets. If an offline asset is in the trash and is permanently deleted, it should not attempt to delete the file from disk (as it is offline), but this logic forces `deleteOnDisk: true` for all trash items.
+
+**[Performance]** The `handleQueueEmptyTrash` method queues deletion jobs with `deleteOnDisk: true` for all assets in the trash. This ignores the `isOffline` status of the assets, potentially triggering unnecessary disk I/O or error handling for files that are already known to be offline/missing.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/asset.service.ts</path>
+<side>RIGHT</side>
+<from>249</from>
+<to>252</to>
+<note>The `handleAssetDeletion` method performs a database lookup for the asset and its relations (faces, library, stack, exifInfo, files) for every single asset deletion job. When processing large batches of deletions (e.g., emptying trash), this creates an N+1 query pattern on the database.</note>
+</notesplit>

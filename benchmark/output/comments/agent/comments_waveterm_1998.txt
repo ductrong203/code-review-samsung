@@ -1,0 +1,28 @@
+<notesplit>
+<path>pkg/remote/fileshare/fsutil/fsutil.go</path>
+<side>RIGHT</side>
+<from>204</from>
+<to>206</to>
+<note>Path traversal vulnerability in CleanPathPrefix. The function attempts to sanitize paths but fails to prevent directory traversal when paths contain '..'. While it checks for '..' at the start, it does not prevent 'a/../b' patterns from escaping the intended directory scope.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wshrpc/wshremote/wshremote.go</path>
+<side>RIGHT</side>
+<from>496</from>
+<to>500</to>
+<note>Path traversal vulnerability in RemoteFileCopyCommand. The destination path is constructed using filepath.Join(destPathCleaned, next.Name) without validating that the resulting path remains within the intended destination directory.</note>
+</notesplit>
+<notesplit>
+<path>pkg/remote/fileshare/s3fs/s3fs.go</path>
+<side>RIGHT</side>
+<from>718</from>
+<to>725</to>
+<note>Potential for resource exhaustion (DoS) in Delete operation. When recursive is true, the code lists all objects with a prefix and then deletes them. If the number of objects is extremely large, this could lead to memory exhaustion or API rate limiting issues.</note>
+</notesplit>
+<notesplit>
+<path>pkg/remote/fileshare/fsutil/fsutil.go</path>
+<side>RIGHT</side>
+<from>210</from>
+<to>222</to>
+<note>Incomplete path sanitization. The logic to handle '..' components manually is error-prone and can be bypassed or lead to unexpected path resolutions depending on the underlying filesystem implementation.</note>
+</notesplit>

@@ -1,0 +1,38 @@
+<notesplit>
+<path>src/services/auth/AuthService.ts</path>
+<side>RIGHT</side>
+<from>56</from>
+<to>65</to>
+<note>Hardcoded Firebase API keys and configuration are present in the source code. These secrets should be managed via environment variables or a secure configuration service, not committed to the repository.</note>
+</notesplit>
+<notesplit>
+<path>src/services/auth/AuthService.ts</path>
+<side>RIGHT</side>
+<from>33</from>
+<to>33</to>
+<note>**[Code Defect]** The _authNonce is now initialized once at class instantiation and never rotated. Because it is used for CSRF protection in authentication flows, reusing the same nonce for the entire lifetime of the AuthService instance (which is a singleton) makes the authentication flow vulnerable to replay attacks.
+
+**[Performance]** The authNonce is generated once at class instantiation and never rotated. This creates a static nonce that persists for the entire lifetime of the AuthService singleton, increasing the window of vulnerability for replay attacks and potentially causing state mismatch issues if multiple auth requests are initiated over a long session.
+
+**[Maintainability and Readability]** The auth nonce is now a static, immutable value generated at class instantiation. This makes it a 'replayable' state token rather than a unique, one-time-use nonce, significantly weakening the security of the authentication flow.
+
+**[Security Vulnerability]** The authNonce is now a static property initialized once at class instantiation. If the AuthService instance persists for the lifetime of the extension, the nonce never changes, significantly increasing the window of opportunity for CSRF or session fixation attacks.</note>
+</notesplit>
+<notesplit>
+<path>src/core/controller/index.ts</path>
+<side>RIGHT</side>
+<from>458</from>
+<to>462</to>
+<note>**[Security Vulnerability]** The authentication nonce is no longer reset after validation. This allows for potential replay attacks where a captured state/nonce could be reused if the authentication flow is not strictly one-time use.
+
+**[Code Defect]** The validation logic now strictly compares the state to the static nonce without clearing it. Since the nonce is never rotated, this effectively disables the 'one-time use' security property of a nonce, allowing the same state string to be reused indefinitely for auth callbacks.
+
+**[Maintainability and Readability]** The validation logic now relies on a static nonce (due to the change in AuthService). By removing the reset logic, the nonce is never invalidated, allowing the same state to be used indefinitely.</note>
+</notesplit>
+<notesplit>
+<path>src/extension.ts</path>
+<side>RIGHT</side>
+<from>311</from>
+<to>321</to>
+<note>The logic introduces a manual user confirmation step for state mismatches. This creates a poor user experience and potentially encourages users to ignore security warnings, rather than addressing the underlying cause of the state mismatch.</note>
+</notesplit>

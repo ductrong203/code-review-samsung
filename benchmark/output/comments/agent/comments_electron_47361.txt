@@ -1,0 +1,37 @@
+<notesplit>
+<path>shell/browser/api/electron_api_session.cc</path>
+<side>RIGHT</side>
+<from>217</from>
+<to>217</to>
+<note>The 'task' pointer is allocated with 'new' but is never deleted if the function returns early or if the task logic fails to reach the final 'delete this'. The previous implementation used a shared_ptr to manage lifetime; the new implementation relies on manual 'delete this' at the end of 'OnTaskFinished', which is prone to memory leaks if 'OnTaskFinished' is not called.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/api/electron_api_session.cc</path>
+<side>RIGHT</side>
+<from>358</from>
+<to>358</to>
+<note>The class uses 'delete this' to manage its own lifetime, but it is also a subclass of 'gin_helper::CleanedUpAtExit'. This creates a high risk of double-deletion if the exit cleanup triggers while an operation is still finishing, or vice versa.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/api/electron_api_session.cc</path>
+<side>RIGHT</side>
+<from>303</from>
+<to>303</to>
+<note>The 'task' pointer is passed as a raw pointer to 'StartOperation'. If the 'ClearDataTask' object is destroyed (e.g., via CleanedUpAtExit) while an operation is still pending, the 'ClearDataOperation' will hold a dangling 'raw_ptr<ClearDataTask>', leading to a use-after-free when 'OnOperationFinished' is eventually called.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/api/electron_api_session.cc</path>
+<side>RIGHT</side>
+<from>318</from>
+<to>327</to>
+<note>**[Performance]** The use of std::remove_if followed by erase on a std::vector of unique_ptrs results in O(n) complexity for every operation completion. While likely small in practice, this is an inefficient way to manage a collection of active operations compared to a std::unordered_set or std::list if the number of concurrent operations grows.
+
+**[Maintainability and Readability]** The manual removal of an operation from the vector using std::remove_if inside OnOperationFinished adds unnecessary complexity to the task management logic. This logic is coupled with the task's own lifecycle management.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/api/electron_api_session.cc</path>
+<side>RIGHT</side>
+<from>203</from>
+<to>206</to>
+<note>The class comment describes the lifetime management logic, but the implementation relies on manual 'delete this' calls inside the class methods. This is a fragile pattern that is prone to memory leaks or double-frees if the logic becomes more complex.</note>
+</notesplit>
