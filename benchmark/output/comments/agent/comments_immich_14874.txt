@@ -1,0 +1,23 @@
+<notesplit>
+<path>server/src/services/metadata.service.ts</path>
+<side>RIGHT</side>
+<from>592</from>
+<to>592</to>
+<note>The `earliestDate` function is called with `asset.fileModifiedAt` and `asset.fileCreatedAt`. If either of these properties is null or undefined (which is possible for database entities), `Math.min` will return `NaN`, resulting in an invalid Date object.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/metadata.service.ts</path>
+<side>RIGHT</side>
+<from>612</from>
+<to>617</to>
+<note>**[Maintainability and Readability]** The 'earliestDate' helper method is a generic utility that does not belong in the MetadataService class. It should be moved to a shared utility file to improve maintainability and allow for unit testing without instantiating the service.
+
+**[Code Defect]** The `earliestDate` method uses `a.valueOf()` and `b.valueOf()`. If `a` or `b` is null/undefined, this will throw a TypeError: Cannot read properties of null/undefined.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/metadata.service.spec.ts</path>
+<side>RIGHT</side>
+<from>274</from>
+<to>313</to>
+<note>The two new test cases contain significant duplication in setup and assertion logic. This makes the test suite harder to maintain if the expected structure of the asset update changes.</note>
+</notesplit>

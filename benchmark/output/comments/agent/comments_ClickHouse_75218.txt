@@ -1,0 +1,57 @@
+<notesplit>
+<path>src/Analyzer/Identifier.cpp</path>
+<side>RIGHT</side>
+<from>57</from>
+<to>89</to>
+<note>**[Maintainability and Readability]** The popLast method manually updates the full_name string by resizing based on character counts. This is error-prone and fragile if the delimiter or string representation changes. It would be safer to reconstruct the string from the remaining parts or use a more robust view-based approach.
+
+**[Code Defect]** The loop in `popLast` modifies `full_name` by resizing it based on `last_part_size + is_not_last`. However, `full_name` is a string that may contain multi-byte characters or specific formatting. If `full_name` was not constructed exactly as `part1.part2...`, or if the last part's size calculation doesn't account for the exact byte offset of the last dot, this will corrupt the `full_name` string.
+
+IdentifierView::popFirst and popLast perform manual iterator and string_view arithmetic. This logic is complex and easy to break. The dependency on 'is_not_last' logic inside the loop is non-obvious.</note>
+</notesplit>
+<notesplit>
+<path>src/Analyzer/Identifier.cpp</path>
+<side>RIGHT</side>
+<from>73</from>
+<to>92</to>
+<note>**[Code Defect]** The `popFirst` method for `IdentifierView` uses `full_name_view.remove_prefix(part_size + is_not_last)`. This assumes that the `full_name_view` is strictly a concatenation of parts separated by a single dot. If the original identifier was created with different separators or if the string view does not perfectly align with the parts, this will result in an incorrect view or an out-of-bounds access.
+
+The `popLast` method for `IdentifierView` uses `full_name_view.remove_suffix(last_part_size + is_not_last)`. Similar to `popFirst`, this assumes a specific structure of the `full_name_view` that may not hold if the identifier was not created via simple dot-joining.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/Kafka/StorageKafkaUtils.cpp</path>
+<side>RIGHT</side>
+<from>114</from>
+<to>132</to>
+<note>The use of a large macro (CHECK_KAFKA_STORAGE_ARGUMENT) inside a function to perform validation is a significant readability and maintainability issue. It hides control flow and makes debugging difficult.</note>
+</notesplit>
+<notesplit>
+<path>src/Analyzer/Identifier.cpp</path>
+<side>RIGHT</side>
+<from>42</from>
+<to>64</to>
+<note>**[Performance]** The popFirst method creates a new vector and performs a full copy of all remaining elements, followed by a full string join. This is O(n) where n is the number of parts, which is inefficient for frequent identifier manipulations.
+
+The popLast method performs multiple string resizes and potentially multiple memory reallocations inside a loop. While it avoids copying the vector, the repeated resizing of the 'full_name' string is inefficient.</note>
+</notesplit>
+<notesplit>
+<path>src/Analyzer/Identifier.h</path>
+<side>RIGHT</side>
+<from>135</from>
+<to>143</to>
+<note>The emplace_back method performs string concatenation using '+=' on the 'full_name' member. If this is called repeatedly, it causes frequent reallocations of the 'full_name' string buffer.</note>
+</notesplit>
+<notesplit>
+<path>src/Analyzer/Passes/FunctionToSubcolumnsPass.cpp</path>
+<side>RIGHT</side>
+<from>145</from>
+<to>165</to>
+<note>The 'node_transformers' map contains complex lambda logic for various function optimizations. As this grows, it will become a 'God' structure that is hard to maintain.</note>
+</notesplit>
+<notesplit>
+<path>src/Analyzer/Identifier.h</path>
+<side>RIGHT</side>
+<from>115</from>
+<to>124</to>
+<note>The use of '/// NOLINT' for pop_front, pop_back, and push_back suggests these methods are intended to mimic standard container interfaces but are being flagged by linters. This indicates a potential design mismatch with standard C++ naming conventions.</note>
+</notesplit>

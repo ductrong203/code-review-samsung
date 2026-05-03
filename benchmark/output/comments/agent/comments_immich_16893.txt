@@ -1,0 +1,49 @@
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>RIGHT</side>
+<from>74</from>
+<to>86</to>
+<note>**[Code Defect]** The URL constructor is used incorrectly. `event.origin` is not a valid base for the URL constructor when the URL is already absolute (which `urlstring` is expected to be). This will cause the URL parsing to fail or produce incorrect results.
+
+**[Security Vulnerability]** The service worker constructs a URL using user-provided input from the BroadcastChannel without validating the origin or the structure of the URL, potentially leading to SSRF or unauthorized resource fetching if the BroadcastChannel is accessible by malicious scripts on the same origin.
+
+**[Maintainability and Readability]** The code uses `event.data.url` without validating that the message structure conforms to the expected interface. This is fragile and prone to runtime errors if other parts of the app send different messages over the 'immich' channel.
+
+The message handling logic in the BroadcastChannel listener is tightly coupled to the `pendingLoads` map and `immichAsset` function. As more message types are added, this will become a 'God' function.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>RIGHT</side>
+<from>43</from>
+<to>67</to>
+<note>**[Maintainability and Readability]** The catch block in `immichAsset` swallows all errors and returns `Response.error()`. This makes debugging network issues or cache failures impossible as the caller receives no context on why the request failed.
+
+The `immichAsset` function handles both cache retrieval and network fetching with side effects (caching, abort controller management). This violates the Single Responsibility Principle and makes the logic harder to test in isolation.
+
+**[Code Defect]** The catch block returns `Response.error()`. This is a network error response that is opaque and often results in a generic 'Failed to fetch' error in the browser, which might not be the desired behavior for a failed asset fetch (e.g., it prevents the browser from retrying or showing a proper fallback).
+
+**[Performance]** The immichAsset function performs a cache lookup and a potential network fetch without checking if a request for the same URL is already in progress. This can lead to redundant network requests if multiple components trigger a preload for the same asset simultaneously.
+
+**[Security Vulnerability]** The service worker returns `Response.error()` on any fetch failure. This can leak information about the internal state or network connectivity to the client-side application, and potentially mask underlying security errors.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>RIGHT</side>
+<from>7</from>
+<to>7</to>
+<note>The 'pendingLoads' Map is used to track AbortControllers, but there is no mechanism to limit the number of concurrent pending loads. In a scenario with many preloads, this could lead to excessive memory usage and network congestion.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>RIGHT</side>
+<from>83</from>
+<to>83</to>
+<note>The 'preload' message handler calls 'immichAsset' without checking if the asset is already cached or currently being fetched, potentially triggering redundant work.</note>
+</notesplit>
+<notesplit>
+<path>web/src/lib/components/asset-viewer/photo-viewer.svelte</path>
+<side>RIGHT</side>
+<from>168</from>
+<to>168</to>
+<note>The `cancelImageUrl` call in the `onDestroy` cleanup relies on `imageLoaderUrl`, which is a derived state. If the component is destroyed during a transition or state change, there is a risk of passing an outdated or incorrect URL to the service worker.</note>
+</notesplit>

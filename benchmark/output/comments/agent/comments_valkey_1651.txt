@@ -1,0 +1,46 @@
+<notesplit>
+<path>src/config.c</path>
+<side>RIGHT</side>
+<from>545</from>
+<to>548</to>
+<note>**[Code Defect]** The logic `if (cmd->current_name != cmd->fullname)` is flawed because `current_name` and `fullname` are pointers to SDS strings. Comparing pointers checks if they point to the same memory address, not if the strings are identical. If the strings are identical but stored in different memory locations, the code will fail to free the old `current_name`, causing a memory leak.
+
+**[Maintainability and Readability]** The logic for updating `current_name` is inconsistent. It checks if `cmd->current_name != cmd->fullname` before freeing, but `cmd->fullname` is not necessarily the same as the old `current_name`. This risks memory leaks if `current_name` was previously allocated and is now being overwritten without being freed.
+
+**[Security Vulnerability]** Potential memory leak or double-free risk. The logic checks if `cmd->current_name != cmd->fullname` to decide whether to free `cmd->current_name`. If `cmd->current_name` was previously allocated and is equal to `cmd->fullname`, it is not freed, but `cmd->current_name` is then overwritten with a new `sdsdup`. If `cmd->fullname` was the original pointer, this might lead to a leak of the previous `current_name` if it was a distinct allocation.</note>
+</notesplit>
+<notesplit>
+<path>src/acl.c</path>
+<side>RIGHT</side>
+<from>942</from>
+<to>950</to>
+<note>The function ACLResetFirstArgs iterates over all possible command bits (USER_COMMAND_BITS_COUNT) every time it is called. If this is called frequently in hot paths (like +@all or -@all), it performs unnecessary checks on empty slots.</note>
+</notesplit>
+<notesplit>
+<path>src/acl.c</path>
+<side>RIGHT</side>
+<from>956</from>
+<to>956</to>
+<note>The use of `break` inside `aclCreateSelectorFromOpSet` after setting `s = NULL` is correct, but the function still proceeds to call `sdsfreesplitres` and `sdsfree`. While functional, the flow is slightly convoluted due to the removal of the `goto cleanup` label, making the error path less explicit.</note>
+</notesplit>
+<notesplit>
+<path>src/acl.c</path>
+<side>RIGHT</side>
+<from>989</from>
+<to>1005</to>
+<note>The function aclCreateSelectorFromOpSet uses sdsfreesplitres, which is an O(n) operation on the number of arguments. While not critical, repeated parsing of large ACL rule sets can be optimized by avoiding unnecessary string splitting if the input format allows.</note>
+</notesplit>
+<notesplit>
+<path>src/acl.c</path>
+<side>RIGHT</side>
+<from>2212</from>
+<to>2226</to>
+<note>ACLLoadConfiguredUsers iterates through a list of users and performs multiple operations. If the number of configured users is very large, this could impact startup time or configuration reload time.</note>
+</notesplit>
+<notesplit>
+<path>src/server.c</path>
+<side>RIGHT</side>
+<from>522</from>
+<to>525</to>
+<note>The function `hashtableCommandGetCurrentName` performs a C-style cast of `element` to `struct serverCommand *`. While common in C, this lacks type safety. If the hashtable is ever used with a different type, this will cause undefined behavior.</note>
+</notesplit>

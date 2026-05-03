@@ -1,0 +1,21 @@
+<notesplit>
+<path>api/types.go</path>
+<side>RIGHT</side>
+<from>614</from>
+<to>614</to>
+<note>The environment variable OLLAMA_CONTEXT_LENGTH is defined as a uint, but the Runner struct field NumCtx is an int. Casting a large uint to int can result in negative values if the value exceeds the maximum positive int, leading to unexpected behavior in the model runner.</note>
+</notesplit>
+<notesplit>
+<path>envconfig/config.go</path>
+<side>RIGHT</side>
+<from>170</from>
+<to>170</to>
+<note>The `ContextLength` variable is defined twice in the same file (lines 170 and 215). This is redundant and confusing for maintainers.</note>
+</notesplit>
+<notesplit>
+<path>envconfig/config_test.go</path>
+<side>RIGHT</side>
+<from>275</from>
+<to>291</to>
+<note>The `TestContextLength` function is duplicated at the end of the file (lines 275-291 and lines 311-327).</note>
+</notesplit>

@@ -1,0 +1,46 @@
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANATable.java</path>
+<side>RIGHT</side>
+<from>153</from>
+<to>155</to>
+<note>The check 'if (dbResult == null)' is performed after 'JDBCUtils.safeGetInt(dbResult, "PART_ID")' has already been called on the same object. If dbResult were null, the previous line would have thrown a NullPointerException.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANATable.java</path>
+<side>RIGHT</side>
+<from>113</from>
+<to>118</to>
+<note>**[Performance]** The SQL query in PartitionCache performs a JOIN between M_CS_TABLES and TABLE_PARTITIONS on three columns (SCHEMA_NAME, TABLE_NAME, PART_ID). If M_CS_TABLES is a large system view, this join can be extremely slow. Furthermore, selecting all columns (SELECT tp.*) is inefficient when only a subset is used by the constructor.
+
+**[Security Vulnerability]** The check 'if (dbResult == null)' is performed after accessing 'dbResult' via 'JDBCUtils.safeGetInt(dbResult, "PART_ID")'. While JDBCUtils might handle nulls, this logic is redundant or potentially misleading if the driver returns a non-null but invalid result set state.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANATable.java</path>
+<side>RIGHT</side>
+<from>146</from>
+<to>149</to>
+<note>**[Maintainability and Readability]** The null check `if (dbResult == null)` in `fetchObject` is redundant and potentially misleading because `JDBCObjectCache` guarantees that `dbResult` is not null when `fetchObject` is called.
+
+Variable naming `partition_id` violates the standard Java camelCase naming convention used throughout the project.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANAPartition.java</path>
+<side>RIGHT</side>
+<from>64</from>
+<to>73</to>
+<note>The logic for retrieving range values is repetitive and violates the DRY (Don't Repeat Yourself) principle. It should be refactored into a helper method or a loop.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANATable.java</path>
+<side>RIGHT</side>
+<from>137</from>
+<to>140</to>
+<note>The SQL query in `prepareObjectsStatement` selects columns that are not used in the `fetchObject` method (e.g., `MEMORY_SIZE_IN_TOTAL`, `RECORD_COUNT`, etc.), leading to unnecessary data retrieval.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANATable.java</path>
+<side>RIGHT</side>
+<from>128</from>
+<to>130</to>
+<note>The null check 'if (dbResult == null)' inside fetchObject is redundant because the JDBC driver/framework guarantees that the ResultSet passed to this method is valid and positioned at a row.</note>
+</notesplit>

@@ -15,6 +15,9 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 
+# Enable DEBUG for agents to see raw LLM output during development
+logging.getLogger("app.agents").setLevel(logging.DEBUG)
+
 logger = logging.getLogger(__name__)
 
 

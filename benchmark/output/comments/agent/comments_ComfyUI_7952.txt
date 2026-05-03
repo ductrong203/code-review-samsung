@@ -1,0 +1,58 @@
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>RIGHT</side>
+<from>205</from>
+<to>225</to>
+<note>**[Security Vulnerability]** The RegexMatch node is vulnerable to ReDoS (Regular Expression Denial of Service). The user-provided 'regex_pattern' is passed directly to re.search without any validation or timeout, allowing an attacker to supply a crafted regex that causes catastrophic backtracking, leading to CPU exhaustion.
+
+**[Performance]** The regex pattern is not pre-compiled. In a node-based execution environment where these nodes may be called repeatedly with the same pattern, re-compiling the regex on every execution is inefficient.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>RIGHT</side>
+<from>232</from>
+<to>305</to>
+<note>**[Maintainability and Readability]** The RegexExtract.execute method is too long and violates the Single Responsibility Principle. It handles regex flag configuration, four distinct extraction modes, and error handling in one function.
+
+**[Security Vulnerability]** The RegexExtract node is vulnerable to ReDoS (Regular Expression Denial of Service). The user-provided 'regex_pattern' is passed directly to re.search/findall/finditer without any validation or timeout, allowing an attacker to supply a crafted regex that causes catastrophic backtracking, leading to CPU exhaustion.
+
+**[Performance]** The regex pattern is not pre-compiled. Re-compiling the regex on every execution is inefficient for repeated calls.
+
+**[Code Defect]** The 'All Groups' mode in RegexExtract iterates through matches but fails to handle the case where the regex pattern contains no groups, or the group_index is out of range, potentially returning an empty string or incorrect results. More importantly, the logic for 'All Groups' is incomplete and does not correctly handle the case where the regex has multiple groups per match.
+
+The catch-all 'except re.error' block swallows the exception and returns an empty string. This makes debugging regex pattern errors impossible for the user.
+
+Regex flag logic is duplicated between RegexMatch and RegexExtract. This duplication makes it harder to update regex configuration consistently.
+
+The RegexExtract node's 'All Groups' mode is missing a closing brace or return statement, leading to a syntax error or incomplete function execution.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>RIGHT</side>
+<from>73</from>
+<to>84</to>
+<note>The CaseConverter class uses a long if-elif-else chain to handle mode logic. This violates the Open/Closed principle; adding a new mode requires modifying the execute method.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>RIGHT</side>
+<from>105</from>
+<to>116</to>
+<note>The StringTrim class uses a long if-elif-else chain to handle mode logic, similar to CaseConverter. This is repetitive and hard to maintain.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>RIGHT</side>
+<from>175</from>
+<to>181</to>
+<note>**[Performance]** Creating new lowercased string objects for comparison is inefficient for large inputs.
+
+**[Code Defect]** The StringCompare node uses 'Starts With' and 'Ends With' as mode options, but the logic inside the execute method uses 'Starts With' and 'Ends With' (with spaces) while the INPUT_TYPES defines them as such. However, if the user passes a string that is empty, startswith/endswith behavior might be unexpected depending on the input.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>RIGHT</side>
+<from>155</from>
+<to>155</to>
+<note>Calling `.lower()` on both strings creates two new string objects in memory. For very large strings, this increases memory pressure unnecessarily.</note>
+</notesplit>

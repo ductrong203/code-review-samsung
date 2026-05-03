@@ -1,0 +1,44 @@
+<notesplit>
+<path>tsl/src/continuous_aggs/refresh.c</path>
+<side>RIGHT</side>
+<from>1217</from>
+<to>1238</to>
+<note>**[Code Defect]** The logic for aligning the refresh window start/end with the original window bounds is flawed when using 'refresh_newest_first = false' (oldest to newest). The condition `batch == 0` is used to identify the first range, but when `refresh_newest_first` is false, the first range in the list is the oldest, not the newest. This causes the start/end alignment logic to be applied to the wrong batch index.
+
+**[Maintainability and Readability]** The logic for aligning the first/last ranges based on the refresh_newest_first flag is becoming complex and hard to follow due to nested ternary operators and multiple conditions.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/continuous_aggs/refresh.c</path>
+<side>RIGHT</side>
+<from>1107</from>
+<to>1112</to>
+<note>The query string is dynamically constructed using string formatting inside a function that is likely called frequently during refresh cycles. While not a critical leak, repeated string allocation and formatting in hot paths can be optimized by using a static template or pre-compiling the query structure.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/continuous_aggs/refresh.c</path>
+<side>RIGHT</side>
+<from>1144</from>
+<to>1146</to>
+<note>The use of psprintf to construct a SQL query string with dynamic parts is prone to errors and harder to read than using parameterized queries or a structured query builder. It also makes it difficult to verify the final query structure at a glance.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/continuous_aggs/refresh.c</path>
+<side>RIGHT</side>
+<from>1201</from>
+<to>1205</to>
+<note>The loop iterates over SPI_processed results. If the number of batches is large, performing memory allocation and list operations inside this loop without explicit memory context management (e.g., using a dedicated memory context for the list) can lead to memory fragmentation or excessive overhead.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/bgw_policy/continuous_aggregate_api.c</path>
+<side>RIGHT</side>
+<from>521</from>
+<to>524</to>
+<note>The function policy_refresh_cagg_add_internal now has 12 parameters. This exceeds the recommended limit for function parameters, making it difficult to call and maintain.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/bgw_policy/policies_v2.c</path>
+<side>RIGHT</side>
+<from>220</from>
+<to>224</to>
+<note>The manual initialization of NullableDatum variables for each policy parameter is repetitive and prone to errors if new parameters are added in the future.</note>
+</notesplit>

@@ -1,0 +1,7 @@
+<notesplit>
+<path>src/Symfony/Component/TypeInfo/TypeFactoryTrait.php</path>
+<side>RIGHT</side>
+<from>415</from>
+<to>415</to>
+<note>The use of `is_subclass_of($value::class, \UnitEnum::class)` is redundant and potentially fragile. Since PHP 8.1, all Enums implement the `\UnitEnum` interface. Checking `is_subclass_of` on an object instance is less idiomatic than using `instanceof \UnitEnum`.</note>
+</notesplit>

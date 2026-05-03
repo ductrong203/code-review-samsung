@@ -1,0 +1,22 @@
+<notesplit>
+<path>internal/checker/checker.go</path>
+<side>RIGHT</side>
+<from>10826</from>
+<to>10864</to>
+<note>**[Performance]** The function performs a linear scan over the compiler options slice on every call to containerSeemsToBeEmptyDomElement. If this function is called frequently in hot paths, this will cause unnecessary allocations and O(n) lookups.
+
+**[Code Defect]** The logic in `containerSeemsToBeEmptyDomElement` incorrectly returns `false` if `lib.dom.d.ts` is present in `compilerOptions.Lib`. The condition `slices.Contains(..., "lib.dom.d.ts")` should likely be negated (i.e., return false if the lib is NOT present) to correctly identify missing DOM elements.
+
+**[Maintainability and Readability]** The manual loop to check if the remaining string consists only of ASCII letters is redundant and less readable than using standard library functions or a more declarative approach.
+
+The logic for identifying DOM elements is manually implemented using string manipulation (CutPrefix/CutSuffix). This is fragile and hard to maintain if the naming conventions for DOM elements change or become more complex.
+
+The loop iterates over the string 'name' to check for ASCII letters. While correct, this is a manual implementation of a check that could be optimized or simplified.</note>
+</notesplit>
+<notesplit>
+<path>internal/checker/checker.go</path>
+<side>RIGHT</side>
+<from>24563</from>
+<to>24568</to>
+<note>The function 'everyContainedType' is a thin wrapper around 'core.Every'. While it provides abstraction, it adds a layer of indirection that might not be necessary if the logic is simple.</note>
+</notesplit>

@@ -1,0 +1,28 @@
+<notesplit>
+<path>crates/api_models/src/events/payment.rs</path>
+<side>RIGHT</side>
+<from>269</from>
+<to>269</to>
+<note>Inconsistent module qualification for trait implementation. The code uses `payment_methods::PaymentMethodDeleteResponse` in some places and `PaymentMethodDeleteResponse` in others, leading to confusion about where types are defined.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/payments.rs</path>
+<side>RIGHT</side>
+<from>5307</from>
+<to>5307</to>
+<note>The struct `ProxyPaymentsRequest` uses `mandates::ProcessorPaymentToken` while other parts of the file use different patterns for module access. This inconsistency in dependency usage makes the module structure harder to follow.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/events/refund.rs</path>
+<side>RIGHT</side>
+<from>26</from>
+<to>26</to>
+<note>The use of `refunds::RefundsCreateRequest` inside the impl block is inconsistent with the rest of the file which uses direct imports. This creates a mix of styles that makes the codebase harder to scan.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/payments.rs</path>
+<side>RIGHT</side>
+<from>7782</from>
+<to>7782</to>
+<note>The addition of `#[allow(dead_code)]` suggests that this function might be unused. If it is truly dead code, it should be removed to maintain a clean codebase.</note>
+</notesplit>

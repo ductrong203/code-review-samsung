@@ -1,0 +1,63 @@
+<notesplit>
+<path>src/Functions/array/arrayAggregation.cpp</path>
+<side>RIGHT</side>
+<from>449</from>
+<to>558</to>
+<note>**[Maintainability and Readability]** Significant code duplication: The registration logic for array aggregation functions (min, max, sum, avg, prod) is nearly identical, repeating the creation of FunctionDocumentation objects and factory registration. This violates the DRY principle and makes the code harder to maintain.
+
+Inconsistent documentation: The `returned_value_max` description incorrectly states 'minimum element' instead of 'maximum element'.
+
+**[Performance]** The implementation of `executeMinOrMax` uses a nested loop structure where the inner loop performs `mapped->compareAt` on every element. For large arrays, this is O(N) per array, but `compareAt` is a virtual function call inside a tight loop, which is a significant performance bottleneck in hot paths.
+
+The inner loop for finding min/max performs redundant comparisons and index updates. While functionally correct, it does not leverage SIMD or vectorized operations available in ClickHouse for simple aggregation.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayFirstLast.cpp</path>
+<side>RIGHT</side>
+<from>204</from>
+<to>303</to>
+<note>**[Maintainability and Readability]** Significant code duplication: The registration logic for arrayFirst, arrayFirstOrNull, arrayLast, and arrayLastOrNull is highly repetitive. Each function manually constructs a FunctionDocumentation object with very similar structures.
+
+**[Code Defect]** The syntax string for arrayLast incorrectly lists 'cond1_arr' as 'cond1' and misses the '_arr' suffix used in other arguments, and the example uses 'arrayFirst' instead of 'arrayLast'.
+
+Incorrect example: The 'No match' example for `arrayLast` incorrectly calls `arrayFirst` in the SQL query string.
+
+The returned_value description for arrayLastOrNull incorrectly states it returns the element for which lambda is 'not true' instead of 'true'.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayAggregation.cpp</path>
+<side>RIGHT</side>
+<from>50</from>
+<to>50</to>
+<note>The syntax string for arrayMax incorrectly uses 'arrayMax' instead of 'arraySum' in the documentation.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arraySplit.cpp</path>
+<side>RIGHT</side>
+<from>118</from>
+<to>155</to>
+<note>**[Maintainability and Readability]** Code duplication: The registration logic for arraySplit and arrayReverseSplit is nearly identical, repeating the construction of FunctionDocumentation objects.
+
+**[Performance]** The loop `for (size_t i = 0; i < in_offsets.back(); ++i) out_offsets_2.push_back(i + 1);` performs repeated `push_back` operations on a vector without pre-allocation or using `reserve` for the exact size needed, leading to potential reallocations.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayAggregation.cpp</path>
+<side>RIGHT</side>
+<from>56</from>
+<to>56</to>
+<note>The returned_value description for arrayMax incorrectly states it returns the 'minimum' element instead of the 'maximum'.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayFirstLastIndex.cpp</path>
+<side>RIGHT</side>
+<from>128</from>
+<to>165</to>
+<note>Code duplication: The documentation registration for arrayFirstIndex and arrayLastIndex is repetitive. While the logic is slightly different, the structure of the registration is identical.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayFilter.cpp</path>
+<side>RIGHT</side>
+<from>52</from>
+<to>52</to>
+<note>The syntax string contains a trailing bracket ']' which is likely a typo.</note>
+</notesplit>

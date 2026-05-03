@@ -1,0 +1,46 @@
+<notesplit>
+<path>player/core.c</path>
+<side>RIGHT</side>
+<from>250</from>
+<to>265</to>
+<note>The loop in `uninit_demuxer` performs an O(n^2) search to match tracks to demuxers. While the number of tracks is typically small, this pattern is inefficient and scales poorly if the number of tracks increases.</note>
+</notesplit>
+<notesplit>
+<path>misc/language.c</path>
+<side>RIGHT</side>
+<from>335</from>
+<to>352</to>
+<note>**[Maintainability and Readability]** The logic for parsing track flags is becoming complex and nested within a loop. The manual flag bitwise operations and string matching are hard to extend if more flags are added.
+
+**[Code Defect]** The loop logic for parsing filename suffixes is flawed. When a suffix like 'forced' is matched, the code sets 'matched = true' and continues, but it does not correctly handle the case where multiple valid tags (e.g., 'hi' and 'forced') are present in the filename. Specifically, the 'continue' statement skips the rest of the loop, potentially missing other tags if they are not ordered perfectly or if the delimiter logic fails to consume the full string.</note>
+</notesplit>
+<notesplit>
+<path>player/loadfile.c</path>
+<side>RIGHT</side>
+<from>987</from>
+<to>992</to>
+<note>The function `autoload_external_files` iterates over external files and calls `mp_add_external_file` for each. If the directory contains a large number of files, this can lead to significant I/O overhead and potential blocking of the core thread if not handled carefully.</note>
+</notesplit>
+<notesplit>
+<path>player/command.c</path>
+<side>RIGHT</side>
+<from>7155</from>
+<to>7194</to>
+<note>The 'flags' option definition is duplicated across three different command definitions. This violates the DRY principle and makes it easy to forget to update one of them when adding new flags.</note>
+</notesplit>
+<notesplit>
+<path>test/language.c</path>
+<side>RIGHT</side>
+<from>83</from>
+<to>84</to>
+<note>**[Code Defect]** Typo in test case: '00' is used instead of '0' for the expected flags value.
+
+**[Maintainability and Readability]** Typo in test case: '00' is used instead of '0' for expected flags.</note>
+</notesplit>
+<notesplit>
+<path>player/external_files.c</path>
+<side>RIGHT</side>
+<from>175</from>
+<to>175</to>
+<note>The variable 'fuzz' is used to control both priority logic and type-specific behavior, which is slightly overloaded. While functional, it reduces readability.</note>
+</notesplit>

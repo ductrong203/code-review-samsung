@@ -1,0 +1,67 @@
+<notesplit>
+<path>packages/testing/playwright/tests/ui/39-projects.spec.ts</path>
+<side>RIGHT</side>
+<from>277</from>
+<to>277</to>
+<note>Syntax error: The test file ends abruptly with an unclosed parenthesis and missing closing braces for the test block and describe block.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/composables/TestEntryComposer.ts</path>
+<side>RIGHT</side>
+<from>100</from>
+<to>107</to>
+<note>**[Performance]** The 'withUser' method creates a new browser context and a new page for every call. In a test suite, this can lead to significant memory consumption and resource exhaustion if not explicitly closed after the test.
+
+**[Maintainability and Readability]** The `withUser` method uses `new (this.n8n.constructor as new (page: Page) => n8nPage)(page)`. This is a brittle way to instantiate a class, relying on the constructor signature remaining identical across all subclasses.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/services/user-api-helper.ts</path>
+<side>RIGHT</side>
+<from>30</from>
+<to>68</to>
+<note>**[Maintainability and Readability]** The `create` method performs multiple network requests (invite, accept) and parses URLs manually. If one step fails, the error handling is minimal and doesn't provide context on which stage failed.
+
+**[Security Vulnerability]** Hardcoded default password 'PlaywrightTest123' for test users. While this is a test utility, it creates a predictable credential pattern in environments where these tests run.</note>
+</notesplit>
+<notesplit>
+<path>.github/workflows/e2e-reusable.yml</path>
+<side>RIGHT</side>
+<from>25</from>
+<to>25</to>
+<note>Reducing the number of containers from 6 to 5 increases the test load per container, which may lead to longer execution times per job and potential timeouts if the test suite is large.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/tests/ui/18-user-management.spec.ts</path>
+<side>RIGHT</side>
+<from>14</from>
+<to>18</to>
+<note>The test 'should prevent non-owners to access UM settings' relies on side effects (creating a user in the same context) to change the authentication state. This makes the test order-dependent and fragile.</note>
+</notesplit>
+<notesplit>
+<path>.github/workflows/playwright-test-reusable.yml</path>
+<side>RIGHT</side>
+<from>16</from>
+<to>16</to>
+<note>Increasing the number of shards to 7 increases the overhead of spinning up additional CI environments and potential resource contention on the runner.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/tests/ui/18-user-management.spec.ts</path>
+<side>RIGHT</side>
+<from>137</from>
+<to>145</to>
+<note>The test 'should change user email' uses a hardcoded 'acme.corp' domain and manual nanoid generation inside the test body, duplicating logic already present in the UserApiHelper.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/tests/ui/18-user-management.spec.ts</path>
+<side>RIGHT</side>
+<from>133</from>
+<to>133</to>
+<note>The test uses a hardcoded password 'Keybo4rd' for password change operations. While for testing, using weak or predictable passwords in test suites can lead to accidental exposure if logs or test artifacts are leaked.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/pages/SettingsUsersPage.ts</path>
+<side>RIGHT</side>
+<from>27</from>
+<to>33</to>
+<note>The `transferData` method uses `force: true` for clicking a radio button. This often indicates that the element is covered or not interactable in a standard way, which can hide real UI issues.</note>
+</notesplit>

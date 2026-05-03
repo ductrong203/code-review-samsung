@@ -1,0 +1,29 @@
+<notesplit>
+<path>packages/cli/src/services/folder.service.ts</path>
+<side>RIGHT</side>
+<from>135</from>
+<to>160</to>
+<note>**[Maintainability and Readability]** The `flattenAndArchive` method performs a side-effect-heavy operation (archiving workflows) inside a loop. This is inefficient and lacks atomicity; if the process fails halfway, the system is left in an inconsistent state.
+
+**[Performance]** The 'flattenAndArchive' method performs sequential await calls inside a loop (N+1 network/database operations). This will cause significant latency when deleting a folder containing many workflows.
+
+**[Code Defect]** The loop calls `this.workflowService.archive(user, workflowId, true)` which is an asynchronous operation. Using a `for...of` loop with `await` inside is correct, but if the list of workflows is large, this will perform sequential database/service calls, potentially leading to timeouts or performance degradation during folder deletion.
+
+The `deleteFolder` method now has branching logic that calls `flattenAndArchive` (which modifies workflows) before deleting the folder. This mixes concerns between folder management and workflow state management.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/workflows/workflow.service.ts</path>
+<side>RIGHT</side>
+<from>425</from>
+<to>445</to>
+<note>**[Code Defect]** The `archive` method is modified to accept `skipArchived`. If `skipArchived` is true and the workflow is already archived, it returns the workflow entity. However, the caller `flattenAndArchive` in `folder.service.ts` does not check the return value or handle cases where the workflow might have failed to archive or was already in a state that prevents further modification.
+
+**[Maintainability and Readability]** The `archive` method signature was changed to include `skipArchived: boolean = false`. Adding boolean flags to methods often indicates a violation of the Single Responsibility Principle and makes the API harder to read/use.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/databases/repositories/workflow.repository.ts</path>
+<side>RIGHT</side>
+<from>300</from>
+<to>314</to>
+<note>The `getAllWorkflowIdsInHierarchy` method fetches all IDs into memory before processing. For large folder structures, this could lead to high memory consumption.</note>
+</notesplit>

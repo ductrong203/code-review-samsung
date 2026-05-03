@@ -1,0 +1,99 @@
+<notesplit>
+<path>pkg/shellexec/shellexec.go</path>
+<side>RIGHT</side>
+<from>258</from>
+<to>264</to>
+<note>**[Security Vulnerability]** Command injection vulnerability. The `cmdCombined` string is constructed using `fmt.Sprintf` with user-controlled input (`packedToken`) and then passed to `sh -c`. If `packedToken` contains shell metacharacters, an attacker can execute arbitrary commands.
+
+**[Maintainability and Readability]** The error handling for `cmdOpts.SwapToken.PackForClient()` is inconsistent. It logs the error but proceeds to execute the command anyway, which might lead to silent failures in shell initialization.
+
+**[Code Defect]** The code attempts to pack the swap token but ignores the error if packing fails, proceeding to use an empty or invalid token in the command string.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>RIGHT</side>
+<from>335</from>
+<to>335</to>
+<note>The call to bc.resetTerminalState(logCtx) is inside a block that checks if fsErr == fs.ErrExist. However, if the file already exists, the function returns early without actually resetting the terminal state, potentially leaving the terminal in a broken state.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>RIGHT</side>
+<from>377</from>
+<to>450</to>
+<note>The `setupAndStartShellProcess` function is becoming a 'God Method' with deep nesting and complex conditional logic handling different connection types (WSL, SSH, Local). This makes the function difficult to test and maintain.</note>
+</notesplit>
+<notesplit>
+<path>pkg/shellexec/shellexec.go</path>
+<side>RIGHT</side>
+<from>358</from>
+<to>361</to>
+<note>Potential command injection. The `cmdStr` variable is used directly in `shellOpts` which are then joined and executed via `sh -c`. If `cmdStr` is not properly sanitized, it allows arbitrary command execution.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>RIGHT</side>
+<from>316</from>
+<to>335</to>
+<note>**[Maintainability and Readability]** The `makeSwapToken` function has grown to include side-effect-heavy logic like resolving environment maps and fetching custom init scripts. This violates the Single Responsibility Principle as it is now responsible for both token creation and configuration resolution.
+
+**[Performance]** The `getConnUnion` function calls `wshclient.RemoteGetInfoCommand` synchronously with a 2-second timeout inside the shell startup path. This can block the UI or command execution if the remote connection is slow or unresponsive.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>RIGHT</side>
+<from>253</from>
+<to>275</to>
+<note>The `resolveEnvMap` function performs a file read operation (`filestore.WFS.ReadFile`) every time a shell command is started. If this is called frequently for the same block, it introduces unnecessary I/O latency.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>RIGHT</side>
+<from>615</from>
+<to>622</to>
+<note>The `manageRunningShellProcess` function calls `bc.getBlockData_noErr()` inside the process exit handler. This performs a database lookup (`wstore.DBGet`) every time a shell process exits, which is redundant if the block metadata is already available in the controller.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>RIGHT</side>
+<from>353</from>
+<to>353</to>
+<note>Insecure path handling. `wavebase.ExpandHomeDir` is used on user-provided input (`cmdOpts.Cwd`). While it checks for path traversal, relying on home directory expansion for working directories can lead to unexpected behavior if the user controls the input.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>RIGHT</side>
+<from>638</from>
+<to>638</to>
+<note>The code uses bc.getBlockData_noErr() which returns nil on error, but then proceeds to call blockData.Meta.GetString without checking if blockData is nil, leading to a potential nil pointer dereference.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wshutil/wshutil.go</path>
+<side>RIGHT</side>
+<from>355</from>
+<to>355</to>
+<note>Potential insecure temporary file usage. The domain socket name is generated in `/tmp/` with a random hex string. If the directory permissions are not strictly set, other users on the system might be able to intercept or spoof the socket.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wslconn/wslconn.go</path>
+<side>RIGHT</side>
+<from>118</from>
+<to>122</to>
+<note>**[Code Defect]** The Debugf method in WslConn calls blocklogger.Infof instead of blocklogger.Debugf, which is inconsistent with the method name.
+
+**[Maintainability and Readability]** The `Debugf` method in `WslConn` calls `blocklogger.Infof` instead of `blocklogger.Debugf`. This is misleading and inconsistent with the method name.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>RIGHT</side>
+<from>218</from>
+<to>235</to>
+<note>The `getCustomInitScript` function performs multiple lookups and string concatenations in a loop. While the dataset is small, this is a hot path for shell initialization.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>RIGHT</side>
+<from>601</from>
+<to>610</to>
+<note>The function name `getBlockData_noErr` is non-idiomatic in Go. It implies that errors are ignored, which is a dangerous pattern for maintainability.</note>
+</notesplit>

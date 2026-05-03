@@ -1,0 +1,24 @@
+<notesplit>
+<path>src/init.cpp</path>
+<side>RIGHT</side>
+<from>1575</from>
+<to>1625</to>
+<note>**[Maintainability and Readability]** The loop parsing the '-proxy' argument is becoming a 'God function' fragment. It handles string splitting, network validation, proxy object creation, and state assignment for multiple network types in one block. This logic should be extracted into a dedicated helper function (e.g., ParseProxyArgs) to improve testability and readability.
+
+**[Performance]** The loop iterates over all arguments provided to '-proxy'. Inside the loop, it performs multiple string operations (rfind, substr, ToLower) and potentially expensive lookups (Lookup) for every single occurrence. While the number of proxy arguments is typically small, this logic re-parses and re-validates the entire list repeatedly if the configuration is complex, and performs redundant string allocations.
+
+**[Code Defect]** The logic for parsing `-proxy` arguments uses `rfind('=')` to split the network suffix. If a user provides `-proxy=127.0.0.1:9050=ipv4`, `rfind` correctly finds the index. However, if the proxy address itself contains an equals sign (e.g., a complex path or future-proofed URI), this logic will incorrectly treat the part after the first `=` as a network suffix, leading to a crash or incorrect configuration.
+
+The manual assignment of proxies to specific network variables (ipv4_proxy, ipv6_proxy, etc.) inside the loop is repetitive and prone to copy-paste errors. The logic for mapping network strings to proxy objects is hardcoded and difficult to extend.
+
+The check `eq_pos + 1 == param_value.length()` correctly identifies a trailing '=', but the error message is only triggered if the string is not empty. If a user provides `-proxy=`, `eq_pos` is 0, `eq_pos + 1` is 1, and `param_value.length()` is 1. This will trigger the error, but the logic is fragile regarding empty strings.</note>
+</notesplit>
+<notesplit>
+<path>src/init.cpp</path>
+<side>RIGHT</side>
+<from>1189</from>
+<to>1235</to>
+<note>**[Maintainability and Readability]** The use of a std::vector of std::tuple for configuration validation is hard to read and maintain. Adding a new parameter requires updating the tuple definition and all existing entries, which is error-prone.
+
+**[Performance]** The code constructs a std::vector of tuples inside a loop, causing heap allocation and initialization of the vector on every call to CheckHostPortOptions. This is a hot path during initialization.</note>
+</notesplit>

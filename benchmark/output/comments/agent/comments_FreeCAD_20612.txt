@@ -1,0 +1,35 @@
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawUtil.cpp</path>
+<side>RIGHT</side>
+<from>105</from>
+<to>111</to>
+<note>The function getIndexFromName uses boost::regex_search inside a loop in getIndexFromName(const std::vector<std::string>&). Regex compilation and execution are expensive operations to perform repeatedly in a loop.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawViewPart.cpp</path>
+<side>RIGHT</side>
+<from>1500</from>
+<to>1535</to>
+<note>The methods isCosmeticVertex, isCosmeticEdge, and isCenterLine are now implemented as members of DrawViewPart, but they perform logic that is highly specific to the internal structure of the geometry objects. This increases the 'God Object' tendency of DrawViewPart. These should ideally be delegated to the GeometryObject or a dedicated service class to maintain Single Responsibility.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawUtil.cpp</path>
+<side>RIGHT</side>
+<from>133</from>
+<to>133</to>
+<note>The function getGeomTypeFromName uses boost::regex_search. This is called inside loops in isGeomTypeConsistent, leading to redundant regex compilation and execution overhead.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/CosmeticExtension.cpp</path>
+<side>RIGHT</side>
+<from>145</from>
+<to>155</to>
+<note>The function getCVIndex performs two linear scans (O(n+m)) over geometry lists. If called frequently, this becomes a performance bottleneck.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/CosmeticExtension.cpp</path>
+<side>RIGHT</side>
+<from>69</from>
+<to>82</to>
+<note>The loop in deleteCosmeticElements contains repeated logic for checking geometry types and calling corresponding removal methods. While improved by the move to member functions, the structure remains imperative and slightly verbose.</note>
+</notesplit>

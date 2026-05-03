@@ -1,0 +1,32 @@
+<notesplit>
+<path>linera-core/src/updater.rs</path>
+<side>RIGHT</side>
+<from>135</from>
+<to>175</to>
+<note>**[Performance]** The `communicate_with_quorum` function uses `FuturesUnordered` to process validator responses. While this is efficient for I/O, the logic inside the loop performs repeated `HashMap` lookups and `Vec` allocations for every incoming response. In a high-throughput scenario with many validators, this can lead to excessive memory pressure and CPU overhead.
+
+**[Maintainability and Readability]** The label `'vote_wait` is used for a loop, but the logic inside the loop is becoming complex with multiple exit points and conditional breaks, which can hinder readability.
+
+The grace period calculation `start_time.elapsed().mul_f64(grace_period)` is performed every time a quorum is reached. While not a critical bottleneck, it involves floating-point arithmetic inside a hot loop that could be simplified or moved outside the loop if the grace period is constant for the duration of the request.</note>
+</notesplit>
+<notesplit>
+<path>linera-core/src/client/mod.rs</path>
+<side>RIGHT</side>
+<from>184</from>
+<to>184</to>
+<note>The `Client::new` function now has 9 parameters, exceeding the recommended limit of 5. This makes the constructor difficult to call and maintain.</note>
+</notesplit>
+<notesplit>
+<path>linera-core/src/updater.rs</path>
+<side>RIGHT</side>
+<from>103</from>
+<to>103</to>
+<note>The `communicate_with_quorum` function has 6 parameters. While not excessively high, the addition of `grace_period` makes the signature increasingly complex.</note>
+</notesplit>
+<notesplit>
+<path>linera-client/src/client_context.rs</path>
+<side>RIGHT</side>
+<from>191</from>
+<to>191</to>
+<note>The `new_test_client_context` function hardcodes several magic numbers (4000, 1000, 10, 20) that are also present in other parts of the codebase.</note>
+</notesplit>

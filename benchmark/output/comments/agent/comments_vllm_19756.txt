@@ -1,0 +1,20 @@
+<notesplit>
+<path>vllm/multimodal/profiling.py</path>
+<side>RIGHT</side>
+<from>257</from>
+<to>275</to>
+<note>**[Performance]** The set intersection operation `max_tokens_per_item.keys() & mm_counts.keys()` creates a new set object in every call. While small, this is inside a hot path for model profiling/initialization.
+
+**[Code Defect]** The intersection of keys (`max_tokens_per_item.keys() & mm_counts.keys()`) is used to calculate total tokens. If a modality exists in `mm_counts` but is missing from `max_tokens_per_item` (or vice versa), those tokens are silently ignored, leading to an underestimation of the total token count and potential OOM/crash during inference.
+
+**[Maintainability and Readability]** The logic for calculating total_mm_tokens and performing the warning check is becoming complex and tightly coupled with the profiling loop. This logic should be encapsulated within a helper method or the `BaseProcessingInfo` class to improve readability and maintainability.
+
+The set intersection `max_tokens_per_item.keys() & mm_counts.keys()` is clever but potentially confusing for maintainers. It obscures the intent of calculating the dot product of available counts and max tokens.</note>
+</notesplit>
+<notesplit>
+<path>vllm/multimodal/processing.py</path>
+<side>RIGHT</side>
+<from>1103</from>
+<to>1105</to>
+<note>The type hint `Optional[Mapping[str, int]]` for `mm_counts` is inconsistent with the implementation in `qwen2_vl.py` where it is expected to be a `Mapping[str, int]`. While Python allows this, it creates ambiguity for callers regarding whether `None` is a valid input for `mm_counts`.</note>
+</notesplit>

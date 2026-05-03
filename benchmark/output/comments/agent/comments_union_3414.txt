@@ -1,0 +1,57 @@
+<notesplit>
+<path>voyager/modules/consensus/cometbls/src/main.rs</path>
+<side>RIGHT</side>
+<from>170</from>
+<to>175</to>
+<note>**[Code Defect]** The code calls `.try_into().expect(...)` on a `Timestamp` object. `Timestamp` is a newtype wrapper around `u64`. `try_into()` on a struct that does not implement `TryFrom` for the target type will fail to compile or behave unexpectedly if the intention was to convert the inner value.
+
+**[Maintainability and Readability]** The use of `.try_into().expect("should be fine")` is a fragile pattern. If the conversion fails, the entire process panics, which is poor error handling for a network-facing service.</note>
+</notesplit>
+<notesplit>
+<path>voyager/modules/consensus/ethereum/src/main.rs</path>
+<side>RIGHT</side>
+<from>175</from>
+<to>188</to>
+<note>**[Code Defect]** The code calls `.try_into().unwrap()` on a `Timestamp` object. `Timestamp` is a newtype wrapper around `u64`. `try_into()` on a struct that does not implement `TryFrom` for the target type will fail to compile or behave unexpectedly.
+
+**[Maintainability and Readability]** The use of `.try_into().unwrap()` on timestamp conversion is unsafe. If the timestamp value is invalid or overflows, the module will crash.</note>
+</notesplit>
+<notesplit>
+<path>voyager/modules/consensus/movement/src/main.rs</path>
+<side>RIGHT</side>
+<from>161</from>
+<to>164</to>
+<note>**[Code Defect]** The code calls `.try_into().unwrap()` on a `Timestamp` object. `Timestamp` is a newtype wrapper around `u64`. `try_into()` on a struct that does not implement `TryFrom` for the target type will fail to compile or behave unexpectedly.
+
+**[Maintainability and Readability]** The use of `.try_into().unwrap()` is unsafe for timestamp conversion.</note>
+</notesplit>
+<notesplit>
+<path>voyager/modules/state/movement/src/main.rs</path>
+<side>RIGHT</side>
+<from>148</from>
+<to>148</to>
+<note>**[Code Defect]** The code calls `.try_into().unwrap()` on a `Timestamp` object. `Timestamp` is a newtype wrapper around `u64`. `try_into()` on a struct that does not implement `TryFrom` for the target type will fail to compile or behave unexpectedly.
+
+**[Maintainability and Readability]** The use of `.try_into().unwrap()` is unsafe for timestamp conversion.</note>
+</notesplit>
+<notesplit>
+<path>voyager/modules/consensus/tendermint/src/main.rs</path>
+<side>RIGHT</side>
+<from>161</from>
+<to>165</to>
+<note>The code calls `.try_into().expect(...)` on a `Timestamp` object. `Timestamp` is a newtype wrapper around `u64`. `try_into()` on a struct that does not implement `TryFrom` for the target type will fail to compile or behave unexpectedly.</note>
+</notesplit>
+<notesplit>
+<path>lib/voyager-core/src/lib.rs</path>
+<side>RIGHT</side>
+<from>332</from>
+<to>353</to>
+<note>The Timestamp type uses a raw u64 and manual arithmetic for conversions. This is prone to off-by-one errors and lacks type safety (e.g., mixing seconds and nanoseconds).</note>
+</notesplit>
+<notesplit>
+<path>lib/voyager-message/src/module.rs</path>
+<side>RIGHT</side>
+<from>439</from>
+<to>440</to>
+<note>The TODO comment regarding returning a better type than i64 is now partially addressed by the Timestamp type, but the comment remains, creating stale documentation.</note>
+</notesplit>

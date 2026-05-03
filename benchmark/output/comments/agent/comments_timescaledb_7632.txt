@@ -1,0 +1,31 @@
+<notesplit>
+<path>tsl/src/compression/api.c</path>
+<side>RIGHT</side>
+<from>1066</from>
+<to>1074</to>
+<note>**[Code Defect]** The removal of the `num_segmentby == 0` check in `get_compressed_chunk_index_for_recompression` creates a potential logic error. If `segmentby` is empty, the function proceeds to call `CatalogOpenIndexes` and `get_compressed_chunk_index`. If `get_compressed_chunk_index` relies on `settings->fd.segmentby` being non-empty or expects specific index structures that don't exist for non-segmented chunks, this will lead to a crash or incorrect index selection.
+
+**[Performance]** The removal of the early exit check for chunks without segmentby columns forces the function to proceed with index opening and catalog lookups even when segmentwise recompression is not applicable or optimal for those chunks.
+
+**[Maintainability and Readability]** The removal of the 'num_segmentby == 0' check in 'get_compressed_chunk_index_for_recompression' implies that the function now handles chunks without segments. However, the function name and its usage context suggest it might still be relying on assumptions about segment-based compression. If this logic is now supported, the function documentation or internal comments should be updated to reflect that it is no longer restricted to segment-based chunks.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/recompress.c</path>
+<side>RIGHT</side>
+<from>216</from>
+<to>224</to>
+<note>**[Maintainability and Readability]** The use of 'elog' with a conditional level (INFO vs DEBUG1) based on a GUC is a good practice for observability, but it introduces a side effect in a function that is primarily performing logic. This makes the function harder to test in isolation without triggering logs.
+
+**[Performance]** The use of elog(INFO, ...) inside the recompression path can introduce I/O overhead in high-frequency recompression scenarios if the GUC is enabled.
+
+**[Code Defect]** The code logs the index name using `get_rel_name(row_compressor.index_oid)` before verifying if `row_compressor.index_oid` is valid. If `index_oid` is `InvalidOid`, `get_rel_name` may return NULL or trigger an assertion failure in some Postgres versions.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/recompress.c</path>
+<side>RIGHT</side>
+<from>232</from>
+<to>245</to>
+<note>**[Maintainability and Readability]** The function uses multiple palloc calls for related arrays (sort_keys, sort_operators, sort_collations, nulls_first). This is error-prone and makes memory management harder to track.
+
+The function 'recompress_chunk_segmentwise_impl' is becoming a 'God function'. It handles catalog lookups, lock management, statistics calculation, and complex memory allocation for sort keys. This violates the Single Responsibility Principle.</note>
+</notesplit>

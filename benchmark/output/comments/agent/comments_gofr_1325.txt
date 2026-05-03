@@ -1,0 +1,34 @@
+<notesplit>
+<path>pkg/gofr/http/responder.go</path>
+<side>RIGHT</side>
+<from>31</from>
+<to>32</to>
+<note>**[Code Defect]** The `Respond` method creates a new `response` struct for `resTypes.Response` but fails to include the `Error` field correctly when an error is present. While `errorObj` is calculated at the start of the function, it is ignored in the `case resTypes.Response` block, meaning errors occurring alongside a `Response` type will not be serialized into the JSON output.
+
+**[Maintainability and Readability]** The variable 'errorObj' is used in the 'case resTypes.Response' block, but it is not defined within the scope of the switch statement. This will cause a compilation error.
+
+**[Performance]** The `Respond` method performs reflection-based checks (`isNil`) and type switching on every request. While necessary for dynamic types, the `isNil` function uses `reflect.ValueOf` which incurs heap allocation and reflection overhead in the hot path of every HTTP response.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/responder_test.go</path>
+<side>RIGHT</side>
+<from>15</from>
+<to>16</to>
+<note>**[Maintainability and Readability]** The test file is missing the 'bytes' import, which is used in the new test cases (e.g., bytes.TrimSpace). This will cause a compilation error.
+
+**[Code Defect]** The test `TestResponder` uses `bytes.TrimSpace` on the expected and actual body. However, `json.Encoder` (used in `responder.go`) appends a newline character (`\n`) to the output. If the `expectedBody` provided in the test cases does not include this newline, the test will fail on some systems or environments, or conversely, `TrimSpace` might hide the fact that the encoder is adding unexpected whitespace.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/responder.go</path>
+<side>RIGHT</side>
+<from>53</from>
+<to>53</to>
+<note>The code uses `json.NewEncoder(r.w).Encode(resp)` for every response. For high-throughput APIs, creating a new encoder instance per request is less efficient than using a pooled encoder or pre-buffering if the response size is small.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/responder.go</path>
+<side>RIGHT</side>
+<from>94</from>
+<to>98</to>
+<note>The 'response' struct is defined in two different files (pkg/gofr/http/responder.go and potentially elsewhere if not careful) or is tightly coupled to the responder logic. Having the JSON structure definition inside the responder package makes it harder to reuse the response format in other parts of the system.</note>
+</notesplit>

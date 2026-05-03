@@ -1,0 +1,38 @@
+<notesplit>
+<path>script/src/main/java/io/kestra/plugin/scripts/exec/scripts/runners/CommandsWrapper.java</path>
+<side>RIGHT</side>
+<from>168</from>
+<to>175</to>
+<note>**[Code Defect]** The `this.commands` field is overwritten with the rendered result, but the original `Property<List<String>>` (which may contain dynamic expressions) is lost. If `run()` is called multiple times or if the task runner relies on the original property for subsequent re-evaluations, this will cause incorrect behavior or failures.
+
+**[Maintainability and Readability]** The `run` method in `CommandsWrapper` is becoming a 'God method' that handles variable initialization, command rendering, script command concatenation, and task execution. This makes it difficult to test and maintain.
+
+**[Performance]** The code performs three separate rendering calls (renderCommands) followed by a concatenation in ScriptService.scriptCommands. This creates multiple intermediate lists and performs redundant processing on the command inputs.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/models/tasks/runners/TaskRunner.java</path>
+<side>RIGHT</side>
+<from>134</from>
+<to>141</to>
+<note>**[Maintainability and Readability]** The `renderCommands` method in `TaskRunner` is duplicated in `TaskRunner.java` (lines 134-141) and `CommandsWrapper.java` (lines 168-175). This violates the DRY principle and creates a maintenance burden if the rendering logic changes.
+
+**[Code Defect]** The `renderCommands` method flattens the interpreter, beforeCommands, and commands into a single list. If `renderedInterpreter` or `renderedBeforeCommands` are null or empty, the logic in `ScriptService.scriptCommands` might behave unexpectedly depending on how it handles empty lists versus nulls.
+
+**[Performance]** The renderCommands method performs three separate rendering passes (interpreter, beforeCommands, commands) and then concatenates them. This results in multiple traversals and intermediate list allocations.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/models/tasks/runners/ScriptService.java</path>
+<side>RIGHT</side>
+<from>97</from>
+<to>106</to>
+<note>**[Performance]** The use of .stream().map().toList() inside a loop-like context for rendering commands can lead to excessive object allocation if the command list is large. Additionally, the rendering process involves multiple regex operations per command.
+
+**[Maintainability and Readability]** The new `replaceInternalStorage` overload uses `Collections.emptyList()` for null commands, while other overloads use `ListUtils.emptyOnNull(commands)`. This inconsistency in handling null collections can lead to subtle bugs.</note>
+</notesplit>
+<notesplit>
+<path>script/src/main/java/io/kestra/plugin/scripts/exec/scripts/runners/CommandsWrapper.java</path>
+<side>RIGHT</side>
+<from>177</from>
+<to>177</to>
+<note>The code uses `this.commands = Property.of(finalCommands);` to overwrite the original property. This is a side effect that mutates the state of the `CommandsWrapper` object during the `run` execution, which can lead to unexpected behavior if the object is reused.</note>
+</notesplit>

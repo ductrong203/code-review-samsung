@@ -6,7 +6,7 @@ import React from 'react';
 export default function LoadingDots() {
   return (
     <div className="chat-message chat-message--bot" style={{ animation: 'fadeIn 0.3s ease' }}>
-      <div className="chat-message__avatar chat-message__avatar--bot">🔍</div>
+      <div className="chat-message__avatar chat-message__avatar--bot">SSCR</div>
       <div className="chat-message__body">
         <div className="chat-message__content" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Reviewing code</span>

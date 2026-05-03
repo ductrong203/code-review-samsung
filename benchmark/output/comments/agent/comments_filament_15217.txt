@@ -1,0 +1,32 @@
+<notesplit>
+<path>packages/forms/src/Commands/FileGenerators/Concerns/CanGenerateModelForms.php</path>
+<side>RIGHT</side>
+<from>93</from>
+<to>95</to>
+<note>**[Maintainability and Readability]** The `match` expression in `getFormComponents` is becoming a 'God' block. As more types are added, this logic will become increasingly difficult to maintain and violates the Open/Closed principle.
+
+The complex string matching for image detection (e.g., `str($componentName)->startsWith('image_')`) is repeated in both the form and table generators. This logic is prone to drift.</note>
+</notesplit>
+<notesplit>
+<path>packages/forms/src/Commands/FileGenerators/Concerns/CanGenerateModelForms.php</path>
+<side>RIGHT</side>
+<from>105</from>
+<to>108</to>
+<note>**[Performance]** The code calls app($model) inside a loop over database columns. This triggers a full service container resolution for the model on every iteration, which is expensive.
+
+The code calls app($model) inside a loop over database columns. This triggers a full service container resolution for the model on every iteration, which is expensive.</note>
+</notesplit>
+<notesplit>
+<path>packages/tables/src/Commands/FileGenerators/Concerns/CanGenerateModelTables.php</path>
+<side>RIGHT</side>
+<from>95</from>
+<to>95</to>
+<note>The code calls app($model) inside a loop over database columns. This triggers a full service container resolution for the model on every iteration, which is expensive.</note>
+</notesplit>
+<notesplit>
+<path>packages/tables/src/Commands/FileGenerators/Concerns/CanGenerateModelTables.php</path>
+<side>RIGHT</side>
+<from>138</from>
+<to>146</to>
+<note>The logic for handling date/time columns is duplicated across multiple `if` blocks. This makes it harder to update the default behavior for all temporal types simultaneously.</note>
+</notesplit>

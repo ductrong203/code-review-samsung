@@ -1,0 +1,18 @@
+<notesplit>
+<path>src/Shared/HttpSys/RequestProcessing/NativeRequestContext.cs</path>
+<side>RIGHT</side>
+<from>660</from>
+<to>660</to>
+<note>**[Code Defect]** The pointer arithmetic `pMemoryBlob + _bufferAlignment - (byte*)_originalBufferAddress + source` is incorrect. `_originalBufferAddress` is initialized in `ReleasePins()` as `(IntPtr)_nativeRequest`, but `pMemoryBlob` is a local variable (not shown in the snippet, but implied to be a pointer to the start of the buffer). If `_originalBufferAddress` is 0 (before `ReleasePins`), the calculation is invalid. Furthermore, `pMemoryBlob` is likely already the base address; subtracting `_originalBufferAddress` (which is the address of the native request struct) is logically flawed if `pMemoryBlob` is intended to be an offset from the start of the buffer.
+
+**[Maintainability and Readability]** The pointer arithmetic used to calculate the address is complex and fragile. It relies on magic numbers and manual offset calculations that are difficult to verify for correctness.</note>
+</notesplit>
+<notesplit>
+<path>src/Shared/HttpSys/NativeInterop/SocketAddress.cs</path>
+<side>RIGHT</side>
+<from>1</from>
+<to>73</to>
+<note>**[Maintainability and Readability]** The class uses 'unsafe' pointers and manual memory casting for socket addresses. While necessary for interop, the lack of validation when casting the raw pointer to specific types (SOCKADDR_IN/SOCKADDR_IN6) could lead to memory corruption if the underlying structure does not match the expected family.
+
+The TODO comment regarding scope ID in GetIPAddress() indicates incomplete implementation of IPv6 address parsing, which may lead to incorrect behavior for link-local addresses.</note>
+</notesplit>

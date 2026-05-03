@@ -1,0 +1,50 @@
+<notesplit>
+<path>packages/cli/src/utils/commentJson.ts</path>
+<side>RIGHT</side>
+<from>43</from>
+<to>66</to>
+<note>**[Code Defect]** The `applyUpdates` function mutates the `current` object (passed as `result`) in-place. Because `comment-json` attaches metadata (like comments) to the object properties, modifying the object structure or replacing values can lead to unexpected behavior or loss of comment metadata if the library expects specific object shapes.
+
+**[Maintainability and Readability]** The `applyUpdates` function performs in-place mutation of the `current` object. This side effect makes the function harder to reason about and test, as it modifies the input structure directly rather than returning a new, updated object.
+
+**[Performance]** The applyUpdates function performs recursive object traversal and mutation. While functional, it lacks a depth limit or cycle detection. If the settings object contains circular references (which can happen in complex configuration objects), this will cause a stack overflow.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/settings.ts</path>
+<side>RIGHT</side>
+<from>614</from>
+<to>625</to>
+<note>**[Performance]** The use of structuredClone on settings objects during every load operation is an expensive deep-copy operation. If settings files are large or loaded frequently, this will cause unnecessary CPU overhead and memory pressure.
+
+**[Maintainability and Readability]** The `loadSettings` function has become significantly more complex with the addition of `originalSettings` and `rawJson` handling. The manual cloning and assignment of four different scope results creates a lot of boilerplate and increases the risk of synchronization errors.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/utils/commentJson.ts</path>
+<side>RIGHT</side>
+<from>24</from>
+<to>32</to>
+<note>**[Maintainability and Readability]** The error handling in `updateSettingsFilePreservingFormat` logs to the console and returns `void` on failure. This swallows the error, leaving the caller unaware that the settings update failed, which could lead to silent data loss or inconsistent application state.
+
+**[Security Vulnerability]** The `parse` function from `comment-json` is used to process user-controlled settings files. If the library is not configured to safely handle prototypes, it may be vulnerable to Prototype Pollution when parsing malicious JSON input.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/settings.ts</path>
+<side>RIGHT</side>
+<from>725</from>
+<to>725</to>
+<note>The `saveSettings` function now passes `settingsFile.originalSettings` to `updateSettingsFilePreservingFormat`. If `MIGRATE_V2_OVERWRITE` is false, the code attempts to migrate the settings, but it does so by casting `settingsToSave` to `Record<string, unknown>`. If `originalSettings` contains nested objects that were not properly deep-cloned or if the migration logic expects a flat structure, this could lead to data corruption or incorrect settings being saved.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/utils/commentJson.ts</path>
+<side>RIGHT</side>
+<from>16</from>
+<to>19</to>
+<note>The function `updateSettingsFilePreservingFormat` creates a new file using `fs.writeFileSync` without specifying file permissions. On Unix-like systems, this may result in a file with default permissions (e.g., 0644), which could expose sensitive configuration data (like API keys) to other users on the system.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/settings.ts</path>
+<side>RIGHT</side>
+<from>172</from>
+<to>177</to>
+<note>The `SettingsFile` interface now contains `settings`, `originalSettings`, and `rawJson`. This is becoming a 'God' interface for settings state. It is unclear if `rawJson` is always available or how it relates to the `settings` object after modifications.</note>
+</notesplit>

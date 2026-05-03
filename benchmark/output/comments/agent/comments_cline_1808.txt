@@ -1,0 +1,9 @@
+<notesplit>
+<path>src/api/providers/openai.ts</path>
+<side>RIGHT</side>
+<from>18</from>
+<to>22</to>
+<note>**[Maintainability and Readability]** The logic for determining whether to use AzureOpenAI is becoming complex and fragile. Hardcoding model-specific checks (like 'deepseek') inside the constructor creates a tight coupling between the provider initialization and specific model names, violating the Open/Closed principle.
+
+**[Code Defect]** The logic change prevents the use of the AzureOpenAI client for DeepSeek models hosted on Azure. If a user provides an Azure base URL and a DeepSeek model ID, the code falls back to the standard OpenAI client, which will fail to authenticate or connect correctly to an Azure-specific endpoint.</note>
+</notesplit>

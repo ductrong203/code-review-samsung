@@ -1,0 +1,32 @@
+<notesplit>
+<path>examples/http-server-using-redis/main_test.go</path>
+<side>RIGHT</side>
+<from>108</from>
+<to>111</to>
+<note>**[Code Defect]** The code uses 'configs.HTTPHost' (which is 'http://localhost:PORT') inside 'fmt.Sprint'. This results in a URL like 'http://localhost:http://localhost:PORT/handle', which is invalid and will cause the request to fail.
+
+**[Maintainability and Readability]** Similar to the previous issue, fmt.Sprint("http://localhost:", configs.HTTPHost, "/handle") is likely incorrect because configs.HTTPHost already includes the protocol and host.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/gofr_test.go</path>
+<side>RIGHT</side>
+<from>833</from>
+<to>833</to>
+<note>**[Code Defect]** The code uses 'configs.HTTPHost' inside 'fmt.Sprintf' with a '%s' verb. Since 'configs.HTTPHost' already contains the 'http://' prefix, the resulting URL becomes 'http://http://localhost:PORT/.well-known/swagger', which is invalid.
+
+**[Maintainability and Readability]** The use of configs.HTTPHost in fmt.Sprintf("http://localhost:%s", configs.HTTPHost) is redundant and likely incorrect. configs.HTTPHost already contains the 'http://localhost:' prefix.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/config/godotenv_test.go</path>
+<side>RIGHT</side>
+<from>94</from>
+<to>97</to>
+<note>The error handling for os.Setenv is swallowed with an empty return. While os.Setenv rarely fails, silently returning from a test without executing the assertion logic makes the test pass falsely if the setup fails.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/testutil/port.go</path>
+<side>RIGHT</side>
+<from>35</from>
+<to>55</to>
+<note>The NewServerConfigs function forces the allocation of three ports (HTTP, Metrics, gRPC) regardless of whether the test actually requires all of them. This can lead to port exhaustion in test suites with many tests and unnecessary overhead.</note>
+</notesplit>

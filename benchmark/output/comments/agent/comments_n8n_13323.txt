@@ -1,0 +1,37 @@
+<notesplit>
+<path>packages/core/src/errors/error-reporter.ts</path>
+<side>RIGHT</side>
+<from>91</from>
+<to>94</to>
+<note>**[Code Defect]** The expiration logic incorrectly resets the `report` method to `this.defaultReport` instead of disabling reporting. Since `this.report` is already initialized to `this.defaultReport` in the constructor, this line effectively does nothing, allowing error reporting to continue after the 6-week expiration.
+
+**[Maintainability and Readability]** The `init` method is becoming a 'God method' that handles initialization, side-effect registration (process events), expiration logic, and Sentry configuration. This violates the Single Responsibility Principle.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/errors/error-reporter.ts</path>
+<side>RIGHT</side>
+<from>24</from>
+<to>24</to>
+<note>The expiration logic (6 weeks) is hardcoded as a magic number. If this duration needs to change, it is currently buried in the logic rather than being a configurable constant or environment variable.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/errors/error-reporter.ts</path>
+<side>RIGHT</side>
+<from>34</from>
+<to>34</to>
+<note>The 'seenErrors' Set grows indefinitely as the application runs, potentially leading to a memory leak in long-running processes (e.g., n8n instances running for weeks).</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/commands/base-command.ts</path>
+<side>RIGHT</side>
+<from>299</from>
+<to>299</to>
+<note>The `BaseCommand` is manually managing the lifecycle of the `errorReporter` (calling `shutdown` in `stopProcess`). This creates tight coupling between the base command and the error reporter's lifecycle.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/config/src/decorators.ts</path>
+<side>RIGHT</side>
+<from>60</from>
+<to>66</to>
+<note>The date parsing logic uses `Date.parse(value)`, which is notoriously inconsistent across environments and browsers. While it works for ISO strings, it lacks robust validation for the expected format.</note>
+</notesplit>

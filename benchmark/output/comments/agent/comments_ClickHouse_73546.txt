@@ -1,0 +1,46 @@
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueOrderedFileMetadata.cpp</path>
+<side>RIGHT</side>
+<from>250</from>
+<to>310</to>
+<note>**[Performance]** The code performs multiple sequential network requests (tryGet) inside a loop for every file being processed. This is an N+1 query pattern against ZooKeeper/Keeper, which will cause significant latency and performance degradation as the number of files or nodes increases.
+
+**[Maintainability and Readability]** The logic for checking processed/failed nodes is duplicated inside the 'if (zk_client->isFeatureEnabled...)' block and the 'else' block. This duplication makes the code harder to maintain and prone to inconsistencies.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>RIGHT</side>
+<from>598</from>
+<to>602</to>
+<note>The code sets the file state to 'ErrorOnRead' and returns, but it does not reset the 'reader' object. In the next iteration of the loop, 'reader' will still be non-null, causing the logic to incorrectly assume it is still processing the same file, potentially leading to infinite loops or state corruption.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>RIGHT</side>
+<from>658</from>
+<to>705</to>
+<note>**[Performance]** The commit function iterates over the entire `processed_files` vector and performs individual ZooKeeper operations (setProcessed/setFailed) for each file. This creates a high volume of synchronous network I/O operations during the commit phase, which can block the pipeline.
+
+**[Maintainability and Readability]** The commit function uses a large switch statement with complex logic inside. This violates the Single Responsibility Principle as it handles different file states and error recovery logic in one place. It would be cleaner to delegate the handling of each state to a specific method or a strategy pattern.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueIFileMetadata.cpp</path>
+<side>RIGHT</side>
+<from>275</from>
+<to>315</to>
+<note>The resetProcessing method contains significant logic for interacting with ZooKeeper. This logic is tightly coupled to the metadata class and makes it harder to test the state transition logic in isolation.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>RIGHT</side>
+<from>637</from>
+<to>640</to>
+<note>The 'commit' function uses 'insert_succeeded && file_state == FileState::Processed' to determine if a file should be logged as processed. However, if 'insert_succeeded' is false, the file is marked as failed, but the log entry might incorrectly imply a partial success or inconsistent state because the logic for 'appendLogElement' is coupled to the success of the entire batch rather than the individual file state.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>RIGHT</side>
+<from>473</from>
+<to>525</to>
+<note>The generateImpl method has become a 'God method' that handles cancellation, shutdown, reader initialization, and error handling. The nesting level is high, making it difficult to follow the control flow.</note>
+</notesplit>

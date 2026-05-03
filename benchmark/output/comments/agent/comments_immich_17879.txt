@@ -1,0 +1,38 @@
+<notesplit>
+<path>server/src/services/notification.service.ts</path>
+<side>RIGHT</side>
+<from>393</from>
+<to>450</to>
+<note>**[Code Defect]** The logic for handling album updates was changed to process a single recipient, but the `handleAlbumUpdate` method still fetches the album and performs email rendering inside a single-recipient flow. While the logic is now simplified, the `handleAlbumUpdate` function signature and internal logic no longer match the expected behavior of a job that was previously designed to handle multiple recipients, potentially leading to redundant job queuing if multiple recipients were intended.
+
+**[Maintainability and Readability]** The `handleAlbumUpdate` method has become complex with nested logic and multiple early returns. The logic for fetching user preferences and rendering emails is tightly coupled within the job handler.
+
+**[Security Vulnerability]** The code retrieves a user by ID and proceeds to send an email if the user exists. If the user is not found, it returns JobStatus.SKIPPED. This could potentially lead to information disclosure if an attacker can trigger this job for arbitrary user IDs to verify the existence of accounts based on timing or side effects.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/album.service.ts</path>
+<side>RIGHT</side>
+<from>173</from>
+<to>175</to>
+<note>**[Performance]** The code iterates over recipients and performs an 'await' inside a loop for each event emission. This causes sequential network/I/O operations, which will significantly increase latency as the number of recipients grows.
+
+**[Code Defect]** The loop `for (const recipientId of allUsersExceptUs) { await this.eventRepository.emit('album.update', { id, recipientId }); }` emits an event for every recipient. If `allUsersExceptUs` is large, this could trigger a high volume of events and subsequent job queueing, which might lead to performance issues or race conditions in the notification system.
+
+**[Maintainability and Readability]** The loop emitting events for each recipient individually can lead to a high number of database/network calls if an album has many users. While functionally correct, it is a potential performance bottleneck and a maintenance concern if the event system grows.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/job.repository.ts</path>
+<side>RIGHT</side>
+<from>233</from>
+<to>240</to>
+<note>**[Maintainability and Readability]** The `removeJob` method is marked as deprecated with a TODO, but it is still being used in `NotificationService`. This creates technical debt and indicates an incomplete refactor of the job management logic.
+
+**[Security Vulnerability]** The `removeJob` method uses `getJob(jobID)` and then `existingJob.remove()`. If `jobID` is user-controlled or derived from user-controlled input (like `id` and `recipientId` in `album.update`), this could be susceptible to unauthorized job cancellation if the ID generation is predictable or lacks proper authorization checks.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/job.repository.ts</path>
+<side>RIGHT</side>
+<from>218</from>
+<to>223</to>
+<note>The removeJob method performs a network round-trip to Redis (getJob) followed by another round-trip (remove) for every single job removal. In scenarios with high-frequency updates, this creates unnecessary latency.</note>
+</notesplit>

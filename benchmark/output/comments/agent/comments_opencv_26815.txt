@@ -1,0 +1,34 @@
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>RIGHT</side>
+<from>247</from>
+<to>251</to>
+<note>The render loop performs a CPU-GPU roundtrip for every frame when 'do_buffer' is true. Copying data from GPU buffer to CPU memory (buffer.copyTo(m)) and then back to GPU texture (texture.copyFrom(m)) is extremely expensive and negates the benefits of OpenGL interop.</note>
+</notesplit>
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>RIGHT</side>
+<from>221</from>
+<to>237</to>
+<note>**[Maintainability and Readability]** The print_info function contains significant code duplication. The pattern of resetting a buffer, formatting a string, and calling TextOut is repeated three times with minor variations.
+
+**[Code Defect]** The snprintf call uses 'sizeof(buf)-1' as the size argument. While this prevents buffer overflow, it is inconsistent with the other calls in the same file and technically reserves an extra byte unnecessarily. More importantly, if the string is exactly 256 characters, the last character will be truncated.
+
+**[Performance]** Texture and Buffer objects are being re-created and initialized inside the render loop every frame. This causes unnecessary memory allocation and driver overhead.
+
+The use of a fixed-size char buffer (256+1) for UI text is a potential maintenance risk if the strings being formatted grow in length.</note>
+</notesplit>
+<notesplit>
+<path>samples/cpp/tutorial_code/objectDetection/aruco_samples_utility.hpp</path>
+<side>RIGHT</side>
+<from>35</from>
+<to>39</to>
+<note>The logic for building the flags string is fragile and hard to read. It relies on manual concatenation of strings inside a snprintf call, which is prone to errors if the number of flags increases.</note>
+</notesplit>
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>RIGHT</side>
+<from>243</from>
+<to>243</to>
+<note>Potential buffer overflow or truncation in snprintf. While snprintf is safer than sprintf, the buffer size is 256 and the format string includes multiple strings (mode, buffer/texture status, and device name) which could exceed 256 characters if the device name is long.</note>
+</notesplit>

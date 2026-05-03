@@ -1,0 +1,71 @@
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/configuration/mappers/LoggingPropertyMappers.java</path>
+<side>RIGHT</side>
+<from>130</from>
+<to>130</to>
+<note>The transformer uses `toLevel(v).getName()`. If `v` is null, `toLevel(null)` will likely throw a NullPointerException. While the ternary check `v == null ? null : ...` was added, `toLevel` itself might not handle nulls safely if called elsewhere, but specifically here, the logic is now correct. However, the `wildcardKeysTransformer` change below it is problematic.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/configuration/PropertyMappingInterceptor.java</path>
+<side>RIGHT</side>
+<from>81</from>
+<to>120</to>
+<note>**[Maintainability and Readability]** The `iterateNames` method is highly complex, involving multiple streams, flatMaps, and logic for filtering runtime properties. This logic is difficult to follow and maintain.
+
+**[Performance]** The iterateNames method performs multiple stream operations and object allocations inside a loop over all configuration names. This can be a hot path during configuration resolution, leading to excessive GC pressure.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/configuration/mappers/LoggingPropertyMappers.java</path>
+<side>RIGHT</side>
+<from>270</from>
+<to>270</to>
+<note>The method `getConfiguredLogCategories` signature was changed to accept a `String value`, but the implementation `parseRootLogLevel(value)` is called. If `value` is null (which is possible for wildcard mappers), `parseRootLogLevel` may fail or return incorrect results.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/cli/Picocli.java</path>
+<side>RIGHT</side>
+<from>450</from>
+<to>495</to>
+<note>The `validateProperty` method has 9 parameters, which exceeds the recommended limit of 5. This makes the method signature difficult to read and maintain.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/configuration/mappers/WildcardPropertyMapper.java</path>
+<side>RIGHT</side>
+<from>73</from>
+<to>79</to>
+<note>**[Code Defect]** The `getToFromWildcardTransformer` method creates a `new HashSet<String>()` and passes it to `wildcardKeysTransformer.apply`. If the transformer modifies this set, it is discarded immediately after the stream is created, potentially leading to lost data or unexpected behavior if the transformer relies on side effects.
+
+**[Performance]** The getToFromWildcardTransformer method creates a new HashSet on every call, which is unnecessary if the transformer logic does not require a mutable set.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/configuration/NestedPropertyMappingInterceptor.java</path>
+<side>RIGHT</side>
+<from>35</from>
+<to>40</to>
+<note>**[Maintainability and Readability]** The use of a static ThreadLocal for recursion tracking is a global state pattern that can lead to memory leaks if not cleared properly, and makes the code harder to reason about in multi-threaded environments.
+
+**[Security Vulnerability]** The interceptor uses a ThreadLocal to track recursion. If an attacker can influence the property names being resolved, they might be able to trigger complex recursion patterns that could lead to a StackOverflowError or bypass security checks if the recursion logic is flawed.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/configuration/mappers/PropertyMappers.java</path>
+<side>RIGHT</side>
+<from>285</from>
+<to>305</to>
+<note>**[Performance]** The get(Object key) method in MappersConfig performs a stream filter operation on all wildcard mappers for every property lookup. This is O(n) where n is the number of wildcard mappers, which is inefficient for frequent configuration lookups.
+
+**[Maintainability and Readability]** The `get` method in `MappersConfig` contains a TODO regarding a prefix tree. While not a bug, the current implementation of iterating through all wildcard mappers for every key lookup may become a performance bottleneck as the number of mappers grows.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/configuration/mappers/WildcardPropertyMapper.java</path>
+<side>RIGHT</side>
+<from>99</from>
+<to>120</to>
+<note>The `getMappedKey` method uses a series of `if` statements with different prefixes (ARG_PREFIX, NS_KEYCLOAK_PREFIX, KC_). This logic is fragile and hard to extend.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/configuration/mappers/ConfigKeystorePropertyMappers.java</path>
+<side>RIGHT</side>
+<from>43</from>
+<to>43</to>
+<note>The validation logic for the keystore path uses `Path.of(option).toAbsolutePath().normalize()`. If the `option` (user-provided path) is not properly sanitized or restricted, this could potentially lead to path traversal or access to sensitive files outside the intended configuration directory.</note>
+</notesplit>

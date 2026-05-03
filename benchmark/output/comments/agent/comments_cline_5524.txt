@@ -1,0 +1,56 @@
+<notesplit>
+<path>src/core/controller/models/refreshGroqModels.ts</path>
+<side>RIGHT</side>
+<from>113</from>
+<to>113</to>
+<note>The error object 'error' is accessed for 'error.status' in the catch block, but 'error' is typed as 'unknown' or 'any' in the catch clause. If 'error' is not an AxiosError, accessing '.status' might be undefined or throw if it's not an object.</note>
+</notesplit>
+<notesplit>
+<path>src/core/controller/task/taskFeedback.ts</path>
+<side>RIGHT</side>
+<from>18</from>
+<to>20</to>
+<note>The code uses `request.value as any` to cast the feedback type. This bypasses TypeScript's type safety and makes the code fragile if the feedback type definition changes.</note>
+</notesplit>
+<notesplit>
+<path>src/services/browser/BrowserSession.ts</path>
+<side>RIGHT</side>
+<from>46</from>
+<to>46</to>
+<note>The property `ulid` is marked as optional (`ulid?: string`), but many methods (e.g., `captureBrowserToolStart`) assume it is present or perform checks. This inconsistency can lead to runtime errors if the browser session is used before the ULID is set.</note>
+</notesplit>
+<notesplit>
+<path>src/core/controller/state/updateSettings.ts</path>
+<side>RIGHT</side>
+<from>87</from>
+<to>87</to>
+<note>The code uses 'request.mode === PlanActMode.PLAN ? "plan" : "act"'. If 'request.mode' is undefined, this logic might default to 'act' incorrectly if not handled by the surrounding 'if' check, though the 'if' check exists. However, the logic assumes 'PlanActMode' enum values are strictly 0/1. If the proto definition changes, this could break.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/ToolExecutor.ts</path>
+<side>RIGHT</side>
+<from>2350</from>
+<to>2350</to>
+<note>The call to 'telemetryService.captureTaskCompleted' was changed to only accept 'this.ulid', but the previous implementation accepted two arguments (taskId, ulid). If the telemetry service definition was not updated to match this signature, this will cause a runtime error.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/ToolExecutor.ts</path>
+<side>RIGHT</side>
+<from>1719</from>
+<to>1719</to>
+<note>The telemetry call `telemetryService.captureOptionSelected` is missing a check for whether `this.ulid` is defined, unlike other similar calls in the same file which check for `this.ulid` or handle it via the service.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/ToolExecutor.ts</path>
+<side>RIGHT</side>
+<from>2194</from>
+<to>2194</to>
+<note>Similar to the previous issue, `telemetryService.captureOptionSelected` is called without verifying `this.ulid` exists.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>RIGHT</side>
+<from>2173</from>
+<to>2181</to>
+<note>The telemetry call `captureConversationTurnEvent` is repeated with identical logic in multiple places within the file. This violates the DRY principle.</note>
+</notesplit>

@@ -1,0 +1,27 @@
+<notesplit>
+<path>shell/common/gin_helper/persistent_dictionary.h</path>
+<side>RIGHT</side>
+<from>44</from>
+<to>49</to>
+<note>**[Maintainability and Readability]** The ValueOrDefault implementation relies on default-constructing the type T (e.g., `auto value = T{}`). If T is a complex type or a pointer, this could lead to unexpected behavior or crashes if the dictionary lookup fails.
+
+**[Performance]** The ValueOrDefault implementation performs a redundant lookup. It calls Get() which performs a 'Has' check followed by a 'Get' operation, and then potentially performs another 'Get' internally. This doubles the number of V8 API calls required to retrieve a value.
+
+**[Code Defect]** The `ValueOrDefault` implementation is broken for types that are not default-constructible or where the default constructor does not represent an 'empty' state. Specifically, `auto value = T{};` will fail to compile for types like `std::u16string` or `std::string` if they are not properly initialized, and more importantly, if `Get` fails, it returns `default_value`, but if `Get` succeeds, it overwrites `value`. However, if `Get` fails, the logic is fine, but the initialization `auto value = T{};` is unnecessary and potentially expensive for complex types.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/api/electron_api_web_contents.cc</path>
+<side>RIGHT</side>
+<from>3022</from>
+<to>3033</to>
+<note>**[Maintainability and Readability]** The construction of the custom margins dictionary is becoming overly dense and hard to read due to the chained .Set() calls. While functional, it obscures the structure of the data being created.
+
+**[Code Defect]** The refactored code for custom margins uses `ValueOrDefault` with a default of `0`. If the user provides a value of `0` in the dictionary, `Get` will return true, and `0` will be used. However, if the key is missing, it defaults to `0`. This logic is functionally correct, but the previous implementation explicitly initialized variables to `0` before calling `Get`. The new implementation is cleaner, but ensure that `gin_helper::Dictionary::ValueOrDefault` correctly handles the case where the key exists but the value is not convertible to `int` (it should return the default).</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/ui/cocoa/electron_touch_bar.mm</path>
+<side>RIGHT</side>
+<from>500</from>
+<to>503</to>
+<note>The use of magic numbers (0, 100, 50) as default values for slider configuration is not documented or defined as constants, making it difficult to understand the intent or change these defaults globally.</note>
+</notesplit>

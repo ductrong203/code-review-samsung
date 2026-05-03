@@ -1,0 +1,18 @@
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/struct/DBSObjectFilter.java</path>
+<side>RIGHT</side>
+<from>190</from>
+<to>214</to>
+<note>**[Maintainability and Readability]** The methods 'matches' and 'matchesAny' contain significant code duplication. Both methods perform the same sequence of operations (filling patterns, checking includes, checking excludes).
+
+**[Code Defect]** The `atLeastOneNameMatchesPattern` method iterates over the `names` array and calls `matchesPattern`. If any element in the `names` array is null, `matchesPattern` will throw a NullPointerException because it performs `((String) pattern).equalsIgnoreCase(name)` or `((Pattern) pattern).matcher(name).matches()` without checking if `name` is null.
+
+**[Performance]** The use of Arrays.stream().anyMatch() inside a hot loop (filtering database objects) creates unnecessary stream objects and lambda overhead for every object check.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/navigator/DBNDatabaseNode.java</path>
+<side>RIGHT</side>
+<from>730</from>
+<to>741</to>
+<note>The logic for checking filter matches is becoming complex and violates the Single Responsibility Principle by forcing the caller (DBNDatabaseNode) to know about the internal structure of DBPOverloadedObject. This logic should be encapsulated within the filter or a helper method.</note>
+</notesplit>

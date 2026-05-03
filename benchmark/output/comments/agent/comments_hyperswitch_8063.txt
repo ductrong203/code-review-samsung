@@ -1,0 +1,28 @@
+<notesplit>
+<path>crates/router/src/core/payments.rs</path>
+<side>RIGHT</side>
+<from>8290</from>
+<to>8290</to>
+<note>The parameter name 'debit_routing_ouput' contains a typo ('ouput' instead of 'output'). While this PR fixes some typos, this specific instance in the trait definition was missed.</note>
+</notesplit>
+<notesplit>
+<path>crates/router/src/core/payments/retry.rs</path>
+<side>RIGHT</side>
+<from>620</from>
+<to>620</to>
+<note>The parameter name 'setup_futture_usage_intent' contains a typo ('futture' instead of 'future').</note>
+</notesplit>
+<notesplit>
+<path>crates/router/src/core/revenue_recovery.rs</path>
+<side>RIGHT</side>
+<from>164</from>
+<to>164</to>
+<note>Typo in comment: 'taks' should be 'tasks'.</note>
+</notesplit>
+<notesplit>
+<path>crates/router/src/core/payments/retry.rs</path>
+<side>RIGHT</side>
+<from>691</from>
+<to>691</to>
+<note>The comment 'setup future usage is picked from intent for new payment attempt' is slightly ambiguous. It would be clearer to state that it is being mapped from the intent to the new attempt.</note>
+</notesplit>

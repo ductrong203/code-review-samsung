@@ -1,0 +1,43 @@
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileEmptyFunction.java</path>
+<side>RIGHT</side>
+<from>57</from>
+<to>82</to>
+<note>**[Performance]** The code opens an InputStream to the storage system but does not guarantee that the stream is closed in all failure scenarios. While a try-with-resources block is used, if the storage implementation's get() method throws an exception before the stream is successfully opened, or if the stream itself is null, this could lead to resource leaks depending on the storage provider implementation.
+
+**[Maintainability and Readability]** Code duplication: The logic for validating file access (checking current vs parent execution) is identical in FileEmptyFunction and FileExistsFunction. This violates the DRY principle.
+
+The method 'readAndCheckEmptyFileFromInternalStorage' performs multiple responsibilities: it retrieves context variables, validates access, and performs I/O. This makes it harder to test and maintain.
+
+Reading from an InputStream to check if a file is empty is an I/O operation. If this function is called frequently within a loop in a Pebble template, it will cause significant performance degradation due to repeated network/disk I/O calls.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileExistsFunction.java</path>
+<side>RIGHT</side>
+<from>64</from>
+<to>79</to>
+<note>**[Maintainability and Readability]** Code duplication: The 'checkIfFileFromParentExecution' method is duplicated exactly between FileEmptyFunction and FileExistsFunction.
+
+**[Performance]** The fileExists function performs a synchronous I/O call to the storage interface. If this is used inside a loop or a large template, it will block the execution thread for every call, leading to high latency.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileEmptyFunction.java</path>
+<side>RIGHT</side>
+<from>72</from>
+<to>72</to>
+<note>The code uses `flow.get("tenantId")` but the `flow` map is cast from `context.getVariable("flow")`. In Kestra, the `tenantId` is typically a top-level variable in the evaluation context, not necessarily inside the `flow` map. This will likely return null, causing a NullPointerException or incorrect storage path resolution.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileExistsFunction.java</path>
+<side>RIGHT</side>
+<from>68</from>
+<to>68</to>
+<note>The code uses `flow.get("tenantId")` but the `flow` map is cast from `context.getVariable("flow")`. In Kestra, the `tenantId` is typically a top-level variable in the evaluation context, not necessarily inside the `flow` map. This will likely return null, causing a NullPointerException or incorrect storage path resolution.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileEmptyFunction.java</path>
+<side>RIGHT</side>
+<from>90</from>
+<to>100</to>
+<note>The 'isFileUriValid' method contains hardcoded path logic that is prone to errors if the internal storage structure changes. The logic is also duplicated in FileExistsFunction.</note>
+</notesplit>

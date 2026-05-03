@@ -1,0 +1,28 @@
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/script/field/vectors/RankVectors.java</path>
+<side>RIGHT</side>
+<from>45</from>
+<to>105</to>
+<note>The RankVectors.EMPTY implementation uses anonymous inner class with multiple methods throwing the same exception. This logic is duplicated across every method. It would be cleaner to have a dedicated private class or a shared helper method for the exception.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/script/field/vectors/ByteRankVectors.java</path>
+<side>RIGHT</side>
+<from>34</from>
+<to>36</to>
+<note>The method maxSimDotProduct(float[][] query) throws UnsupportedOperationException, which is a sign of a leaky abstraction or a violation of the Liskov Substitution Principle if the interface implies this should be supported.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/script/field/vectors/FloatRankVectors.java</path>
+<side>RIGHT</side>
+<from>53</from>
+<to>59</to>
+<note>Similar to ByteRankVectors, this class throws UnsupportedOperationException for methods that are part of the RankVectors interface. This indicates the interface is too broad for the different types of vectors.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/script/RankVectorsScoreScriptUtils.java</path>
+<side>RIGHT</side>
+<from>17</from>
+<to>340</to>
+<note>The class RankVectorsScoreScriptUtils contains deeply nested static inner classes and complex inheritance hierarchies (e.g., ByteMaxSimInvHammingDistance extends ByteRankVectorsFunction). This increases cognitive load and makes the code harder to test in isolation.</note>
+</notesplit>

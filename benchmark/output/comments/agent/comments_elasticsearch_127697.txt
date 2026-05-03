@@ -1,0 +1,32 @@
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/cluster/ClusterChangedEvent.java</path>
+<side>RIGHT</side>
+<from>351</from>
+<to>362</to>
+<note>**[Maintainability and Readability]** The logic for determining if a project delta is empty is complex and relies on specific knowledge of the 'DEFAULT' project ID. This creates a tight coupling between the delta calculation and the internal structure of Metadata.
+
+**[Code Defect]** The logic for determining if a project delta is empty is flawed. It checks if both previous and current metadata have exactly one project and that project is the DEFAULT project. However, it fails to account for cases where the project metadata might have changed (e.g., custom metadata within the default project changed), which should not be considered an empty delta.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/cluster/ClusterChangedEvent.java</path>
+<side>RIGHT</side>
+<from>56</from>
+<to>56</to>
+<note>The calculateProjectDelta method is called in the constructor of ClusterChangedEvent. This event is instantiated frequently across the cluster. Performing set difference operations (which involve hashing and iteration) on every cluster state change adds overhead to the cluster state update path.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/src/test/java/org/elasticsearch/xpack/security/support/QueryableBuiltInRolesSynchronizerTests.java</path>
+<side>RIGHT</side>
+<from>333</from>
+<to>334</to>
+<note>The test now requires verifying `metadata()` twice instead of once. This suggests that the introduction of `projectsDelta` has caused an increase in the number of times the metadata object is accessed during a cluster change event, which may indicate inefficient access patterns or redundant calls.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/cluster/ClusterChangedEvent.java</path>
+<side>RIGHT</side>
+<from>361</from>
+<to>367</to>
+<note>**[Performance]** The use of Sets.difference creates new unmodifiable Set wrappers. While functionally correct, these operations allocate new objects on every cluster state change, increasing GC pressure in a hot path.
+
+**[Maintainability and Readability]** The TODO comment regarding assertions is helpful, but it indicates that the current implementation is potentially fragile or incomplete due to legacy test behavior.</note>
+</notesplit>

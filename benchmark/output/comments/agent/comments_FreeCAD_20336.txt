@@ -1,0 +1,66 @@
+<notesplit>
+<path>src/Mod/Sketcher/Gui/Command.cpp</path>
+<side>RIGHT</side>
+<from>1054</from>
+<to>1054</to>
+<note>The loop condition 'i <= (addedConstraints - baseConstraints)' is an off-by-one error. If 'addedConstraints' is 5 and 'baseConstraints' is 2, the loop runs for i=0, 1, 2, 3 (4 iterations), but only 3 constraints were added. This will likely cause an out-of-bounds access on the constraints vector.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/EdgeWalker.cpp</path>
+<side>RIGHT</side>
+<from>450</from>
+<to>457</to>
+<note>**[Performance]** The constructor for WalkerEdge performs manual member initialization. While correct, using a member initializer list is more efficient in C++ as it avoids default construction followed by assignment.
+
+**[Maintainability and Readability]** The constructor initializes members of a nested struct 'ed' manually. This is fragile if the structure of 'ed' changes.
+
+**[Code Defect]** The constructor initializes 'ed.m_source' and 'ed.m_target', but 'ed' is a 'boost::graph_traits<graph>::edge_descriptor', which is typically an opaque handle or pointer. Accessing members 'm_source'/'m_target' on an edge descriptor is non-portable and likely incorrect for the boost graph library.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Mesh/App/Core/MeshKernel.cpp</path>
+<side>RIGHT</side>
+<from>1033</from>
+<to>1040</to>
+<note>**[Performance]** The check `uCtPts > 1e9 || uCtFts > 1e9` is a good safety measure, but it is performed after the `MeshPointArray` and `MeshFacetArray` objects are already instantiated on the stack. If these objects perform internal allocations upon construction, the memory pressure could occur before the check.
+
+**[Security Vulnerability]** While the sanity check prevents massive allocations, it does not prevent potential integer overflows if uCtPts or uCtFts are manipulated before this check or if the multiplication/addition logic elsewhere in the file uses these values.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>1566</from>
+<to>1574</to>
+<note>**[Security Vulnerability]** The code checks if 'node == -1' and throws a FileException, but 'node' is initialized to -1. If the file format is malformed or empty, this logic might be bypassed or lead to unexpected behavior depending on how the loop processes the file.
+
+**[Maintainability and Readability]** The error message 'File to load not readable' is misleading when the actual issue is that the 'node' variable was never initialized or updated correctly from the file stream.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/CAM/PathSimulator/AppGL/DlgCAMSimulator.cpp</path>
+<side>RIGHT</side>
+<from>49</from>
+<to>52</to>
+<note>Manual memory management of mMillSimulator in the destructor is error-prone. If an exception occurs in the constructor or if the class is copied, this can lead to memory leaks or double-frees.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/Geometry.cpp</path>
+<side>RIGHT</side>
+<from>472</from>
+<to>472</to>
+<note>Using std::time(nullptr) as a seed for a random number generator is insecure as it is predictable, potentially leading to predictable UUIDs.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/modelRefine.cpp</path>
+<side>RIGHT</side>
+<from>1071</from>
+<to>1079</to>
+<note>**[Maintainability and Readability]** Commented-out code blocks ('dead code') reduce readability and clutter the source file.
+
+**[Performance]** The commented-out reserve logic is correct for performance. Repeatedly calling `emplace_back` or `insert` on a vector without `reserve` causes multiple reallocations and data copies as the vector grows.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/EdgeWalker.h</path>
+<side>RIGHT</side>
+<from>74</from>
+<to>74</to>
+<note>The class WalkerEdge has a mix of default member initialization and a custom constructor. This can lead to confusion about the object's state.</note>
+</notesplit>

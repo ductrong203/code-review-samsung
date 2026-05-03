@@ -1,0 +1,9 @@
+<notesplit>
+<path>src/Storages/MergeTree/MergeTreeDataMergerMutator.cpp</path>
+<side>RIGHT</side>
+<from>334</from>
+<to>343</to>
+<note>**[Performance]** The logging statement is executed inside a hot path (MergeTree merge selection). Formatting strings and performing backQuote operations on every iteration of the merge selector can introduce significant overhead when many partitions are processed.
+
+**[Maintainability and Readability]** The logging logic inside the switch-case block is verbose and repeats the pattern of extracting storage identifiers. This logic is likely to be needed for other merge types (like TTLRecompress) in the future, leading to code duplication.</note>
+</notesplit>

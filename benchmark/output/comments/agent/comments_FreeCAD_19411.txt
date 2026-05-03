@@ -1,0 +1,35 @@
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawProjGroup.cpp</path>
+<side>RIGHT</side>
+<from>1134</from>
+<to>1134</to>
+<note>The TODO comment suggests that the spin functions in DrawProjGroup and DrawViewPart are identical and should be refactored into a common base class (DrawView). This indicates code duplication and a violation of the DRY principle.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/Gui/QGIArrow.cpp</path>
+<side>RIGHT</side>
+<from>318</from>
+<to>337</to>
+<note>The switch statement in getOverlapAdjust is missing a default case or handling for all enum values, relying on a fallback return of 1.0 which might be misleading.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/Gui/DimensionValidators.cpp</path>
+<side>RIGHT</side>
+<from>375</from>
+<to>415</to>
+<note>The function isValidSingleEdge contains a long if-else chain checking geometry types. This logic is repetitive and prone to errors when adding new geometry types.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawViewPart.cpp</path>
+<side>RIGHT</side>
+<from>1335</from>
+<to>1395</to>
+<note>The function getDirsFromFront uses a long if-else chain to map ProjDirection to geometric transformations. This is a violation of the Open/Closed principle and makes the code harder to maintain as new directions are added.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawViewPart.h</path>
+<side>RIGHT</side>
+<from>81</from>
+<to>105</to>
+<note>The enums ProjDirection, RotationMotion, and SpinDirection are defined in the TechDraw namespace but are not grouped or scoped within a logical structure, potentially cluttering the namespace.</note>
+</notesplit>

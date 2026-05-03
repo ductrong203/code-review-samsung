@@ -1,0 +1,14 @@
+<notesplit>
+<path>src/Symfony/Component/Notifier/Bridge/Mercure/MercureOptions.php</path>
+<side>RIGHT</side>
+<from>23</from>
+<to>37</to>
+<note>The complex array shape definition for $content is duplicated in both the constructor docblock and the getter docblock. This violates the DRY (Don't Repeat Yourself) principle and creates a maintenance burden if the structure changes.</note>
+</notesplit>
+<notesplit>
+<path>src/Symfony/Component/Notifier/Bridge/Mercure/MercureOptions.php</path>
+<side>RIGHT</side>
+<from>65</from>
+<to>79</to>
+<note>The complex array shape definition for $content is duplicated in both the constructor docblock and the getter docblock. This violates the DRY (Don't Repeat Yourself) principle and creates a maintenance burden if the structure changes.</note>
+</notesplit>

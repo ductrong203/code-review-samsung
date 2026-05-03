@@ -1,0 +1,15 @@
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>RIGHT</side>
+<from>1320</from>
+<to>1335</to>
+<note>**[Code Defect]** The asynchronous checkpoint commit is now detached from the main execution flow. If the task completes or the process terminates while this background promise is pending, the `lastCheckpointHash` may never be updated in the message state, leading to inconsistent state where the UI thinks a checkpoint was created but lacks the hash required for subsequent logic (like 'see new changes' checks).
+
+**[Performance]** The asynchronous background operation lacks error handling. If the git commit operation fails, the promise will reject, potentially causing an unhandled promise rejection in the Node.js process, which can lead to memory leaks or unstable state in long-running extension hosts.
+
+**[Maintainability and Readability]** The asynchronous operation is now 'fire-and-forget' without error handling. If `this.checkpointTracker.commit()` fails, the error will be unhandled, potentially leading to silent failures or unhandled promise rejections.
+
+**[Security Vulnerability]** The checkpoint commit operation is now performed asynchronously without error handling. If the background git operation fails (e.g., due to disk space, permission issues, or git lock files), the failure is silently ignored. This can lead to a state where the UI indicates a checkpoint was created, but no actual data integrity protection exists, potentially misleading the user during recovery operations.
+
+The logic for updating the UI after a background operation is becoming complex and tightly coupled to the message state structure. This logic is duplicated/similar to the original synchronous flow and relies on finding a message index by string literal 'checkpoint_created'.</note>
+</notesplit>

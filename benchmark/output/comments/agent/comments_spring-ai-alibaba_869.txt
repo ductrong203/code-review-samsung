@@ -1,0 +1,41 @@
+<notesplit>
+<path>community/tool-calls/spring-ai-alibaba-starter-tool-calling-alitranslate/src/main/java/com/alibaba/cloud/ai/toolcalling/alitranslate/AliTranslateService.java</path>
+<side>RIGHT</side>
+<from>56</from>
+<to>59</to>
+<note>**[Security Vulnerability]** Use of Java 'assert' statements for security-critical validation (AccessKeyId/Secret). 'assert' is disabled by default in production JVMs, meaning these checks will be skipped, potentially leading to NullPointerExceptions or unauthenticated service calls if properties are missing.
+
+**[Maintainability and Readability]** The use of 'assert' for input validation is inappropriate for production code. Assertions can be disabled at runtime via JVM flags, meaning these critical configuration checks might be skipped.</note>
+</notesplit>
+<notesplit>
+<path>community/tool-calls/spring-ai-alibaba-starter-tool-calling-alitranslate/src/main/java/com/alibaba/cloud/ai/toolcalling/alitranslate/AliTranslateService.java</path>
+<side>RIGHT</side>
+<from>98</from>
+<to>108</to>
+<note>**[Performance]** The apply method performs a synchronous blocking call (response.get()) on a CompletableFuture within a function that is likely called in a reactive or high-concurrency context. This blocks the calling thread, negating the benefits of the AsyncClient and potentially leading to thread pool exhaustion under load.
+
+**[Maintainability and Readability]** The apply method returns 'null' when an error occurs or validation fails. This forces the caller to perform null checks and hides the reason for the failure, making debugging difficult.</note>
+</notesplit>
+<notesplit>
+<path>community/tool-calls/spring-ai-alibaba-starter-tool-calling-alitranslate/src/main/java/com/alibaba/cloud/ai/toolcalling/alitranslate/AliTranslateService.java</path>
+<side>RIGHT</side>
+<from>74</from>
+<to>75</to>
+<note>The validation logic now requires 'sourceLanguage' to be present in the request object. However, the 'Request' record constructor only accepts 'text', and the default values for 'sourceLanguage' and 'targetLanguage' are only set in the secondary constructor. If a user provides a JSON payload containing only 'text', the 'sourceLanguage' field will be null, causing the 'apply' method to return 'null' (silent failure) instead of using the default value.</note>
+</notesplit>
+<notesplit>
+<path>community/tool-calls/spring-ai-alibaba-starter-tool-calling-alitranslate/src/main/java/com/alibaba/cloud/ai/toolcalling/alitranslate/AliTranslateProperties.java</path>
+<side>RIGHT</side>
+<from>38</from>
+<to>46</to>
+<note>**[Maintainability and Readability]** The constructor performs side-effect-heavy logic (reading environment variables) which makes the class harder to test and violates the principle that constructors should be simple. It also mixes configuration loading logic with property storage.
+
+**[Code Defect]** The constructor logic for environment variable lookup is fragile. Spring Boot's @ConfigurationProperties mechanism populates fields AFTER the constructor finishes. By accessing 'this.getAccessKeyId()' inside the constructor, the value will always be null (unless set via system property), leading to incorrect initialization of the accessKeyId from the environment variable.</note>
+</notesplit>
+<notesplit>
+<path>community/tool-calls/spring-ai-alibaba-starter-tool-calling-alitranslate/src/main/java/com/alibaba/cloud/ai/toolcalling/alitranslate/AliTranslateService.java</path>
+<side>RIGHT</side>
+<from>121</from>
+<to>142</to>
+<note>The method 'getTranslatedText' uses a series of 'if' checks that throw 'IllegalStateException'. While functional, this is verbose and could be simplified using a more declarative approach or a single validation block.</note>
+</notesplit>

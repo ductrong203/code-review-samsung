@@ -1,0 +1,51 @@
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>RIGHT</side>
+<from>279</from>
+<to>325</to>
+<note>**[Maintainability and Readability]** The `create` method is becoming a 'God method' that handles tool registry initialization, validation, and complex conditional logic. This violates the Single Responsibility Principle.
+
+**[Code Defect]** The code attempts to access `tool.schema.parametersJsonSchema` as an object, but `tool.schema` is typed as `any` or a generic structure in the registry. If `parametersJsonSchema` is missing or not an object, this will throw a TypeError at runtime.
+
+**[Performance]** The tool validation loop performs an asynchronous `getTool` call inside a loop for every tool string. This results in N sequential network/registry lookups instead of batching or parallelizing the requests.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>RIGHT</side>
+<from>370</from>
+<to>480</to>
+<note>**[Performance]** The goal completion check iterates over all keys in `outputConfig.outputs` and performs a property lookup (`key in this.output.emitted_vars`) inside the main execution loop. While O(n) where n is the number of outputs, it is redundant to check every turn if the set of emitted variables has not changed.
+
+**[Maintainability and Readability]** The loop body for processing the response stream is becoming deeply nested and complex, making it hard to follow the flow of text vs function calls.
+
+The `runNonInteractive` method is excessively long (>100 lines) and handles multiple concerns: chat orchestration, tool execution, termination logic, and message logging.
+
+The logic to prepare `toolsList` is duplicated/similar to logic that might be needed elsewhere, and it uses complex type checking (`'schema' in tool`) which is fragile.
+
+**[Code Defect]** The `textResponse` is accumulated inside the loop, but if the model returns multiple chunks, `textResponse` will contain the concatenated text of the entire turn. If `onMessage` is intended to stream individual chunks, this logic buffers them incorrectly. If it's intended to report the full turn response, it is correct but potentially misleading if the model emits text and function calls interleaved.
+
+String concatenation inside the stream processing loop (`textResponse += text`) can be inefficient for very large responses, though likely negligible for typical LLM turn sizes.
+
+**[Security Vulnerability]** The `onMessage` callback logs raw text responses from the LLM. If the LLM output contains sensitive information or PII, this could lead to information disclosure in logs or monitoring systems.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>RIGHT</side>
+<from>545</from>
+<to>562</to>
+<note>The `onMessage` callback logs tool execution arguments, which may contain sensitive information (PII, credentials, or internal paths) passed to tools. If `onMessage` is connected to a logging system or UI, this could lead to sensitive data exposure.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>RIGHT</side>
+<from>486</from>
+<to>486</to>
+<note>The `onMessage` call for tool execution uses `JSON.stringify(functionCall.args ?? {})`. If `functionCall.args` is undefined or null, it defaults to `{}`, which is safe, but the logic assumes `functionCall.args` is always a serializable object. If it contains circular references or non-serializable types, `JSON.stringify` will throw an error, crashing the subagent.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>RIGHT</side>
+<from>490</from>
+<to>505</to>
+<note>The logic for truncating tool arguments for logging is mixed directly into the execution loop, cluttering the core business logic.</note>
+</notesplit>

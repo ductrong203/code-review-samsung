@@ -1,0 +1,55 @@
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestEntitlementsRule.java</path>
+<side>RIGHT</side>
+<from>53</from>
+<to>77</to>
+<note>**[Maintainability and Readability]** The use of 'assert description.isSuite()' inside a TestRule is fragile. If the rule is applied to a test method instead of a class, it will fail at runtime. This should be documented or handled more gracefully.
+
+**[Security Vulnerability]** The TestEntitlementsRule uses a static AtomicBoolean 'active' to enforce test isolation. If tests are run in parallel (e.g., via JUnit 5 or other runners), this mechanism will fail, potentially leading to cross-test entitlement leakage or incorrect security policy enforcement.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestEntitlementsRule.java</path>
+<side>RIGHT</side>
+<from>185</from>
+<to>192</to>
+<note>The removeEntitledNodePaths method is incomplete; it is missing the closing brace for the method, which will cause a compilation error.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestEntitlementsRule.java</path>
+<side>RIGHT</side>
+<from>137</from>
+<to>147</to>
+<note>**[Security Vulnerability]** The 'close' method for EntitledNodePaths is intentionally left empty with a comment indicating that node grants cannot be removed until the test suite completes. This results in an accumulation of granted paths in the entitlement policy manager for the duration of the suite, potentially violating the principle of least privilege for subsequent tests in the same suite.
+
+**[Maintainability and Readability]** The close() method contains commented-out logic and a comment explaining a workaround for a known issue (ES-10920). Leaving dead/commented-out code reduces readability and maintainability.
+
+**[Performance]** The close() method for EntitledNodePaths is currently a no-op, which prevents the cleanup of node grants. This leads to a potential accumulation of state in the entitlement policy manager across tests, which can degrade performance or cause memory pressure in large test suites.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestEntitlementsRule.java</path>
+<side>RIGHT</side>
+<from>147</from>
+<to>152</to>
+<note>The close() method for EntitledNodePaths is empty, meaning node grants are never actually removed when the Closeable is closed. This contradicts the documentation and the intended design of using a Closeable to manage lifecycle, potentially leading to entitlement leaks across tests.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestPathLookup.java</path>
+<side>RIGHT</side>
+<from>67</from>
+<to>86</to>
+<note>The baseDirModifier method uses a complex functional approach to modify a collection. While clever, it is harder to read and debug than a standard imperative approach.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/runtime/policy/TestPolicyManager.java</path>
+<side>RIGHT</side>
+<from>145</from>
+<to>148</to>
+<note>The isTestCode method performs a loop over class hierarchy and protection domains for every entitlement check. This is an expensive operation to perform in a hot path.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/node/MockNode.java</path>
+<side>RIGHT</side>
+<from>299</from>
+<to>303</to>
+<note>The awaitClose method uses IOUtils.closeWhileHandlingException, but the logic for entitlement cleanup is now tied to the node's lifecycle. This coupling makes it harder to reason about resource management.</note>
+</notesplit>

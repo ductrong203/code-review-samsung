@@ -1,0 +1,46 @@
+<notesplit>
+<path>.github/scripts/download-translations.js</path>
+<side>RIGHT</side>
+<from>10</from>
+<to>10</to>
+<note>**[Code Defect]** The script uses 'process.env.POEDITOR_API' but the GitHub Action workflow defines the secret as 'POEDITOR_API_TOKEN'. This will result in an undefined API token.
+
+**[Security Vulnerability]** The script attempts to read 'POEDITOR_API' from environment variables, but the GitHub workflow provides 'POEDITOR_API_TOKEN'. This mismatch will cause the script to fail or potentially use undefined credentials if not handled, but more importantly, it indicates a lack of validation for sensitive configuration.
+
+**[Maintainability and Readability]** The script uses 'process.env.POEDITOR_API' but the workflow defines 'POEDITOR_API_TOKEN'. This mismatch will cause the script to fail at runtime.</note>
+</notesplit>
+<notesplit>
+<path>.github/scripts/download-translations.js</path>
+<side>RIGHT</side>
+<from>20</from>
+<to>88</to>
+<note>**[Performance]** The script processes languages sequentially using a 'for...of' loop with 'await'. This causes unnecessary latency as each network request must complete before the next one begins.
+
+**[Security Vulnerability]** The script downloads content from a URL provided by an external API (POEditor) and saves it directly to the filesystem. If the API is compromised or returns a malicious URL, this could lead to arbitrary file write or path traversal vulnerabilities.
+
+**[Maintainability and Readability]** The 'downloadTranslations' function handles API orchestration, data transformation, and file system I/O. This violates the Single Responsibility Principle.
+
+The manual conversion of the translation array to an object using forEach is inefficient for large translation files. It creates an intermediate array and performs manual property assignment.
+
+The 'main' function and 'downloadTranslations' function both have identical error handling patterns (logging and exiting with code 1). This duplication can be abstracted.</note>
+</notesplit>
+<notesplit>
+<path>.github/workflows/poeditor-sync.yml</path>
+<side>RIGHT</side>
+<from>56</from>
+<to>56</to>
+<note>**[Code Defect]** The environment variable 'POEDITOR_API_TOKEN' is passed to the shell, but the script '.github/scripts/download-translations.js' attempts to access 'process.env.POEDITOR_API'. These names must match.
+
+**[Security Vulnerability]** The workflow uses `github.event.inputs.languages` directly in an environment variable without sanitization. While this is a CI environment, passing unsanitized user input into shell execution contexts can lead to command injection if the input is not strictly validated.
+
+**[Maintainability and Readability]** The environment variable 'POEDITOR_API_TOKEN' is passed to the script, but the script expects 'POEDITOR_API'. This is a configuration inconsistency.</note>
+</notesplit>
+<notesplit>
+<path>.github/workflows/poeditor-sync.yml</path>
+<side>RIGHT</side>
+<from>35</from>
+<to>51</to>
+<note>**[Maintainability and Readability]** Creating a package.json file dynamically inside the workflow is brittle and hard to maintain. It hides dependencies and makes local testing of the script difficult.
+
+**[Performance]** Running 'npm install' inside the GitHub Actions workflow for every execution is slow and redundant, as it downloads dependencies from the registry on every run.</note>
+</notesplit>

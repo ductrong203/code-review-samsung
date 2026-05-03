@@ -1,5 +1,5 @@
 /* =============================================================================
-   ReviewComment Component — Styled code review card
+   ReviewComment Component — Enhanced with severity, confidence, and fixes
    ============================================================================= */
 
 .review-comments {
@@ -23,6 +23,13 @@
   box-shadow: var(--shadow-glow);
 }
 
+/* Severity-based left border accent */
+.review-comment--severity-critical { border-left: 3px solid #f85149; }
+.review-comment--severity-high { border-left: 3px solid #f0883e; }
+.review-comment--severity-medium { border-left: 3px solid #d29922; }
+.review-comment--severity-low { border-left: 3px solid #58a6ff; }
+.review-comment--severity-info { border-left: 3px solid #8b949e; }
+
 .review-comment__header {
   display: flex;
   align-items: center;
@@ -31,6 +38,7 @@
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--border-muted);
   font-size: 12px;
+  flex-wrap: wrap;
 }
 
 .review-comment__file-path {
@@ -80,13 +88,109 @@
   border: 1px solid rgba(88, 166, 255, 0.3);
 }
 
+/* Severity badge */
+.review-comment__severity {
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
 .review-comment__body {
   padding: var(--space-md);
   font-size: 13px;
   line-height: 1.7;
   color: var(--text-secondary);
+  white-space: pre-wrap;
 }
 
 .review-comment__body strong {
   color: var(--text-primary);
+}
+
+/* Footer with confidence bar, context level, agent */
+.review-comment__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 8px var(--space-md);
+  border-top: 1px solid var(--border-muted);
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.review-comment__context-level {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+}
+
+.review-comment__agent {
+  font-size: 10px;
+  margin-left: auto;
+  opacity: 0.7;
+}
+
+/* Confidence bar */
+.confidence-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 80px;
+}
+
+.confidence-bar__track {
+  flex: 1;
+  height: 4px;
+  background: var(--bg-elevated);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.confidence-bar__fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.confidence-bar__label {
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 28px;
+  text-align: right;
+  color: var(--text-tertiary);
+}
+
+/* Suggested fix section */
+.review-comment__fix-section {
+  border-top: 1px solid var(--border-muted);
+}
+
+.review-comment__fix-toggle {
+  width: 100%;
+  padding: 8px var(--space-md);
+  background: none;
+  border: none;
+  color: var(--accent-primary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.review-comment__fix-toggle:hover {
+  background: var(--bg-elevated);
+}
+
+.review-comment__fix-content {
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  white-space: pre-wrap;
+  font-family: var(--font-mono);
 }

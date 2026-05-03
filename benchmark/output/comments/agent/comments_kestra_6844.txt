@@ -1,0 +1,48 @@
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>RIGHT</side>
+<from>104</from>
+<to>110</to>
+<note>**[Code Defect]** The code calls runContext.render(errorMessage) but does not handle the case where errorMessage is null. Calling .as(String.class) on a null Property object will throw a NullPointerException.
+
+**[Performance]** The error message construction uses string concatenation inside an exception block, but more importantly, it performs a 'runContext.render(errorMessage)' call inside the error handling path. If the error message contains complex expressions, this could trigger unnecessary heavy rendering logic during a failure state.
+
+**[Maintainability and Readability]** Throwing a generic 'Exception' is a poor practice for maintainability as it forces callers to catch broad exceptions rather than specific domain errors.
+
+**[Security Vulnerability]** The error message includes the result of rendering the 'errorMessage' property. If 'errorMessage' contains user-controlled input that is rendered, it may lead to information disclosure or unexpected content being returned in the exception message.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>RIGHT</side>
+<from>55</from>
+<to>55</to>
+<note>The example code in the Javadoc contains a syntax error in the YAML string (escaped newline `\n" +` inside the string literal), which makes the documentation misleading and hard to read.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>RIGHT</side>
+<from>91</from>
+<to>91</to>
+<note>The logger call uses a placeholder `{}` but provides two arguments (`s` and `renderer`). The second argument `renderer` will be ignored by the logger, making it impossible to see the actual value that caused the assertion failure in the logs.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>RIGHT</side>
+<from>96</from>
+<to>96</to>
+<note>The error handling inside the loop uses a generic 'Exception' for logging, which loses the specific context of the failure. Additionally, the logger call uses an incorrect number of arguments for the provided message template.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>RIGHT</side>
+<from>87</from>
+<to>87</to>
+<note>The logger includes the raw, unvalidated user-provided expression string in the error message. If the expression contains malicious payloads or control characters, this could lead to log injection or log forging.</note>
+</notesplit>
+<notesplit>
+<path>core/src/test/java/io/kestra/plugin/core/execution/AssertTest.java</path>
+<side>RIGHT</side>
+<from>63</from>
+<to>63</to>
+<note>The test uses 'Exception.class' in 'assertThrows'. This is too broad and makes the test brittle, as it would pass even if an unexpected exception (like a NullPointerException) occurred.</note>
+</notesplit>

@@ -1,0 +1,46 @@
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueMetadataFactory.cpp</path>
+<side>RIGHT</side>
+<from>34</from>
+<to>34</to>
+<note>**[Code Defect]** The code uses `*it->second.ref_count += 1;` but `ref_count` is a `std::unique_ptr<std::atomic<size_t>>`. If `ref_count` is null, this will cause a segmentation fault. While `getOrCreate` initializes it, the `remove` method does not check for null before dereferencing.
+
+**[Maintainability and Readability]** Directly dereferencing `it->second.ref_count` (which is a `std::unique_ptr`) is safe here, but the naming and structure of `MetadataWithRefCount` make the ownership and lifecycle of the reference count slightly confusing.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>RIGHT</side>
+<from>224</from>
+<to>250</to>
+<note>**[Performance]** The code performs a manual copy of the batch into a new vector when some objects are skipped. This involves unnecessary allocations and object moves. It would be more efficient to use a single pass to filter in-place or use a pre-allocated vector if the size is known.
+
+**[Maintainability and Readability]** The manual filtering of `new_batch` using a temporary vector `new_batch_copy` is verbose and error-prone. It duplicates the logic of filtering null pointers.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueMetadataFactory.cpp</path>
+<side>RIGHT</side>
+<from>68</from>
+<to>68</to>
+<note>The check `if (!it->second.ref_count)` is logically incorrect because `ref_count` is a `std::unique_ptr`. It will always evaluate to false (the pointer itself is not null, even if the atomic value inside is 0). It should check the value of the atomic: `if (it->second.ref_count->load() == 0)`.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueIFileMetadata.cpp</path>
+<side>RIGHT</side>
+<from>265</from>
+<to>296</to>
+<note>The logic in `prepareSetProcessingRequests` has become complex and deeply nested. It mixes locking logic, state validation, and logging, making it hard to follow the primary flow.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>RIGHT</side>
+<from>190</from>
+<to>202</to>
+<note>The loop calls `metadata->getFileMetadata` and `prepareSetProcessingRequests` for every object in the batch. If the batch size is large, this results in many repeated calls and potential lock contention on the metadata factory or internal maps.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueMetadata.cpp</path>
+<side>RIGHT</side>
+<from>447</from>
+<to>457</to>
+<note>The use of a local `std::atomic<size_t> noop = 0;` to satisfy the constructor signature in `syncWithKeeper` is a code smell. It indicates that the `ObjectStorageQueueOrderedFileMetadata` constructor is being forced to accept a dependency that isn't actually needed in this specific context.</note>
+</notesplit>

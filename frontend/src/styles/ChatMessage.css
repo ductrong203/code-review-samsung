@@ -4,8 +4,8 @@
 
 .chat-message {
   display: flex;
-  gap: var(--space-md);
-  max-width: 850px;
+  gap: 12px;
+  max-width: 900px;
   width: 100%;
   margin: 0 auto;
   animation: fadeIn 0.4s ease;
@@ -16,9 +16,9 @@
 }
 
 .chat-message__avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -28,8 +28,12 @@
 }
 
 .chat-message__avatar--bot {
-  background: var(--accent-gradient);
+  background: linear-gradient(140deg, #0b5cff 0%, #2d7dff 100%);
   box-shadow: var(--accent-glow);
+  color: #ffffff;
+  font-size: 9px;
+  letter-spacing: 0.35px;
+  line-height: 1;
 }
 
 .chat-message__avatar--user {
@@ -44,21 +48,22 @@
 }
 
 .chat-message__content {
-  padding: var(--space-md);
-  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  border-radius: 16px;
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.68;
   word-wrap: break-word;
 }
 
 .chat-message--bot .chat-message__content {
-  background: var(--bg-secondary);
+  background: #ffffff;
   border: 1px solid var(--border-muted);
+  box-shadow: var(--shadow-sm);
 }
 
 .chat-message--user .chat-message__content {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-default);
+  background: linear-gradient(145deg, rgba(11, 92, 255, 0.13) 0%, rgba(45, 125, 255, 0.18) 100%);
+  border: 1px solid rgba(11, 92, 255, 0.26);
 }
 
 .chat-message--error .chat-message__content {
@@ -83,6 +88,10 @@
 
 .chat-message__content p {
   margin-bottom: var(--space-sm);
+}
+
+.chat-message__content p:last-child {
+  margin-bottom: 0;
 }
 
 .chat-message__content code {
@@ -117,8 +126,8 @@
 .chat-message__timestamp {
   font-size: 11px;
   color: var(--text-tertiary);
-  margin-top: var(--space-xs);
-  padding: 0 var(--space-md);
+  margin-top: 6px;
+  padding: 0 8px;
 }
 
 .chat-message--user .chat-message__timestamp {
@@ -132,7 +141,7 @@
   gap: 6px;
   margin-bottom: var(--space-sm);
   padding: 6px 12px;
-  background: var(--bg-elevated);
+  background: rgba(11, 92, 255, 0.06);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-full);
   font-size: 12px;
@@ -142,4 +151,20 @@
 .chat-message__pr-badge a {
   color: var(--accent-primary);
   font-weight: 500;
+}
+
+@media (max-width: 960px) {
+  .chat-message {
+    gap: 10px;
+  }
+
+  .chat-message__avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+  }
+
+  .chat-message__content {
+    padding: 12px 13px;
+  }
 }

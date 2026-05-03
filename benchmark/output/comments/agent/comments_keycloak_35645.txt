@@ -1,0 +1,57 @@
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>RIGHT</side>
+<from>102</from>
+<to>102</to>
+<note>Potential NullPointerException: extensions.findSupplierByType(typeClass) can return null if no supplier is found for the given type. The code proceeds to call .getAnnotationClass() on the null result.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>RIGHT</side>
+<from>227</from>
+<to>245</to>
+<note>**[Maintainability and Readability]** The createRequestedInstance method has a branching structure that handles null annotations differently than non-null annotations, leading to inconsistent object construction paths.
+
+**[Code Defect]** Potential NullPointerException: extensions.findSupplierByType(valueType) can return null. If it returns null, the code proceeds to call .getAnnotationClass() on the null result.
+
+**[Performance]** createRequestedInstance performs a linear scan of all suppliers for every annotation or type. In a system with many extensions/suppliers, this becomes inefficient.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>RIGHT</side>
+<from>48</from>
+<to>62</to>
+<note>The getDependency method uses a deeply nested if-else structure (arrow anti-pattern) to resolve dependencies. This reduces readability and makes the logic harder to follow as more resolution strategies are added.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>RIGHT</side>
+<from>320</from>
+<to>325</to>
+<note>The afterAll method is truncated/incomplete in the provided code, which will cause a compilation error. This is a critical maintainability issue.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Extensions.java</path>
+<side>RIGHT</side>
+<from>64</from>
+<to>83</to>
+<note>**[Performance]** The nested loop structure in loadSuppliers performs repeated lookups and list additions. While the dataset is likely small, this is O(N*M) where N is extensions and M is suppliers per extension. Using a Map for lookups would be more efficient.
+
+**[Maintainability and Readability]** The loadSuppliers method contains complex nested loops and conditional logic for filtering suppliers. This logic is difficult to test in isolation and violates the Single Responsibility Principle by mixing loading, filtering, and logging.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>RIGHT</side>
+<from>125</from>
+<to>131</to>
+<note>**[Performance]** The loop over alwaysEnabledValueTypes calls createRequestedInstance, which performs a linear search over all available suppliers for every type. This can lead to redundant iterations during the initialization phase.
+
+**[Maintainability and Readability]** The logic for finding requested instances is split between 'alwaysEnabledValueTypes' and annotation-based scanning. This duplication of 'createRequestedInstance' logic makes the initialization flow harder to reason about.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/SupplierHelpers.java</path>
+<side>RIGHT</side>
+<from>26</from>
+<to>37</to>
+<note>The getAnnotationField method uses reflection to iterate over all methods of an annotation on every call. This is expensive if called frequently in hot paths.</note>
+</notesplit>

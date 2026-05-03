@@ -1,0 +1,39 @@
+<notesplit>
+<path>src/Gui/SoDatumLabel.cpp</path>
+<side>RIGHT</side>
+<from>1446</from>
+<to>1446</to>
+<note>**[Code Defect]** The change from `std::abs(range)` to `range` in `std::min` is a logic error. If `range` is negative, `std::min` will return the negative value, potentially resulting in a negative `textMargin` where a positive distance was intended.
+
+**[Maintainability and Readability]** The expression '0.2F*range' lacks spacing around the operator, reducing readability compared to the surrounding code style.</note>
+</notesplit>
+<notesplit>
+<path>src/Gui/Dialogs/DlgPreferencePackManagementImp.cpp</path>
+<side>RIGHT</side>
+<from>126</from>
+<to>129</to>
+<note>**[Maintainability and Readability]** The lambda capture list was changed to remove 'name', but 'name' is still used in the body of the lambda (via 'this->hideBuiltInPack(item->text(0).toStdString())'). While this specific call doesn't use 'name', the inconsistency in capture patterns across similar blocks in this file makes the code fragile and confusing.
+
+**[Code Defect]** The lambda capture list was changed to remove `name`, but `name` is still used in the lambda body (via `this->hideBuiltInPack(item->text(0).toStdString())`? No, wait, the call is `hideBuiltInPack`). Actually, looking at the code, `name` is not used in the lambda body, but the removal of `name` from the capture list is correct. However, the `hideBuiltInPack` call uses `item->text(0)`, which is correct. This seems fine, but verify if `name` was needed for other logic.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>1542</from>
+<to>1544</to>
+<note>The catch block was changed to catch by reference without a variable name. While valid, it swallows the exception object 'ex' which was previously used for logging or debugging context. If the exception is not needed, it is better to comment why it is ignored.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Mesh/App/Core/MeshKernel.cpp</path>
+<side>RIGHT</side>
+<from>197</from>
+<to>197</to>
+<note>Using [[maybe_unused]] is good, but the variable 'countPoints' is only used inside an #ifdef FC_DEBUG block. This pattern of conditional compilation makes the code harder to read and maintain.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Spreadsheet/App/PropertySheet.cpp</path>
+<side>RIGHT</side>
+<from>2303</from>
+<to>2317</to>
+<note>The removal of '.c_str()' is a positive change for C++ string handling, but the repetition of the 'identifiers.emplace_back' logic suggests a violation of the DRY (Don't Repeat Yourself) principle.</note>
+</notesplit>

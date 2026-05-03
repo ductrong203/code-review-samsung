@@ -1,0 +1,27 @@
+<notesplit>
+<path>libs/entitlement/src/main/java/org/elasticsearch/entitlement/runtime/policy/PolicyManager.java</path>
+<side>RIGHT</side>
+<from>328</from>
+<to>328</to>
+<note>**[Code Defect]** The check `requestingClass.getPackageName().startsWith(agentsPackageName)` is insufficient to verify that the class is loaded by the system classloader. A malicious class could be placed in a package starting with 'co.elastic.apm.agent' (e.g., 'co.elastic.apm.agent.malicious') and loaded by a different classloader, bypassing the intended security restriction.
+
+**[Performance]** The call to requestingClass.getPackageName().startsWith(agentsPackageName) is executed on every entitlement check. String prefix checking on every call in a hot path can be optimized by pre-calculating or using a more efficient structure if the number of agent packages grows.
+
+**[Maintainability and Readability]** The logic for identifying the agent relies on a package prefix check. This is fragile as it assumes any class within that package hierarchy is a trusted agent, which might be too broad or easily spoofed if other code is allowed to reside in that package.
+
+**[Security Vulnerability]** The entitlement check relies on `requestingClass.getPackageName().startsWith(agentsPackageName)`. This is vulnerable to package name spoofing. An attacker could create a class in a package named `co.elastic.apm.agent.malicious` (or any package starting with the prefix) to gain the same entitlements as the APM agent.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/src/main/java/org/elasticsearch/entitlement/initialization/EntitlementInitialization.java</path>
+<side>RIGHT</side>
+<from>84</from>
+<to>84</to>
+<note>The `PolicyManager` constructor now has 6 parameters, which exceeds the recommended limit of 5. This increases the complexity of object instantiation.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/src/test/java/org/elasticsearch/entitlement/runtime/policy/PolicyManagerTests.java</path>
+<side>RIGHT</side>
+<from>231</from>
+<to>231</to>
+<note>The variable `agentsClass` is initialized but never used in the test method `testRequestingModuleWithStackWalk`.</note>
+</notesplit>

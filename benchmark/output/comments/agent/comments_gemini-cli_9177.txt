@@ -1,0 +1,28 @@
+<notesplit>
+<path>integration-tests/test-helper.ts</path>
+<side>RIGHT</side>
+<from>312</from>
+<to>368</to>
+<note>**[Maintainability and Readability]** The new `runCommand` method duplicates the complex logic for spawning processes, handling streams, and managing promises already present in the existing `run` method. This violates the DRY (Don't Repeat Yourself) principle and creates a maintenance burden where bug fixes or changes to process execution must be applied in two places.
+
+**[Code Defect]** The stdin stream is written to and closed before the child process has necessarily started or is ready to receive data. This can lead to EPIPE errors or lost input if the process isn't listening yet.
+
+The code uses non-null assertions (`child.stdin!`) which can lead to runtime errors if the stream is not initialized as expected. While likely safe in this specific context, it is a fragile pattern.
+
+**[Performance]** String concatenation using the += operator on Buffer data chunks in a loop can lead to excessive memory allocation and garbage collection pressure for large outputs.
+
+String concatenation using the += operator on Buffer data chunks in a loop can lead to excessive memory allocation and garbage collection pressure for large outputs.
+
+The promise only resolves on the 'close' event. If the child process encounters an error (e.g., 'error' event like ENOENT), the promise will hang indefinitely because the 'close' event may never fire.
+
+**[Security Vulnerability]** The use of 'spawn' with 'node' and user-controlled arguments (args) without explicit validation could lead to command injection if the test rig is ever used with untrusted input.
+
+Potential for Denial of Service (DoS) via memory exhaustion. The 'stdout' and 'stderr' variables accumulate all output from the child process in memory without a size limit.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/extensions-install.test.ts</path>
+<side>RIGHT</side>
+<from>23</from>
+<to>27</to>
+<note>The test uses a try-catch block with an empty catch to ignore errors during cleanup/setup. Swallowing exceptions makes debugging difficult if the uninstall command fails for unexpected reasons (e.g., permission issues or file locks).</note>
+</notesplit>

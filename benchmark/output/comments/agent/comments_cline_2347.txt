@@ -1,0 +1,52 @@
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>RIGHT</side>
+<from>63</from>
+<to>64</to>
+<note>**[Security Vulnerability]** The `extractTextFromIPYNB` function parses JSON content without validating the structure of the notebook object. An attacker could provide a malicious JSON file that, when parsed, leads to prototype pollution or unexpected behavior if the application logic subsequently processes the object properties.
+
+**[Performance]** String concatenation in a loop (extractedText += ...) creates new string objects in each iteration, which is inefficient for large notebooks.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>RIGHT</side>
+<from>10</from>
+<to>24</to>
+<note>**[Code Defect]** jschardet.detect returns an object with an 'encoding' property, but it can return null if detection fails. The current code assumes 'detected' is truthy or a string, but if it returns null, the logic falls through to the 'else' block which might incorrectly return 'utf8' even if the file is binary.
+
+**[Performance]** jschardet.detect() performs a full scan of the buffer. For large files (up to 300KB), this can be CPU-intensive and blocking on the main thread if called frequently.
+
+**[Maintainability and Readability]** The use of 'any' casting for the jschardet result is brittle and bypasses type safety. It assumes the structure of the library's return object without validation.
+
+**[Security Vulnerability]** The `detectEncoding` function relies on `jschardet` which is a heuristic-based library. If an attacker provides a crafted file that misleads the encoding detection, it could lead to incorrect text interpretation or bypasses in downstream security filters that expect specific character encodings.
+
+The logic for checking 'detected' is slightly redundant. jschardet.detect() returns an object with an 'encoding' property; checking if it's a string is likely unnecessary based on the library's API.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>RIGHT</side>
+<from>14</from>
+<to>14</to>
+<note>The 'isBinaryFile' check is performed only if 'fileExtension' is provided. If 'fileExtension' is undefined (e.g., files without extensions), the function will default to 'utf8' even for binary files, potentially causing issues when decoding.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/editor/DiffViewProvider.ts</path>
+<side>RIGHT</side>
+<from>50</from>
+<to>50</to>
+<note>The 'detectEncoding' function is called on the file buffer, but if the file is binary, it might throw an error. If it throws, the 'DiffViewProvider' does not catch it, which will crash the 'open' method and leave the editor in an inconsistent state.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>RIGHT</side>
+<from>35</from>
+<to>35</to>
+<note>Magic number '300 * 1024' is used for file size limits. This should be defined as a named constant to improve readability and maintainability.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/editor/DiffViewProvider.ts</path>
+<side>RIGHT</side>
+<from>25</from>
+<to>25</to>
+<note>The 'fileEncoding' property is initialized to 'utf8' but is immediately overwritten in the 'open' method. This initialization is redundant.</note>
+</notesplit>

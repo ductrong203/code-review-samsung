@@ -1,0 +1,41 @@
+<notesplit>
+<path>packages/cli/src/config/config.ts</path>
+<side>RIGHT</side>
+<from>372</from>
+<to>378</to>
+<note>**[Code Defect]** The `interactive` variable is calculated using `process.stdin.isTTY`. In the `loadCliConfig` function, this logic is now used to determine tool exclusions and configuration state. However, `process.stdin.isTTY` can be unreliable in certain environments (e.g., some CI runners or specific shell wrappers), potentially leading to incorrect tool exclusions or unexpected non-interactive behavior.
+
+**[Security Vulnerability]** The application automatically excludes dangerous tools (Shell, Edit, WriteFile) only when not in interactive mode and not in YOLO mode. This creates a security risk where users might inadvertently run the CLI in a non-interactive environment (e.g., CI/CD, automated scripts) with --yolo enabled, granting the AI full filesystem and shell access without human oversight.
+
+**[Maintainability and Readability]** The logic for determining 'interactive' mode is becoming complex and relies on multiple disparate sources (argv, process.stdin, question length). This logic is duplicated or closely related to logic in other files, making it hard to maintain.
+
+The use of '!!argv.promptInteractive' combined with 'question.length === 0' is a bit opaque. The intent of checking if the question is empty is not immediately obvious to a new reader.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/gemini.tsx</path>
+<side>RIGHT</side>
+<from>254</from>
+<to>254</to>
+<note>The `main` function calls `config.isInteractive()` to decide whether to render the UI. However, `config.initialize()` is called later at line 280. If `isInteractive()` relies on state that is only fully resolved or validated during `initialize()`, this could lead to inconsistent behavior.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/config.ts</path>
+<side>RIGHT</side>
+<from>536</from>
+<to>545</to>
+<note>The mergeExcludeTools function performs nested loops (O(N*M)) to build a Set of excluded tools. While likely small in practice, this is inefficient for larger extension lists.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/gemini.tsx</path>
+<side>RIGHT</side>
+<from>301</from>
+<to>307</to>
+<note>The function 'validateNonInteractiveAuth' is called with a mix of settings and config objects. The parameter list is growing, and the dependency on 'settings.merged' makes it tightly coupled to the settings structure.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/config/config.ts</path>
+<side>RIGHT</side>
+<from>348</from>
+<to>353</to>
+<note>The 'initialize' method throws a generic Error. This makes it difficult for callers to programmatically handle or distinguish this specific initialization error from other potential runtime errors.</note>
+</notesplit>

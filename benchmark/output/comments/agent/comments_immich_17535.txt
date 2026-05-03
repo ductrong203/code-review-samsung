@@ -1,0 +1,57 @@
+<notesplit>
+<path>server/src/repositories/person.repository.ts</path>
+<side>RIGHT</side>
+<from>264</from>
+<to>296</to>
+<note>**[Code Defect]** The query `getDataForThumbnailGenerationJob` filters by `exif.exifImageWidth > 0` and `exif.exifImageHeight > 0`. If an asset has 0 or negative dimensions (which can happen with corrupt files or specific formats), this query will return no data, causing the thumbnail generation job to fail silently or return a failure status, even if the asset is valid.
+
+**[Performance]** The `getDataForThumbnailGenerationJob` method performs a 4-way JOIN (person, asset_faces, assets, exif, asset_files). While necessary for data, ensure these columns are covered by composite indexes to avoid sequential scans on large datasets.</note>
+</notesplit>
+<notesplit>
+<path>server/src/dtos/asset-response.dto.ts</path>
+<side>RIGHT</side>
+<from>72</from>
+<to>88</to>
+<note>**[Maintainability and Readability]** The comment 'TODO: this is inefficient' indicates a known performance bottleneck. While functional, this should be addressed to prevent technical debt accumulation.
+
+**[Performance]** The `peopleWithFaces` function uses an O(n*m) approach where n is the number of faces and m is the number of unique people, due to `result.find()` inside a loop. For assets with many faces, this becomes inefficient.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/person.service.ts</path>
+<side>RIGHT</side>
+<from>672</from>
+<to>682</to>
+<note>**[Maintainability and Readability]** The getInputDimensions method accepts a large, complex object with many properties. This makes the function signature fragile and hard to read. It would be better to pass a specific DTO or a smaller, focused interface.
+
+**[Code Defect]** The `getInputDimensions` method expects `oldWidth` and `oldHeight` in the input object, but these are not guaranteed to be present in the `data` object returned by `getDataForThumbnailGenerationJob` (which maps them as `oldWidth` and `oldHeight` in the SQL, but the TypeScript interface for the repository return type might not strictly enforce these fields if not explicitly defined).</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/person.service.ts</path>
+<side>RIGHT</side>
+<from>377</from>
+<to>384</to>
+<note>The iou function signature uses an inline object type definition for the face parameter, which is repeated in other parts of the codebase. This should be extracted into a named interface (e.g., BoundingBoxable) to improve readability and maintainability.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/person.service.ts</path>
+<side>RIGHT</side>
+<from>545</from>
+<to>555</to>
+<note>**[Maintainability and Readability]** The handleGeneratePersonThumbnail method has a variable named 'data' which shadows the parameter 'data' (if it were named that) or is confusingly named given it holds the result of a repository call. Renaming this to 'thumbnailData' would improve clarity.
+
+**[Code Defect]** The variable name `data` is shadowed in `handleGeneratePersonThumbnail`. The function argument is `{ id }`, but the code calls `const data = await this.personRepository.getDataForThumbnailGenerationJob(id);`. While valid JS, it is confusing and prone to errors if the argument `id` was intended to be used as `data`.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/person.repository.ts</path>
+<side>RIGHT</side>
+<from>243</from>
+<to>260</to>
+<note>The getFaceForFacialRecognitionJob method performs manual JSON construction via subqueries. This logic is complex and tightly coupled to the database schema, making it difficult to maintain if the schema changes.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/person.service.ts</path>
+<side>RIGHT</side>
+<from>634</from>
+<to>650</to>
+<note>The `mergePerson` loop performs individual database updates (`this.personRepository.update`) inside a loop. This can lead to N+1 query performance issues if merging a large number of people.</note>
+</notesplit>

@@ -1,0 +1,21 @@
+<notesplit>
+<path>src/Mod/Part/App/FeaturePartFuse.cpp</path>
+<side>RIGHT</side>
+<from>96</from>
+<to>96</to>
+<note>The loop condition `i < maxIterations` is intended to prevent infinite loops, but the logic inside the loop modifies `shapes` and `argumentsAreInCompound` which could lead to unexpected behavior if the loop terminates due to the iteration limit rather than the break condition.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/PartDesign/App/FeatureSketchBased.cpp</path>
+<side>RIGHT</side>
+<from>212</from>
+<to>216</to>
+<note>The ternary operator `(sub.empty() ? Part::ShapeOption::NoFlag : Part::ShapeOption::NeedSubElement)` combined with bitwise OR might result in incorrect flag combinations if `sub` is empty but other flags are intended.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>RIGHT</side>
+<from>1316</from>
+<to>1316</to>
+<note>The `simplifyCompound` function uses `std::ranges::find_if` with an initializer list. If `compoundShape` contains multiple sub-shapes of the same type (e.g., two faces), `countSubShapes` will return > 1, and the simplification logic might fail to return the expected sub-shape, potentially returning the original compound instead.</note>
+</notesplit>

@@ -1,0 +1,13 @@
+<notesplit>
+<path>packages/support/src/helpers.php</path>
+<side>RIGHT</side>
+<from>182</from>
+<to>186</to>
+<note>**[Performance]** The code performs multiple string object instantiations and method calls (str(), contains(), startsWith()) inside a function that is likely called repeatedly within query builder loops. This creates unnecessary object overhead.
+
+**[Maintainability and Readability]** The use of `invade()` to access protected methods (`wrapJsonFieldAndPath`) is a brittle practice. It bypasses encapsulation and makes the code susceptible to breaking if the underlying Laravel framework changes its internal API.
+
+**[Code Defect]** The `wrapJsonFieldAndPath` method in Laravel's QueryGrammar returns the field and path as separate elements. When concatenated directly as `{$field}{$path}`, the resulting SQL is often invalid because `wrapJsonFieldAndPath` returns the path with a leading arrow (e.g., '->$.key') or requires specific formatting depending on the driver. Furthermore, `json_extract` in MySQL/MariaDB expects the path to be a string literal (quoted), which this implementation fails to provide, leading to syntax errors in the generated SQL.
+
+The logic for handling JSON column extraction is becoming complex and tightly coupled to specific database drivers within a helper function. This violates the Single Responsibility Principle and makes the function harder to maintain as more database-specific edge cases arise.</note>
+</notesplit>

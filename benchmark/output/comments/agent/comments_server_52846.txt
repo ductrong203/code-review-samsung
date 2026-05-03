@@ -1,0 +1,76 @@
+<notesplit>
+<path>lib/public/Files.php</path>
+<side>RIGHT</side>
+<from>30</from>
+<to>52</to>
+<note>**[Maintainability and Readability]** The 'rmdirr' method is a static utility that performs complex filesystem operations. This makes it difficult to unit test and violates the Dependency Inversion Principle by directly using global filesystem functions.
+
+**[Performance]** The rmdirr method uses RecursiveIteratorIterator with CHILD_FIRST. While correct for deletion, it performs individual filesystem calls (unlink/rmdir) for every single file/directory. For large directory trees, this is I/O bound and slow.</note>
+</notesplit>
+<notesplit>
+<path>lib/public/Util.php</path>
+<side>RIGHT</side>
+<note>[
+  {
+    "path": "lib/public/Util.php",
+    "from_line": 276,
+    "to_line": 276,
+    "side": "right",
+    "severity": "high",
+    "confidence": 0.9,
+    "context_level": "diff",
+    "note": "The expression `strpos($host_name, ':') != false` is logically incorrect for checking if a colon exists. If the colon is at index 0 (e.g., an IPv6 address or malformed string), `strpos` returns 0, which evaluates to `false` in a loose comparison, causing the code to incorrectly skip the port stripping logic.",
+    "suggested_fix": "Use strict comparison: `strpos($host_name, ':') !== false`"
+  },
+  {
+    "path": "lib/public/Util.php",
+    "from_line": 273,
+    "to_line": 273,
+    "side": "right",
+    "severity": "medium",
+    "confidence": 0.8,
+    "context_level": "diff",
+    "note": "The code accesses `\OCP\Server::get(IRequest::class)->getServerHost()` to get the host name. If the request object is not available or the server container is not fully initialized during early bootstrap, this call</note>
+</notesplit>
+<notesplit>
+<path>lib/public/Util.php</path>
+<side>RIGHT</side>
+<from>184</from>
+<to>184</to>
+<note>The getScripts() method performs array_merge and array_unique on potentially large lists of script paths. Calling array_unique on a flattened array of strings is O(n log n) or O(n) depending on implementation, but doing this on every call to getScripts() is redundant if the script list hasn't changed.</note>
+</notesplit>
+<notesplit>
+<path>lib/public/AppFramework/App.php</path>
+<side>RIGHT</side>
+<from>44</from>
+<to>44</to>
+<note>The constructor performs complex logic, including trace analysis and dependency resolution, which violates the Single Responsibility Principle. This logic should be encapsulated in a dedicated factory or service.</note>
+</notesplit>
+<notesplit>
+<path>lib/public/Util.php</path>
+<side>RIGHT</side>
+<from>302</from>
+<to>310</to>
+<note>The 'getDefaultEmailAddress' method mixes configuration retrieval, string concatenation, and mail validation. This logic is hard to test in isolation.</note>
+</notesplit>
+<notesplit>
+<path>lib/public/Util.php</path>
+<side>RIGHT</side>
+<from>276</from>
+<to>282</to>
+<note>Manual string manipulation to strip port numbers from hostnames is error-prone and duplicates logic that should be handled by a dedicated URL or Request utility class.</note>
+</notesplit>
+<notesplit>
+<path>lib/public/AppFramework/App.php</path>
+<side>RIGHT</side>
+<from>54</from>
+<to>69</to>
+<note>The constructor performs a stack trace analysis (via $e->getTrace()) inside a loop to determine if the application was instantiated via query(). This is an expensive operation that runs on every app instantiation, which occurs frequently in the request lifecycle.</note>
+</notesplit>
+<notesplit>
+<path>lib/public/AppFramework/Http/Response.php</path>
+<side>RIGHT</side>
+<from>186</from>
+<to>191</to>
+<note>The error logging inside 'addHeader' creates a side effect in a method that is primarily intended for data modification. This makes the class harder to test and maintain.</note>
+</notesplit>

@@ -1,0 +1,34 @@
+<notesplit>
+<path>server/src/repositories/album.repository.ts</path>
+<side>RIGHT</side>
+<from>133</from>
+<to>151</to>
+<note>**[Maintainability and Readability]** The comment 'please remove if not need' indicates dead or unnecessary code that is being maintained. If it is only used in the mobile app, it should be handled via a dedicated API endpoint or a specific DTO rather than polluting the general repository method.
+
+**[Code Defect]** The SQL query in getMetadataForIds uses 'assets.localDateTime' in the SELECT clause but does not include it in the GROUP BY clause. While some SQL dialects allow this if the column is functionally dependent on the primary key, standard SQL and many Postgres configurations will throw an error because 'localDateTime' is not aggregated.
+
+**[Performance]** The query uses a SQL expression `(assets.localDateTime AT TIME ZONE 'UTC')::date` inside aggregate functions (min/max). This prevents the database from using standard B-tree indexes on the 'localDateTime' column, forcing a full scan or a costly expression-based index.</note>
+</notesplit>
+<notesplit>
+<path>server/src/queries/album.repository.sql</path>
+<side>RIGHT</side>
+<from>201</from>
+<to>223</to>
+<note>**[Performance]** The query performs a full table scan on the 'assets' table joined with 'albums_assets_assets' for every call. While the 'where' clause filters by 'album_assets.albumsId', the lack of an index on 'albums_assets_assets.albumsId' (or a composite index covering the join) will cause performance degradation as the number of albums and assets grows.
+
+**[Maintainability and Readability]** The SQL query uses raw string concatenation for time zone conversion and casting. This is brittle and hard to read. While functional, it is better to encapsulate this logic in a view or a helper function if reused.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/album.service.ts</path>
+<side>RIGHT</side>
+<from>54</from>
+<to>54</to>
+<note>The comment 'please remove if not need' is repeated here. This suggests a lack of clarity regarding the lifecycle of this data field. Maintaining code with known 'to-be-removed' status increases technical debt.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/album.service.ts</path>
+<side>RIGHT</side>
+<from>77</from>
+<to>77</to>
+<note>The code calls 'this.albumRepository.getMetadataForIds([album.id])' which returns an array, and then destructures the first element. If the album has no assets, the array will be empty, causing 'albumMetadataForIds' to be undefined. Accessing 'albumMetadataForIds?.startDate' is safe, but the logic assumes a single metadata object exists for the album, which might be missing.</note>
+</notesplit>

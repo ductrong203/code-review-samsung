@@ -1,0 +1,20 @@
+<notesplit>
+<path>dotnet/samples/Demos/ModelContextProtocolPlugin/Program.cs</path>
+<side>RIGHT</side>
+<from>75</from>
+<to>86</to>
+<note>**[Maintainability and Readability]** The code duplicates the prompt string 'Summarize the last four commits to the microsoft/semantic-kernel repository?' which was already defined on line 70. This violates the DRY (Don't Repeat Yourself) principle and creates a maintenance burden if the prompt needs to be updated.
+
+**[Code Defect]** The call to agent.InvokeAsync(...).FirstAsync() is dangerous. If the agent returns an empty stream (e.g., due to an error or no response content), FirstAsync() will throw an InvalidOperationException.
+
+The agent configuration uses a hardcoded 'PromptExecutionSettings' object. This logic is duplicated from the earlier 'executionSettings' variable (line 66), leading to inconsistent configuration management.
+
+**[Security Vulnerability]** The ChatCompletionAgent is configured with 'FunctionChoiceBehavior.Auto()'. When combined with external tools (GitHub MCP), this creates a risk of 'Prompt Injection' or 'Indirect Prompt Injection' where the LLM might be tricked into executing unauthorized GitHub actions based on malicious content retrieved from the repository.</note>
+</notesplit>
+<notesplit>
+<path>dotnet/samples/Demos/ModelContextProtocolPlugin/Program.cs</path>
+<side>RIGHT</side>
+<from>27</from>
+<to>31</to>
+<note>The application executes arbitrary commands via 'npx' using user-controlled or environment-controlled configurations. If the environment or configuration is tampered with, this could lead to arbitrary command execution on the host system.</note>
+</notesplit>

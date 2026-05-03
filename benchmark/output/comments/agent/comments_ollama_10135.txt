@@ -1,0 +1,23 @@
+<notesplit>
+<path>cmd/cmd.go</path>
+<side>RIGHT</side>
+<from>122</from>
+<to>155</to>
+<note>**[Maintainability and Readability]** The logic for processing files and adapters is duplicated. Both blocks perform identical operations (errgroup concurrency, syncmap storage, and error handling). This should be abstracted into a single helper function to improve maintainability.
+
+The TODO comments acknowledge a known issue regarding subdirectory handling but do not provide a clear path forward or tracking mechanism. This leaves technical debt in the codebase.</note>
+</notesplit>
+<notesplit>
+<path>parser/parser.go</path>
+<side>RIGHT</side>
+<from>142</from>
+<to>160</to>
+<note>The logic for validating and collecting files in `fileDigestMap` is duplicated between the `cmd/cmd.go` context and the `parser/parser.go` file. This creates a maintenance burden where changes to file validation logic must be applied in multiple places.</note>
+</notesplit>
+<notesplit>
+<path>progress/progress.go</path>
+<side>RIGHT</side>
+<from>105</from>
+<to>112</to>
+<note>The rendering logic uses a complex loop range `len(p.states) - maxHeight` to `len(p.states)`. While functional, it is slightly opaque. Adding a comment explaining that this is intended to truncate the display to fit the terminal height would improve readability.</note>
+</notesplit>

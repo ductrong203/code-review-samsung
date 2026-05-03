@@ -1,0 +1,38 @@
+<notesplit>
+<path>docs/maven-plugin/src/main/java/org/keycloak/guides/maven/GuideParser.java</path>
+<side>RIGHT</side>
+<from>79</from>
+<to>84</to>
+<note>**[Code Defect]** Missing 'break' statement in switch case for 'priority'. This causes a fall-through to 'tileVisible', leading to incorrect parsing logic and potential NumberFormatException if 'tileVisible' is processed as an integer.
+
+**[Maintainability and Readability]** The switch statement in setAttributes is missing 'break' statements for 'priority' and 'tileVisible'. This causes fall-through behavior, where setting the priority will also incorrectly trigger the tileVisible logic, leading to potential bugs.
+
+**[Performance]** The switch statement in setAttributes is missing 'break' statements for 'priority' and 'tileVisible', causing fall-through execution. This leads to redundant logic execution and potential logic errors.
+
+**[Security Vulnerability]** The switch statement in setAttributes is missing 'break' statements for the 'priority' and 'tileVisible' cases. This causes fall-through behavior, which could lead to unexpected attribute assignments if the logic is extended.</note>
+</notesplit>
+<notesplit>
+<path>docs/maven-plugin/src/main/java/org/keycloak/guides/maven/GuideParser.java</path>
+<side>RIGHT</side>
+<from>9</from>
+<to>12</to>
+<note>**[Performance]** The regex pattern is re-compiled every time the class is instantiated, but it is used as a static-like utility. Compiling regex patterns is an expensive operation.
+
+**[Maintainability and Readability]** The regex pattern for GUIDE_ELEMENT_PATTERN is becoming complex and hard to maintain. As more attributes are added, this single regex will become brittle and difficult to debug.</note>
+</notesplit>
+<notesplit>
+<path>docs/maven-plugin/src/main/java/org/keycloak/guides/maven/Context.java</path>
+<side>RIGHT</side>
+<from>34</from>
+<to>53</to>
+<note>**[Maintainability and Readability]** The constructor logic for processing guides is becoming a 'God Method'. It handles file iteration, priority validation, business rule enforcement (invisible tiles), and collection management. This violates the Single Responsibility Principle.
+
+The error message 'Guide is pinned, but has a priority specified' is slightly misleading because the code checks if the priority is NOT Integer.MAX_VALUE (the default). It essentially means 'Guide is pinned in the file, but also has an explicit priority in the adoc file'.</note>
+</notesplit>
+<notesplit>
+<path>docs/guides/operator/basic-deployment.adoc</path>
+<side>RIGHT</side>
+<from>35</from>
+<to>45</to>
+<note>The documentation provides an example of a database deployment using hardcoded credentials ('testuser'/'testpassword'). While intended for development, users often copy-paste these into production environments, leading to default credential vulnerabilities.</note>
+</notesplit>

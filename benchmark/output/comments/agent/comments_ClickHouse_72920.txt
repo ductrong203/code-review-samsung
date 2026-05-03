@@ -1,0 +1,34 @@
+<notesplit>
+<path>src/Processors/Executors/ExecutorTasks.cpp</path>
+<side>RIGHT</side>
+<from>40</from>
+<to>43</to>
+<note>**[Code Defect]** The `idle_threads` atomic counter is decremented without checking if it is already zero. If `threads_queue` is empty and `idle_threads` is 0, this will cause an underflow (wrap around to a very large number), leading to incorrect logic in `shouldSpawn()`.
+
+**[Maintainability and Readability]** The 'idle_threads' counter is updated in multiple locations (tryWakeUpAnyOtherThreadWithTasks, tryGetTask, processAsyncTasks). This distributed state management increases the risk of synchronization bugs if new code paths are added.</note>
+</notesplit>
+<notesplit>
+<path>src/Processors/Executors/ExecutorTasks.cpp</path>
+<side>RIGHT</side>
+<from>234</from>
+<to>234</to>
+<note>Similar to the issue in `tryWakeUpAnyOtherThreadWithTasks`, `idle_threads` is decremented here without verifying it is greater than zero. This can lead to atomic underflow.</note>
+</notesplit>
+<notesplit>
+<path>src/Processors/Executors/ExecutorTasks.h</path>
+<side>RIGHT</side>
+<from>45</from>
+<to>48</to>
+<note>**[Maintainability and Readability]** The constant 'TOO_MANY_IDLE_THRESHOLD' is defined as a magic number with a comment 'found by rolling dice'. This lacks a clear rationale or mechanism for tuning, making it difficult for maintainers to understand or adjust the threshold based on system requirements.
+
+**[Performance]** The `TOO_MANY_IDLE_THRESHOLD` is a hardcoded constant. In high-concurrency environments or systems with varying core counts, a static threshold of 4 may be suboptimal for performance tuning.</note>
+</notesplit>
+<notesplit>
+<path>src/Processors/Executors/PipelineExecutor.cpp</path>
+<side>RIGHT</side>
+<from>379</from>
+<to>386</to>
+<note>**[Performance]** The use of `spawn_lock.try_lock()` followed by `std::adopt_lock` in `spawnThreads` is a non-blocking pattern that effectively serializes thread spawning. While this prevents the reported bottleneck of excessive thread creation, it may lead to under-utilization of available CPU slots if the thread that acquired the lock is delayed or blocked, as other threads will skip the spawning logic entirely instead of waiting for the lock.
+
+**[Maintainability and Readability]** The 'spawnThreads' method uses a manual 'spawn_lock' with 'std::adopt_lock' to implement a simple mutex-based gate. This pattern is manually managed and prone to errors if the locking logic is extended or modified in the future.</note>
+</notesplit>

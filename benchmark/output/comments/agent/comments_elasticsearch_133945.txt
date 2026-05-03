@@ -1,0 +1,24 @@
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/index/codec/vectors/DefaultIVFVectorsReader.java</path>
+<side>RIGHT</side>
+<from>113</from>
+<to>115</to>
+<note>**[Code Defect]** Potential division by zero if numParents is 0. Although there is an 'if (numParents > 0)' check, the logic inside the block calculates centroidOversampling using numParents as a divisor. If numParents were somehow 0 (or if the logic is refactored later), this would throw an ArithmeticException.
+
+**[Maintainability and Readability]** The magic number '2' in the centroid oversampling calculation lacks context. It is unclear why the oversampling factor is specifically half the ratio of centroids per parent cluster.
+
+**[Performance]** Potential division by zero if numParents is 0, though guarded by an if-check, the logic is split across branches. More importantly, if numParents is very small, centroidOversampling can become extremely large, leading to an unnecessarily large bufferSize allocation.
+
+The comment 'equivalent to (float) centroidsPerParentCluster / 2' is slightly misleading because 'centroidsPerParentCluster' is not a variable in scope; the code actually calculates 'numCentroids / (2 * numParents)'.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/index/codec/vectors/DefaultIVFVectorsReader.java</path>
+<side>RIGHT</side>
+<from>194</from>
+<to>195</to>
+<note>**[Maintainability and Readability]** The calculation 'Math.min(Math.max(centroidRatio * numCentroids, 1), numCentroids)' is complex and hard to read at a glance. It mixes logic for clamping and scaling.
+
+**[Performance]** The bufferSize calculation uses floating point multiplication (centroidRatio * numCentroids). While functional, repeated floating point arithmetic in hot paths can be slightly optimized by using integer arithmetic if possible, or ensuring the result is clamped efficiently.
+
+**[Code Defect]** The calculation 'centroidRatio * numCentroids' can result in a value that, when cast to int, might be 0 if the product is less than 1.0. While there is a Math.max(..., 1), if centroidRatio is extremely small (e.g., near 0), the buffer size will be 1. This might be intended, but if visitRatio is 0, the logic effectively ignores the oversampling entirely.</note>
+</notesplit>

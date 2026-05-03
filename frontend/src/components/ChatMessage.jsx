@@ -1,5 +1,6 @@
 import React from 'react';
 import ReviewComment from './ReviewComment';
+import ReviewSummary from './ReviewSummary';
 import '../styles/ChatMessage.css';
 
 /**
@@ -74,15 +75,19 @@ function inlineFormat(text) {
 
 /**
  * ChatMessage — Renders a single chat message (user or bot).
+ * Extended to display ReviewSummary and enriched review comments.
  */
 export default function ChatMessage({ message }) {
-  const { role, content, comments, prUrl, metadata, isError } = message;
+  const {
+    role, content, comments, prUrl, metadata, isError,
+    riskAssessment, categoryStats, agentMetadata,
+  } = message;
   const isUser = role === 'user';
 
   return (
     <div className={`chat-message chat-message--${role} ${isError ? 'chat-message--error' : ''}`}>
       <div className={`chat-message__avatar chat-message__avatar--${role}`}>
-        {isUser ? '👤' : '🔍'}
+        {isUser ? '👤' : 'SSCR'}
       </div>
       <div className="chat-message__body">
         {/* PR badge */}
@@ -95,6 +100,15 @@ export default function ChatMessage({ message }) {
               <span>• {metadata.changed_files} files • +{metadata.additions} −{metadata.deletions}</span>
             )}
           </div>
+        )}
+
+        {/* Review Summary (risk badge + category stats) */}
+        {(riskAssessment || categoryStats) && (
+          <ReviewSummary
+            riskAssessment={riskAssessment}
+            categoryStats={categoryStats}
+            agentMetadata={agentMetadata}
+          />
         )}
 
         {/* Message content */}

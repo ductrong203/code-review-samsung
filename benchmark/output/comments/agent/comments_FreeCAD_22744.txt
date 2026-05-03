@@ -1,0 +1,30 @@
+<notesplit>
+<path>src/Base/Parameter.cpp</path>
+<side>RIGHT</side>
+<from>1878</from>
+<to>1887</to>
+<note>**[Code Defect]** The XercesDOMParser does not take ownership of the EntityResolver. By using std::unique_ptr for entityBlocker, the resolver is destroyed when the function returns, but the parser retains a dangling pointer to it. If the parser attempts to resolve an entity after the function scope, it will cause a use-after-free crash.
+
+**[Maintainability and Readability]** The parser configuration logic is becoming verbose. While using unique_ptr is an improvement, the setup of the XercesDOMParser involves many repetitive calls that could be encapsulated in a factory function or a helper method to improve readability.</note>
+</notesplit>
+<notesplit>
+<path>src/Base/Parameter.cpp</path>
+<side>RIGHT</side>
+<from>1873</from>
+<to>1873</to>
+<note>The parser is configured with setDisableDefaultEntityResolution(true) and a custom NoOpEntityResolver, but it does not explicitly disable DTD processing (setDoDoctype(false)). In Xerces-C++, even with entity resolution disabled, the parser may still attempt to process DTDs, which can lead to Billion Laughs attacks (DoS) or potential information disclosure if the parser is not fully hardened against DTD-based exploits.</note>
+</notesplit>
+<notesplit>
+<path>src/Base/Parameter.cpp</path>
+<side>RIGHT</side>
+<from>1860</from>
+<to>1869</to>
+<note>The NoOpEntityResolver class is defined in the global namespace within a .cpp file. This can lead to naming collisions if other files define a class with the same name. It should be placed in an anonymous namespace or a specific internal namespace.</note>
+</notesplit>
+<notesplit>
+<path>src/Base/Parameter.cpp</path>
+<side>RIGHT</side>
+<from>1895</from>
+<to>1913</to>
+<note>The error handling blocks are repetitive. Each catch block performs the exact same logic (printing to cerr and setting a flag). This violates the DRY (Don't Repeat Yourself) principle.</note>
+</notesplit>

@@ -1,0 +1,60 @@
+<notesplit>
+<path>src/cli_common.c</path>
+<side>RIGHT</side>
+<from>445</from>
+<to>455</to>
+<note>**[Maintainability and Readability]** The use of `assert(0)` for runtime error handling (e.g., invalid connection types) is inappropriate for a library or CLI tool. It crashes the application in production environments instead of returning a graceful error or handling the state safely.
+
+**[Security Vulnerability]** The use of assert(0) for error handling in production code is dangerous. If an invalid connection type is passed, the application will crash (Denial of Service).</note>
+</notesplit>
+<notesplit>
+<path>src/valkey-benchmark.c</path>
+<side>RIGHT</side>
+<from>1347</from>
+<to>1347</to>
+<note>**[Code Defect]** The code uses sdsnew(argv[++i]) to update config.conn_info.hostip, but the previous value is not freed before assignment, causing a memory leak.
+
+**[Maintainability and Readability]** The manual memory management of `config.conn_info.hostip` (using `sdsfree` and `sdsnew` inside `parseOptions`) is error-prone and inconsistent with how other configuration fields are handled.</note>
+</notesplit>
+<notesplit>
+<path>src/valkey-cli.c</path>
+<side>RIGHT</side>
+<from>2597</from>
+<to>2597</to>
+<note>The code uses sdsnew(argv[++i]) to update config.conn_info.hostip, but the previous value is not freed before assignment, causing a memory leak.</note>
+</notesplit>
+<notesplit>
+<path>src/valkey-cli.c</path>
+<side>RIGHT</side>
+<from>218</from>
+<to>218</to>
+<note>The comment 'conn_info.hostip is used as unix socket path on ct == VALKEY_CONN_UNIX' indicates that the `cliConnInfo` struct is being overloaded with different meanings depending on the connection type. This violates the Single Responsibility Principle and makes the code fragile.</note>
+</notesplit>
+<notesplit>
+<path>src/valkey-benchmark.c</path>
+<side>RIGHT</side>
+<from>1484</from>
+<to>1488</to>
+<note>The --rdma option calls valkeyInitiateRdma() which may perform sensitive initialization. If this is called multiple times or in an unexpected state, it could lead to undefined behavior or memory corruption.</note>
+</notesplit>
+<notesplit>
+<path>src/valkey-cli.c</path>
+<side>RIGHT</side>
+<from>2826</from>
+<to>2830</to>
+<note>Similar to the benchmark tool, the --rdma option in valkey-cli triggers initialization that should be carefully managed to prevent potential state-related vulnerabilities.</note>
+</notesplit>
+<notesplit>
+<path>src/valkey-benchmark.c</path>
+<side>RIGHT</side>
+<from>390</from>
+<to>394</to>
+<note>The comment 'RDMA context always writable, but it can't be invoked by AE_WRITABLE' suggests a leaky abstraction where the event loop logic is being bypassed or forced in a non-standard way for RDMA.</note>
+</notesplit>
+<notesplit>
+<path>src/valkey-cli.c</path>
+<side>RIGHT</side>
+<from>2999</from>
+<to>3003</to>
+<note>The usage function is becoming increasingly complex with multiple conditional strings (`tls_usage`, `rdma_usage`). This makes the UI/help text harder to maintain.</note>
+</notesplit>

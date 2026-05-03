@@ -1,0 +1,29 @@
+<notesplit>
+<path>src/widgets/animimage/lv_animimage.c</path>
+<side>RIGHT</side>
+<from>258</from>
+<to>277</to>
+<note>**[Maintainability and Readability]** The `lv_animimg_set_src_inner` function is defined at the end of the file, but the prototype is at the top. This is standard C, but for maintainability, keeping related logic together or using a more descriptive name (e.g., `lv_animimg_set_src_core`) would improve readability.
+
+**[Code Defect]** The parameter 'num' is passed as a size_t but cast to int32_t in lv_anim_set_values. If 'num' exceeds the range of int32_t, this will cause an integer overflow/truncation bug.
+
+The use of `(int32_t)num` in `lv_anim_set_values` assumes that `size_t num` will always fit within an `int32_t`. If `num` is very large, this could lead to truncation or unexpected behavior.
+
+**[Security Vulnerability]** The function lv_animimg_set_src_inner accepts a 'num' parameter which is used to set animation boundaries. If 'num' is provided by an untrusted source and is excessively large, it could lead to integer overflow or out-of-bounds access when the animation index is later used to index the 'dsc' array in index_change().</note>
+</notesplit>
+<notesplit>
+<path>src/widgets/animimage/lv_animimage.c</path>
+<side>RIGHT</side>
+<from>110</from>
+<to>121</to>
+<note>**[Maintainability and Readability]** The introduction of `lv_animimg_set_src_inner` creates a hidden dependency on internal implementation details. While it reduces code duplication, it exposes a private helper function that is not part of the public API but is now required to be maintained in the same scope as public functions.
+
+**[Code Defect]** The function lv_animimg_set_src_reverse is missing the LV_ASSERT_OBJ check present in other setter functions, which is inconsistent with the project's safety patterns.</note>
+</notesplit>
+<notesplit>
+<path>src/widgets/animimage/lv_animimage.c</path>
+<side>RIGHT</side>
+<from>252</from>
+<to>252</to>
+<note>The index_change function performs a bounds check 'if(idx >= animimg->pic_count) idx = animimg->pic_count - 1;', but it does not check if 'idx' is negative. If 'idx' is negative, this will result in an out-of-bounds read on the 'animimg->dsc' array.</note>
+</notesplit>

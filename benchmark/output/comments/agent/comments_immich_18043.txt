@@ -1,0 +1,57 @@
+<notesplit>
+<path>web/src/service-worker/fetch-event.ts</path>
+<side>RIGHT</side>
+<from>34</from>
+<to>37</to>
+<note>**[Code Defect]** The service worker intercepts all non-asset/non-ignored requests and forces them to fetch the root ('/'). This will break navigation to any sub-route (e.g., /settings, /login) as the service worker will return the root index.html content for every single URL, effectively breaking client-side routing.
+
+**[Maintainability and Readability]** The fallback logic (fetching the root '/') is implicit and lacks documentation. It is unclear why a failed match or non-asset request should default to the root URL, which could lead to unexpected behavior in the service worker.
+
+**[Security Vulnerability]** The service worker implements a fallback mechanism that fetches the root path ('/') for any request that doesn't match specific patterns. This can lead to 'cache poisoning' or unexpected UI states where the root document is served in place of missing assets, potentially leaking information or causing client-side routing confusion.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/broadcast-channel.ts</path>
+<side>RIGHT</side>
+<from>10</from>
+<to>10</to>
+<note>The service worker accepts a URL from a BroadcastChannel message and constructs a new URL object using the event.origin as the base. If the origin is not strictly validated, this could lead to unexpected behavior or potential SSRF-like patterns if the service worker is tricked into fetching resources from unintended origins.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>RIGHT</side>
+<from>10</from>
+<to>10</to>
+<note>**[Maintainability and Readability]** The isURL and isRequest functions use type assertions (as URL) which are fragile. If the object structure changes, these will return false positives or runtime errors.
+
+**[Code Defect]** The `isURL` check `(request as URL).href !== undefined` is unreliable because `Request` objects also have an `href` property (or `url` property) and plain objects might accidentally match this structure. This can lead to incorrect cache key generation.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>RIGHT</side>
+<from>43</from>
+<to>53</to>
+<note>**[Maintainability and Readability]** The error handling in getCachedOrFetch returns a custom 499 status with a hardcoded, informal error message. This makes it difficult for calling code to distinguish between different types of failures and provides a confusing message for debugging.
+
+**[Code Defect]** The catch block returns a custom 499 response, but the `getCachedOrFetch` function is called by `event.respondWith`. If the fetch fails, it returns a new Response object, but it does not ensure the response is valid for the original request context (e.g., CORS headers or content-type).</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/fetch-event.ts</path>
+<side>RIGHT</side>
+<from>20</from>
+<to>23</to>
+<note>APP_RESOURCES is an array. Using .includes() inside the fetch event handler results in O(n) lookup time for every single fetch request. As the number of static assets grows, this will increase latency for all network requests.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>RIGHT</side>
+<from>15</from>
+<to>21</to>
+<note>The deleteOldCaches function iterates through all cache keys and awaits each deletion sequentially. This is inefficient for large numbers of caches.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>RIGHT</side>
+<from>91</from>
+<to>95</to>
+<note>The checkResponse function performs a runtime type check that is redundant in TypeScript if the type system is correctly utilized. If this is intended to catch runtime errors, it should provide more context or be handled via a more robust validation pattern.</note>
+</notesplit>

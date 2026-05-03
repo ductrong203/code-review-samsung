@@ -1,0 +1,35 @@
+<notesplit>
+<path>src/renderers/webgpu/WebGPUBackend.js</path>
+<side>RIGHT</side>
+<from>1340</from>
+<to>1395</to>
+<note>**[Performance]** The dispatch size calculation logic is executed inside the render loop every time compute() is called. While it includes a basic cache check, the logic for calculating workgroup size and dispatch count is non-trivial and could be hoisted or pre-calculated during pipeline setup.
+
+**[Code Defect]** The calculation of `dispatchCount` uses `size` (the product of workgroup dimensions), but `size` is calculated using `workgroupSize` which may contain values that were not yet padded to 3 dimensions (the padding happens in `computeKernel` but `ComputeNode` is also instantiated directly in other places). More importantly, `dispatchCount` is calculated as `Math.ceil(count / size)`. If `count` is null (which is the default state of `ComputeNode.count`), this results in `NaN`.
+
+**[Maintainability and Readability]** The `compute` method in `WebGPUBackend` has become a 'God function' that handles both dispatch logic, caching, and workgroup size calculations. This violates the Single Responsibility Principle.
+
+Accessing array indices [0], [1], [2] with fallback logic inside the hot path of the render loop is slightly less efficient than using pre-destructured variables or a cached object.
+
+The use of `|| 1` for `dispatchSize[1]` and `dispatchSize[2]` is a fallback for potentially undefined values, but it obscures the fact that `dispatchSize` is expected to be a 3-element array.
+
+**[Security Vulnerability]** The calculation of dispatchCount uses Math.ceil(count / size). If 'count' is a very large number provided by user input, this can lead to integer overflow or excessive GPU resource allocation, potentially causing a Denial of Service (DoS) on the GPU context.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/gpgpu/ComputeNode.js</path>
+<side>RIGHT</side>
+<from>213</from>
+<to>248</to>
+<note>**[Maintainability and Readability]** The `computeKernel` function performs manual validation of `workgroupSize` and then modifies the input array in-place (`workgroupSize.push(1)`). Modifying input parameters is a side effect that can lead to unexpected behavior in calling code.
+
+**[Security Vulnerability]** The computeKernel function performs input validation on workgroupSize but only logs errors to the console instead of throwing exceptions. This allows the application to continue execution with invalid or potentially dangerous configurations, which could lead to GPU driver crashes or undefined behavior in the WebGPU backend.</note>
+</notesplit>
+<notesplit>
+<path>src/renderers/webgpu/nodes/WGSLNodeBuilder.js</path>
+<side>RIGHT</side>
+<from>2125</from>
+<to>2131</to>
+<note>**[Maintainability and Readability]** The calculation of `instanceIndex` uses hardcoded arithmetic logic that is difficult to read and maintain. The magic numbers and nested multiplications make the intent unclear.
+
+**[Code Defect]** The `instanceIndex` calculation logic is mathematically incorrect for 3D workgroups. It uses `numWorkgroups` (the total dispatch size) instead of the local workgroup dimensions for the stride. The formula should use the workgroup size dimensions (workgroupSizeX, workgroupSizeY) to correctly map the global invocation ID to a linear index.</note>
+</notesplit>

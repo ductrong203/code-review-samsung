@@ -1,0 +1,13 @@
+<notesplit>
+<path>src/Identity/Extensions.Core/src/PasswordHasher.cs</path>
+<side>RIGHT</side>
+<from>264</from>
+<to>267</to>
+<note>**[Maintainability and Readability]** The code performs manual byte array slicing and array allocation without validating that the requested range is within the bounds of the source array. This can lead to IndexOutOfRangeException or ArgumentException if the input string is malformed.
+
+**[Code Defect]** The calculation of subkeyLength can result in a negative value if the hashedPassword array is too short (e.g., length < 13 + saltLength), which will cause an ArgumentOutOfRangeException when used in subsequent operations.
+
+**[Security Vulnerability]** The code reads the salt length from the user-provided hashed password string without validating that the length is within reasonable bounds or consistent with the actual remaining buffer size. This can lead to an IndexOutOfRangeException or potential memory corruption/denial of service if a malicious payload provides an extremely large salt length.
+
+The variable 'subkeyLength' is calculated but not explicitly validated against the minimum required length (128 bits) before being used in subsequent operations, relying on implicit behavior of the underlying crypto library.</note>
+</notesplit>

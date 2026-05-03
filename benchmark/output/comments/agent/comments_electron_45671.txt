@@ -1,0 +1,39 @@
+<notesplit>
+<path>shell/browser/serial/serial_chooser_controller.cc</path>
+<side>RIGHT</side>
+<from>150</from>
+<to>160</to>
+<note>**[Code Defect]** The `OnGetAdapter` method is called via `BluetoothAdapterFactory::Get()->GetAdapter`. If the `SerialChooserController` is destroyed while waiting for the adapter, the `weak_factory_` will invalidate, but the `BluetoothAdapterFactory` callback might still execute if not properly cancelled, potentially leading to a use-after-free or invalid state if the callback captures `this`.
+
+**[Maintainability and Readability]** The GetDevices method has become a gatekeeper for Bluetooth initialization, mixing high-level business logic (deciding whether to fetch devices) with low-level Bluetooth adapter lifecycle management. This violates the Single Responsibility Principle.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/serial/serial_chooser_controller.cc</path>
+<side>RIGHT</side>
+<from>196</from>
+<to>200</to>
+<note>The code clears and rebuilds the entire `ports_` vector every time `OnGetDevices` is called. If the number of serial ports is large, this causes unnecessary reallocations and object copies.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/serial/serial_chooser_controller.cc</path>
+<side>RIGHT</side>
+<from>278</from>
+<to>303</to>
+<note>**[Performance]** The `IsWirelessSerialPortOnly` method performs a linear scan of `filters_` every time it is called. While `filters_` is likely small, this is called within `GetDevices`, which may be triggered frequently by Bluetooth events.
+
+**[Maintainability and Readability]** The IsWirelessSerialPortOnly method contains logic that is tightly coupled to the internal structure of filters. If the filter criteria change, this method must be manually updated, which is error-prone.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/serial/serial_chooser_controller.cc</path>
+<side>RIGHT</side>
+<from>270</from>
+<to>270</to>
+<note>The `OnGetAdapter` method uses `CHECK(adapter)`. If the Bluetooth adapter is unavailable or the request fails, this will cause a crash. It should handle the null case gracefully.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/serial/serial_chooser_controller.cc</path>
+<side>RIGHT</side>
+<from>164</from>
+<to>167</to>
+<note>The TODO comment regarding emitting an event indicates an incomplete implementation. Leaving TODOs in production code without a tracking mechanism or clear path to resolution reduces maintainability.</note>
+</notesplit>

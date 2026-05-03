@@ -1,0 +1,18 @@
+<notesplit>
+<path>packages/react-dom/src/__tests__/ReactDOMForm-test.js</path>
+<side>RIGHT</side>
+<from>1696</from>
+<to>1699</to>
+<note>The second `act` block calls `resolve()` synchronously after `requestSubmit()`. If `requestSubmit` triggers an asynchronous action, the `resolve()` call might execute before the action has actually started or reached the `await` point, potentially causing the test to pass for the wrong reasons (race condition in test logic).</note>
+</notesplit>
+<notesplit>
+<path>packages/react-dom/src/__tests__/ReactDOMForm-test.js</path>
+<side>RIGHT</side>
+<from>1672</from>
+<to>1685</to>
+<note>**[Code Defect]** The `submitForm` function is defined inside the `App` component. Every time `App` re-renders, a new `submitForm` function is created. Because `resolve` is captured in the closure of the first render, but the `form` action is updated to the new function on subsequent renders, the test logic may not be interacting with the intended action handler if the component re-renders.
+
+**[Maintainability and Readability]** The test uses a mutable variable 'resolve' in the outer scope to control asynchronous flow. This pattern is fragile and can lead to race conditions or state leakage if tests are run in parallel or if the test logic grows more complex.
+
+The 'App' component is defined inside the test case. While common in small tests, defining components inside 'it' blocks can lead to unnecessary re-renders or issues with React's internal state if not handled carefully, and it obscures the test setup.</note>
+</notesplit>

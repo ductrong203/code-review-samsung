@@ -1,0 +1,106 @@
+<notesplit>
+<path>cmd/wsh/cmd/wshcmd-connserver.go</path>
+<side>RIGHT</side>
+<from>232</from>
+<to>250</to>
+<note>**[Performance]** The askForJwtToken function uses fmt.Fscanln to read from stdin. This is inefficient for reading potentially large or complex input and can be brittle for interactive CLI usage compared to bufio.Scanner.
+
+**[Maintainability and Readability]** The `askForJwtToken` function mixes logic (checking environment) with I/O (printing to stdout and reading from stdin). This makes it difficult to unit test without mocking global state and standard I/O.
+
+**[Code Defect]** The code uses `fmt.Fscanln(os.Stdin, &line)` to read a JWT token. `Fscanln` stops at whitespace, which is incorrect for a JWT token (which may contain characters that `Fscanln` treats as delimiters or stop points). It should use `bufio.NewReader(os.Stdin).ReadString('\n')` to read the full line.</note>
+</notesplit>
+<notesplit>
+<path>pkg/shellexec/shellexec.go</path>
+<side>RIGHT</side>
+<from>411</from>
+<to>416</to>
+<note>**[Security Vulnerability]** The code injects the `WAVETERM_SWAPTOKEN` environment variable directly into the command string via `fmt.Sprintf`. If the token or its contents are user-controlled, this is vulnerable to shell command injection.
+
+**[Code Defect]** The code accesses `cmdOpts.SwapToken.Token` without checking if `cmdOpts.SwapToken` is nil. If `SwapToken` is not provided, this will cause a nil pointer dereference.</note>
+</notesplit>
+<notesplit>
+<path>pkg/util/shellutil/tokenswap.go</path>
+<side>RIGHT</side>
+<from>105</from>
+<to>115</to>
+<note>The `encodeEnvVarsForBash` function uses `HardQuote` which may not be sufficient to prevent command injection if the environment variable values contain malicious payloads that break out of the quoted string context in a shell.</note>
+</notesplit>
+<notesplit>
+<path>pkg/util/shellutil/shellutil.go</path>
+<side>RIGHT</side>
+<from>105</from>
+<to>105</to>
+<note>The use of `eval "$(wsh token ...)"` in shell startup files is dangerous. If the output of `wsh token` is compromised or manipulated, it allows arbitrary code execution in the user's shell session.</note>
+</notesplit>
+<notesplit>
+<path>pkg/remote/conncontroller/conncontroller.go</path>
+<side>RIGHT</side>
+<from>325</from>
+<to>350</to>
+<note>**[Maintainability and Readability]** The `StartConnServer` function has become overly complex, handling version checking, JWT token writing, and connection state management. It violates the Single Responsibility Principle.
+
+**[Code Defect]** The code reads a line from the connection using `wshutil.ReadLineWithTimeout(linesChan, 3*time.Second)`. However, `linesChan` is not defined or initialized in the provided diff, leading to a potential nil channel panic or compilation error.</note>
+</notesplit>
+<notesplit>
+<path>pkg/util/shellutil/tokenswap.go</path>
+<side>RIGHT</side>
+<from>65</from>
+<to>74</to>
+<note>The removeExpiredTokens function iterates over the entire tokenSwapMap under a global lock. As the number of tokens grows, this O(n) operation will block all other token operations.</note>
+</notesplit>
+<notesplit>
+<path>pkg/shellexec/shellexec.go</path>
+<side>RIGHT</side>
+<from>405</from>
+<to>405</to>
+<note>The code calls shellutil.AddTokenSwapEntry(cmdOpts.SwapToken) inside the shell process startup path. If this is called frequently in a loop or high-concurrency environment, the global map and mutex lock could become a bottleneck.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>RIGHT</side>
+<from>285</from>
+<to>320</to>
+<note>The `makeSwapToken` function is responsible for building a complex token structure by querying the database and environment. It is tightly coupled to the database layer and contains significant logic that should be abstracted.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wshutil/wshproxy.go</path>
+<side>RIGHT</side>
+<from>150</from>
+<to>170</to>
+<note>The `HandleClientProxyAuth` function uses a loop with a `continue` pattern that makes the control flow difficult to follow, especially with the mixed authentication types (Authenticate vs AuthenticateToken).</note>
+</notesplit>
+<notesplit>
+<path>pkg/shellexec/shellexec.go</path>
+<side>RIGHT</side>
+<from>300</from>
+<to>330</to>
+<note>The `StartRemoteShellProc` function contains deeply nested logic for shell path detection and command construction. This makes the function hard to read and maintain.</note>
+</notesplit>
+<notesplit>
+<path>pkg/remote/conncontroller/conncontroller.go</path>
+<side>RIGHT</side>
+<from>127</from>
+<to>129</to>
+<note>The use of /tmp/ for domain sockets is insecure. Files in /tmp/ are world-readable/writable on many systems, potentially allowing local attackers to intercept or hijack the RPC connection.</note>
+</notesplit>
+<notesplit>
+<path>pkg/shellexec/shellexec.go</path>
+<side>RIGHT</side>
+<from>482</from>
+<to>482</to>
+<note>Similar to the remote case, `cmdOpts.SwapToken` is accessed without a nil check, which will cause a panic if `SwapToken` is nil.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wshrpc/wshremote/wshremote.go</path>
+<side>RIGHT</side>
+<from>135</from>
+<to>135</to>
+<note>The remoteStreamFileRegular function allocates a new 16KB buffer (FileChunkSize) for every file read operation. While small, in high-throughput scenarios, this increases GC pressure.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wshutil/wshproxy.go</path>
+<side>RIGHT</side>
+<from>185</from>
+<to>200</to>
+<note>The `HandleAuthentication` function contains a TODO comment for `AuthenticateToken` inside the proxy auth logic, indicating incomplete implementation and potential future technical debt.</note>
+</notesplit>

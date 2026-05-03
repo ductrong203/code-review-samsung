@@ -1,0 +1,27 @@
+<notesplit>
+<path>src/misc/lv_text.c</path>
+<side>RIGHT</side>
+<from>652</from>
+<to>654</to>
+<note>**[Code Defect]** The check `txt[*i] == '\0'` is unsafe if `*i` is greater than or equal to the actual length of the string, leading to an out-of-bounds read.
+
+**[Security Vulnerability]** Potential out-of-bounds read if *i is greater than or equal to the length of the string pointed to by txt. While the check prevents null pointer dereference, it does not validate that *i is a valid index within the buffer.
+
+**[Performance]** The check 'txt[*i] == '\0'' inside lv_text_utf8_next performs a memory access on a potentially invalid index if *i is not validated against the string length, and it is redundant if the caller is expected to manage bounds.
+
+**[Maintainability and Readability]** The function returns 'result' (initialized to 0) when the input string is NULL or empty. While this prevents a crash, it is ambiguous because 0 is also a valid return value for other conditions (e.g., end of string or invalid encoding). This makes it difficult for the caller to distinguish between 'no more characters' and 'invalid input'.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/test_txt.c</path>
+<side>RIGHT</side>
+<from>165</from>
+<to>165</to>
+<note>The test `test_lv_text_encoded_letter_next_2_should_handle_empty_string` expects `ofs` to be 0, but if the function logic is intended to process characters, it might be ambiguous. More importantly, the test does not verify if the function correctly handles the empty string without crashing.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/widgets/test_label.c</path>
+<side>RIGHT</side>
+<from>59</from>
+<to>59</to>
+<note>The magic number '0' is used as the third argument for 'lv_obj_set_style_text_align'. Based on the previous usage of 'LV_STYLE_STATE_CMP_SAME', this likely represents a state or flag. Using a named constant or enum would improve readability.</note>
+</notesplit>

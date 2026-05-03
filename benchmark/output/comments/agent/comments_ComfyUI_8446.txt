@@ -1,0 +1,92 @@
+<notesplit>
+<path>comfy_extras/nodes_train.py</path>
+<side>RIGHT</side>
+<from>376</from>
+<to>420</to>
+<note>**[Maintainability and Readability]** The `train` method in `TrainLoraNode` is a 'God function'. It handles model cloning, weight adapter initialization, optimizer setup, loss function selection, patching, and the training loop. It exceeds 100 lines and violates the Single Responsibility Principle.
+
+Hardcoded memory requirement `1e20` is a magic number that makes the code brittle and difficult to reason about.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_train.py</path>
+<side>RIGHT</side>
+<from>634</from>
+<to>650</to>
+<note>**[Performance]** The training loop performs `torch.cuda.empty_cache()` inside the loop. This is an extremely expensive operation that forces synchronization of the GPU and clears the entire cache, causing significant performance degradation during training.
+
+The training loop creates a new `Noise_RandomNoise` object and performs tensor operations inside the loop. While minor, these object allocations and tensor creations add up over thousands of steps.
+
+**[Security Vulnerability]** Potential log injection: The 'filename_prefix' is used in file saving and potentially logging. If user-controlled input is logged without sanitization, it could lead to log injection.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_train.py</path>
+<side>RIGHT</side>
+<from>46</from>
+<to>46</to>
+<note>The variable 'loss' is used in 'loss.backward()' without checking if it was successfully assigned. If the 'try' block fails (e.g., due to the RuntimeError caught), 'loss' will be undefined, causing an UnboundLocalError.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_train.py</path>
+<side>RIGHT</side>
+<from>166</from>
+<to>175</to>
+<note>Path traversal vulnerability: The 'folder' input is taken directly from user input and joined with the input directory without validation, allowing access to arbitrary directories on the server.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_train.py</path>
+<side>RIGHT</side>
+<from>105</from>
+<to>133</to>
+<note>**[Performance]** The image loading loop performs sequential I/O and CPU-based image processing (resizing/conversion) for every image in the dataset. This will bottleneck the training process, especially with large datasets.
+
+**[Maintainability and Readability]** The `load_and_process_images` function raises a `ValueError` if the image size doesn't match the first image, but the error message is generic. It doesn't provide the actual dimensions found, making debugging difficult for users.</note>
+</notesplit>
+<notesplit>
+<path>comfy/weight_adapter/lora.py</path>
+<side>RIGHT</side>
+<from>105</from>
+<to>125</to>
+<note>The `load` method contains a long chain of `if/elif` blocks to check for different LoRA naming conventions. This is hard to maintain and violates the Open/Closed principle.</note>
+</notesplit>
+<notesplit>
+<path>comfy/weight_adapter/lora.py</path>
+<side>RIGHT</side>
+<from>175</from>
+<to>185</to>
+<note>The `calculate_weight` method performs multiple `flatten` and `mm` operations inside the weight calculation path. If this is called frequently during inference, these redundant operations and memory allocations will impact performance.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_train.py</path>
+<side>RIGHT</side>
+<from>232</from>
+<to>243</to>
+<note>The `patch` and `unpatch` functions use monkey-patching on `nn.Module` objects. This is highly fragile, difficult to debug, and can lead to unexpected side effects if the module is reused or if multiple patches are applied.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_train.py</path>
+<side>RIGHT</side>
+<from>556</from>
+<to>556</to>
+<note>The 'existing_steps' calculation assumes the filename format is strictly 'prefix_steps_date'. If the prefix contains an underscore, the split logic will produce incorrect results.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_train.py</path>
+<side>RIGHT</side>
+<from>567</from>
+<to>572</to>
+<note>Insecure file path construction: The 'prefix' input is used directly to construct a file path in the 'models/loras/' directory. If 'prefix' contains path traversal characters (e.g., '../../'), it could lead to arbitrary file writes.</note>
+</notesplit>
+<notesplit>
+<path>comfy/weight_adapter/lora.py</path>
+<side>RIGHT</side>
+<from>159</from>
+<to>159</to>
+<note>The 'try-except' block catches all exceptions and logs them, but the function continues to return the potentially unmodified 'weight'. This masks errors during weight calculation, leading to silent failures.</note>
+</notesplit>
+<notesplit>
+<path>comfy/weight_adapter/base.py</path>
+<side>RIGHT</side>
+<from>24</from>
+<to>30</to>
+<note>The `create_train` method uses `*args` for configuration. This obscures the required parameters (rank, alpha, etc.) and makes the API harder to use and validate.</note>
+</notesplit>

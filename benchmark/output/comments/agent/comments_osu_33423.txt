@@ -1,0 +1,25 @@
+<notesplit>
+<path>osu.Game/Rulesets/Difficulty/Utils/DifficultyCalculationUtils.cs</path>
+<side>RIGHT</side>
+<from>72</from>
+<to>75</to>
+<note>**[Maintainability and Readability]** Typo in XML documentation: 'returns returns' is redundant.
+
+**[Code Defect]** The SmoothstepBellCurve implementation is logically incorrect. The Smoothstep function expects the first argument to be the input value, and the second/third arguments to be the range [start, end]. By passing (x, 0, width), it returns 1 when x is at or above width, and 0 when x is at or below 0. This is the inverse of the intended behavior (a bell curve peaking at 0 and dropping to 0 at width).
+
+The logic inside SmoothstepBellCurve is slightly opaque. The ternary operator combined with the variable reassignment makes the intent (calculating absolute distance from mean within a range) harder to parse at a glance.</note>
+</notesplit>
+<notesplit>
+<path>osu.Game.Rulesets.Osu/Difficulty/Evaluators/RhythmEvaluator.cs</path>
+<side>RIGHT</side>
+<from>115</from>
+<to>115</to>
+<note>The use of LINQ's FirstOrDefault inside a loop creates an O(N*M) complexity where N is the number of historical objects and M is the number of unique islands. This is called for every historical object, leading to unnecessary iterations over the islandCounts list.</note>
+</notesplit>
+<notesplit>
+<path>osu.Game.Rulesets.Osu/Difficulty/Evaluators/RhythmEvaluator.cs</path>
+<side>RIGHT</side>
+<from>71</from>
+<to>71</to>
+<note>The variable name 'deltaDifferenceFraction' is slightly misleading. It represents the distance to the nearest integer multiple, not just the fractional part of the ratio.</note>
+</notesplit>

@@ -1,0 +1,15 @@
+<notesplit>
+<path>src/Storages/MergeTree/KeyCondition.cpp</path>
+<side>RIGHT</side>
+<from>2903</from>
+<to>2935</to>
+<note>**[Maintainability and Readability]** The lambda 'is_always_monotonic_chain' is defined inside 'matchesExactContinuousRange'. This logic is complex and reusable; it should be extracted into a private helper method or a static utility function to improve readability and testability.
+
+**[Performance]** The lambda 'is_always_monotonic_chain' is defined inside the function and called repeatedly within a loop over 'rpn'. Inside this lambda, 'func->getArgumentTypes()' and 'func->getMonotonicityForRange' are called. Depending on the complexity of the function chain and the RPN size, this can lead to significant redundant overhead. If the RPN is large, this check should be cached or pre-computed.
+
+The loop over 'rpn' contains nested logic for checking monotonic chains and set indexes. This increases the cyclomatic complexity of 'matchesExactContinuousRange', making it harder to follow.
+
+The variable 'field' is initialized as an empty Field but is used to check monotonicity. It is unclear why an empty field is sufficient for this check without further documentation or context.
+
+**[Code Defect]** The lambda `is_always_monotonic_chain` uses an empty `Field` object to check monotonicity. `func->getMonotonicityForRange` requires valid bounds to correctly determine if a function is monotonic over the range of interest. Using an empty field (default constructor) may lead to incorrect monotonicity results for functions that are only monotonic within specific intervals.</note>
+</notesplit>

@@ -1,0 +1,37 @@
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>RIGHT</side>
+<from>1491</from>
+<to>1575</to>
+<note>**[Maintainability and Readability]** Magic number '6000' is used for the buffer stuck timeout. This should be defined as a named constant at the module level or within a configuration object to improve readability and maintainability.
+
+**[Code Defect]** The `bufferStuckTimer` is assigned to a `setTimeout` result, but the callback function does not clear the timer reference (`bufferStuckTimer = null`) correctly if it were to be cleared elsewhere, and more importantly, it creates a potential memory leak or logic error if `flushBuffer` is called multiple times rapidly, as the previous timer is not cleared before starting a new one.
+
+**[Performance]** The `bufferStuckTimer` is created every time `flushBuffer` is called, but it is not cleared if `flushBuffer` is called again before the previous timer expires. This can lead to multiple overlapping timers and redundant telemetry events.
+
+The `completionTimer` is initialized in the constructor scope of the task execution logic. If the task logic is re-run or if multiple completion checks are triggered, this timer is not safely managed, potentially leading to memory leaks or stale telemetry.
+
+The `completionTimer` is initialized in the constructor/scope but is not cleared if the task completes or errors out before the 6-second timeout, potentially leading to a stale telemetry event being fired after the task has already finished.
+
+The Task class is becoming a 'God Class' with excessive responsibility. It is now manually managing multiple timers (bufferStuckTimer, completionTimer) and complex telemetry logic for terminal state tracking, which should be encapsulated within the TerminalManager or a dedicated TerminalMonitor class.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/terminal/TerminalProcess.ts</path>
+<side>RIGHT</side>
+<from>227</from>
+<to>236</to>
+<note>**[Maintainability and Readability]** The logic for checking if the terminal snapshot is valid (`terminalSnapshot && terminalSnapshot.trim()`) is repeated. This check should be abstracted into a utility function.
+
+**[Code Defect]** Multiple calls to `telemetryService` methods are made without `await`. Since `telemetryService` is a Proxy that returns an async function, these calls are floating promises.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/terminal/TerminalProcess.ts</path>
+<side>RIGHT</side>
+<from>194</from>
+<to>215</to>
+<note>**[Maintainability and Readability]** The logic for checking terminal snapshots and reporting telemetry is duplicated in two different branches (shell integration success vs. fallback). This violates the DRY principle.
+
+**[Code Defect]** The `telemetryService` is called as a synchronous method, but `telemetryService` in this codebase is a Proxy that returns an async function. Calling it without `await` will result in the promise not being awaited, and potentially unhandled promise rejections if the service initialization fails.
+
+Multiple calls to `telemetryService` methods are made without `await`. Since `telemetryService` is a Proxy that returns an async function, these calls are floating promises.</note>
+</notesplit>

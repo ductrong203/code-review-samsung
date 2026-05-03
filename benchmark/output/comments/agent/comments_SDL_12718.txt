@@ -1,0 +1,44 @@
+<notesplit>
+<path>src/gpu/vulkan/SDL_gpu_vulkan.c</path>
+<side>RIGHT</side>
+<from>10433</from>
+<to>10441</to>
+<note>**[Code Defect]** VULKAN_INTERNAL_DefragmentMemory is called with the current command buffer, but the function modifies the allocator state and potentially triggers resource destruction. If this command buffer is currently being recorded, modifying the underlying memory/resources while the command buffer is still open can lead to invalid state or crashes.
+
+**[Maintainability and Readability]** The logic for triggering memory defragmentation is now embedded directly inside VULKAN_Submit. This increases the complexity of an already large function, violating the Single Responsibility Principle.</note>
+</notesplit>
+<notesplit>
+<path>src/gpu/vulkan/SDL_gpu_vulkan.c</path>
+<side>RIGHT</side>
+<from>10598</from>
+<to>10775</to>
+<note>**[Performance]** The defragmentation process iterates through all used regions of an allocation and performs individual resource creation and copy operations. If an allocation contains many small resources, this loop will trigger a large number of Vulkan API calls in a single frame, likely causing a significant frame time spike.
+
+**[Maintainability and Readability]** Variable 'bufferCopy' is declared inside the loop scope. While valid C99, it is better practice to keep declarations at the top of the block or scope them clearly if they are only used for a specific operation.
+
+VULKAN_INTERNAL_DefragmentMemory is a long function (>150 lines) that handles both buffer and texture defragmentation logic. This makes it difficult to maintain and test.
+
+**[Code Defect]** The error message 'Failed to allocate defrag buffer!' is used for both buffer and texture allocation failures, which is misleading when a texture fails to allocate.
+
+The error message 'Failed to allocate defrag buffer!' is used in two different branches (buffer and texture creation) within VULKAN_INTERNAL_DefragmentMemory. While technically correct, it is slightly misleading when a texture fails to allocate.
+
+The variable 'bufferCopy' is declared inside the loop but not initialized. While it is assigned fields immediately after, it is safer to initialize it to zero to avoid potential garbage data if the struct definition changes or if fields are added.
+
+The variable 'imageCopy' is declared inside the loop but not initialized. Similar to the bufferCopy issue, this can lead to undefined behavior if the struct contains padding or if fields are not fully populated.</note>
+</notesplit>
+<notesplit>
+<path>src/gpu/vulkan/SDL_gpu_vulkan.c</path>
+<side>RIGHT</side>
+<from>5568</from>
+<to>5571</to>
+<note>The function VULKAN_INTERNAL_CreateTexture now has 3 parameters, but the addition of a boolean flag 'transitionToDefaultLayout' makes the function signature less intuitive. Boolean flags as parameters often indicate that a function is doing too much or has hidden side effects.</note>
+</notesplit>
+<notesplit>
+<path>src/gpu/vulkan/SDL_gpu_vulkan.c</path>
+<side>RIGHT</side>
+<from>10500</from>
+<to>10530</to>
+<note>**[Performance]** The cleanup loop iterates over all submitted command buffers and checks fence status for every single one on every presentation call. As the number of submitted command buffers grows, this becomes an O(n) operation per frame, potentially causing CPU spikes.
+
+The nested loop structure (iterating over memory types, then iterating backwards through allocations) inside the presentation path can be expensive if the number of allocations is large. This is performed under a mutex lock, which may cause contention.</note>
+</notesplit>

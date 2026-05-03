@@ -1,0 +1,112 @@
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>256</from>
+<to>256</to>
+<note>The `valueFromLine` template specialization for `double` uses `std::strtof`, which is locale-dependent. If the system locale uses a comma as a decimal separator, parsing of standard FRD files (which use dots) will fail or produce incorrect values.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>634</from>
+<to>645</to>
+<note>The use of std::find inside a loop over nodes results in O(N * M) complexity where N is the number of nodes and M is the number of components. This is inefficient for large result files.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>748</from>
+<to>748</to>
+<note>The code opens the file with `std::ios::binary` but then uses `std::getline(ifstr, line)`. `std::getline` is intended for text files and may behave incorrectly with binary files depending on line ending handling (CRLF vs LF), potentially causing the parser to fail on specific platforms.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>1045</from>
+<to>1057</to>
+<note>The `FRDReader` namespace contains a massive amount of logic (over 600 lines) that should be encapsulated in a dedicated class or separate file. This violates the Single Responsibility Principle and makes the file extremely difficult to navigate.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>697</from>
+<to>700</to>
+<note>Path Traversal vulnerability: The code constructs a file path using `dir + "/" + fi.fileNamePure() + type + "." + writer->GetDefaultFileExtension()`. If `fi.fileNamePure()` or `type` contains path traversal characters (e.g., `../`), an attacker could write files outside the intended directory.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>656</from>
+<to>662</to>
+<note>The code uses std::find inside a loop for every node result, which is redundant as the scalar/vector mapping is constant for the entire result block.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>612</from>
+<to>612</to>
+<note>The variable `countScaPos` is used in the `else if (view.rfind(code2, 0) == 0)` block, but it is only initialized inside the `if (view.rfind(code1, 0) == 0)` block. If the file structure starts with `code2` or if `code1` was not processed for the current node, `countScaPos` contains an indeterminate value.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>622</from>
+<to>628</to>
+<note>Repeated calls to FillComponent(j, 0.0) in a loop are inefficient for initializing large arrays. vtkDataArray objects can be initialized more efficiently using Allocate or by setting the underlying buffer directly.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>1147</from>
+<to>1153</to>
+<note>The `valueFromLine` template uses `std::strtol` and `std::strtof` on raw pointers derived from `std::string_view`. This is fragile and lacks robust error checking for parsing failures.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>1420</from>
+<to>1430</to>
+<note>The `readResults` function is excessively long (>150 lines) and contains deeply nested logic (loops within loops, multiple conditional branches). This makes it hard to test and maintain.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>204</from>
+<to>204</to>
+<note>Potential buffer overflow/out-of-bounds access: `valueFromLine` uses `std::strtol` on a `std::string_view` buffer. While `std::string_view` is used, the underlying data is accessed via `sub.data()`. If the input line is shorter than the expected `digits` or lacks null-termination in a way that `strtol` expects, it may read past the buffer.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>535</from>
+<to>540</to>
+<note>The code performs multiple string allocations and substring operations inside a loop while parsing the FRD file. This creates significant memory pressure when processing large files.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>558</from>
+<to>558</to>
+<note>The code uses `mapNodes.at(node)` inside a loop. If a node ID in the result block is not present in the node definition block, it throws an `std::out_of_range` exception. While caught, this indicates a malformed FRD file or logic mismatch, and the current handling might leave the result arrays in an inconsistent state.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>1160</from>
+<to>1170</to>
+<note>The `addCell` function relies on a global map `mapCcxToVtk` and assumes the `cell` type exists in the map. If a type is missing, this will cause an out-of-bounds access or crash.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>1640</from>
+<to>1660</to>
+<note>The `readFRD` function uses a large `while` loop with multiple `if` blocks checking `keyCode`. This is a 'God function' pattern that is hard to extend.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>RIGHT</side>
+<from>1725</from>
+<to>1745</to>
+<note>The `frdToVTK` function manually constructs file paths using string concatenation (`dir + "/" + ...`). This is error-prone regarding path separators and platform compatibility.</note>
+</notesplit>

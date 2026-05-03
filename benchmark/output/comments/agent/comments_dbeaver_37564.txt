@@ -1,0 +1,24 @@
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model.rcp/src/org/jkiss/dbeaver/model/navigator/DBNResource.java</path>
+<side>RIGHT</side>
+<from>423</from>
+<to>429</to>
+<note>**[Maintainability and Readability]** The getAdapter method is becoming a 'God method' that handles too many disparate types. Adding InputStream support here violates the Single Responsibility Principle as DBNResource is now responsible for both resource metadata and stream acquisition.
+
+**[Code Defect]** The InputStream returned by file.getContents() is not closed by the caller in the new logic, leading to potential file handle leaks.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/navigator/fs/DBNPathBase.java</path>
+<side>RIGHT</side>
+<from>292</from>
+<to>301</to>
+<note>**[Performance]** The code uses Files.copy(inputStream, path) without specifying a buffer size or using a buffered stream. For large files, this can lead to excessive system calls and inefficient I/O operations.
+
+**[Maintainability and Readability]** The dropNodes method now contains mixed levels of abstraction. It handles both Path-based file system operations and stream-based copying, which increases the complexity of the method and makes it harder to test.
+
+**[Code Defect]** Files.copy(InputStream, Path) does not specify CopyOption.REPLACE_EXISTING. If the target file already exists, this will throw a FileAlreadyExistsException, causing the drop operation to fail silently or crash.
+
+**[Security Vulnerability]** Path Traversal vulnerability: The file name obtained from 'node.getNodeDisplayName()' is used directly in 'folder.resolve()' to create a file path. If the node display name contains path traversal characters (e.g., '../../evil.sh'), an attacker could write files outside the intended destination directory.
+
+The use of node.getAdapter(InputStream.class) inside a try-with-resources block assumes that the returned InputStream is always auto-closeable and that the adapter implementation is safe to call in this context. If the adapter returns a non-closeable stream or null, the behavior might be inconsistent.</note>
+</notesplit>

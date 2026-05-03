@@ -1,0 +1,7 @@
+<notesplit>
+<path>shell/browser/ui/file_dialog_linux.cc</path>
+<side>RIGHT</side>
+<from>53</from>
+<to>56</to>
+<note>The logic change causes a mismatch between `extension_description_overrides` and `extensions` vectors. `ui::SelectFileDialog::FileTypeInfo` expects these two vectors to be parallel (index-aligned). By moving the push_back of the description into the 'else' block while the 'extensions' push_back remains there, it is correct, but if the 'if' block (has_all_files_wildcard) is triggered, the description is skipped entirely. If the UI component expects the description list to match the extension list index-for-index, this will cause an out-of-bounds access or incorrect label mapping in the underlying platform dialog.</note>
+</notesplit>
