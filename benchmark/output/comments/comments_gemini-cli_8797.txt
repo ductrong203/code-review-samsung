@@ -1,0 +1,36 @@
+<path>packages/cli/src/commands/extensions/disable.ts</path>
+<side>right</side>
+<from>19</from>
+<to>23</to>
+<note>**[Maintainability]** The logic for mapping string input to `SettingScope` is duplicated in both `disable.ts` and `enable.ts`. 
+
+This logic should be extracted into a shared utility function (e.g., `parseScope(scope: string): SettingScope`) to ensure consistency and reduce code duplication.</note>
+<notesplit />
+<path>packages/cli/src/commands/extensions/disable.ts</path>
+<side>right</side>
+<from>47</from>
+<to>63</to>
+<note>**[Maintainability]** The validation logic for the `scope` argument is duplicated in both `disable.ts` and `enable.ts`.
+
+Consider creating a shared validation helper or a custom Yargs middleware to handle scope validation. This would make the command definitions cleaner and easier to maintain.</note>
+<notesplit />
+<path>packages/cli/src/commands/extensions/enable.ts</path>
+<side>right</side>
+<from>19</from>
+<to>23</to>
+<note>**[Maintainability]** Similar to the `disable.ts` file, the logic for mapping string input to `SettingScope` is duplicated here. Please refactor this into a shared utility function.</note>
+<notesplit />
+<path>packages/cli/src/commands/extensions/enable.ts</path>
+<side>right</side>
+<from>52</from>
+<to>68</to>
+<note>**[Maintainability]** The validation logic for the `scope` argument is duplicated here as well. Please refactor this into a shared validation helper.</note>
+<notesplit />
+<path>packages/cli/src/config/extensions/extensionEnablement.test.ts</path>
+<side>right</side>
+<from>82</from>
+<to>92</to>
+<note>**[Maintainability]** The test case `it('should handle', () => { ... })` has a vague description. 
+
+Please rename this test to clearly describe the behavior being tested, such as `it('should prioritize specific path rules over general ones', () => { ... })`.</note>
+<notesplit />

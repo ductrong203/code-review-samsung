@@ -1,0 +1,20 @@
+<path>src/Base/Parameter.cpp</path>
+<side>right</side>
+<from>1882</from>
+<to>1882</to>
+<note>**[Code Defect]** Potential Use-After-Free / Dangling Pointer.
+
+The `XercesDOMParser` does not take ownership of the `EntityResolver`. By declaring `entityBlocker` as a local `std::unique_ptr` within `LoadDocument`, the resolver will be destroyed when the function scope ends. However, the `parser` object (which is also a `unique_ptr` local to this function) will attempt to use this resolver during the `parser->parse(inputSource)` call. 
+
+While this specific implementation is safe because the parser is also destroyed at the end of the function, it is fragile. If the `parser` were ever moved to a member variable or if the scope of `parser` were extended, the `entityBlocker` would become a dangling pointer. It is safer to ensure the lifetime of the resolver is tied to the parser or the class instance.</note>
+<notesplit />
+<path>src/Base/Parameter.cpp</path>
+<side>right</side>
+<from>1892</from>
+<to>1892</to>
+<note>**[Code Defect]** Potential Use-After-Free / Dangling Pointer.
+
+Similar to the `EntityResolver`, the `ErrorHandler` is not owned by the `XercesDOMParser`. The `errReporter` is a local `std::unique_ptr` that will be destroyed at the end of the `LoadDocument` function. If the `parser` object were to outlive this function (e.g., if it were refactored to be a member variable), the `ErrorHandler` would be destroyed while the parser still holds a pointer to it. 
+
+Consider making `DOMTreeErrorReporter` and `NoOpEntityResolver` members of the `ParameterManager` class to ensure their lifetimes match the parser's requirements.</note>
+<notesplit />

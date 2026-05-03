@@ -1,0 +1,16 @@
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/TestSnapshotCases.java</path>
+<side>right</side>
+<from>21</from>
+<to>24</to>
+<note>**[Code Defect]** Logic error in constant definitions.
+
+`ES_VERSION_6` is assigned the value `"5"` (line 21) and `ES_VERSION_6_STANDARD_TOKEN_FILTER` is assigned `"5_custom_analyzer"` (line 24). These should likely be `"6"` and `"6_custom_analyzer"` respectively to match the versioning scheme and the intent of the test cases.</note>
+<notesplit />
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/archiveindex/ArchiveIndexTestCase.java</path>
+<side>right</side>
+<from>64</from>
+<to>64</to>
+<note>**[Maintainability]** Potential `NullPointerException`.
+
+In `ArchiveIndexTestCase.java` (and similarly in `SearchableSnapshotTestCase.java`), the `warningsConsumer` is passed from the constructor. While the default constructor uses `o -> {}`, it is possible for a subclass to pass `null` to the protected constructor. Consider adding `Objects.requireNonNull(warningsConsumer, "warningsConsumer cannot be null")` in the constructor to ensure fail-fast behavior.</note>
+<notesplit />

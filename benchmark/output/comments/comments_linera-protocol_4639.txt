@@ -1,0 +1,24 @@
+<path>linera-core/src/chain_worker/state.rs</path>
+<side>right</side>
+<from>1420</from>
+<to>1423</to>
+<note>**[Performance]** Repeatedly calling `std::env::var` inside a request handler is inefficient. 
+
+Environment variables are typically static for the lifetime of the process. Reading and parsing the environment variable on every `handle_chain_info_query` call adds unnecessary overhead. Consider using `once_cell` or `std::sync::OnceLock` to parse and cache this value once at startup.</note>
+<notesplit />
+<path>linera-core/src/client/mod.rs</path>
+<side>right</side>
+<from>850</from>
+<to>853</to>
+<note>**[Performance]** Similar to the previous comment, reading and parsing the environment variable inside a loop (or even just inside this method) is inefficient. 
+
+Since this logic is in the client, it should ideally be configured once when the `Client` is initialized or retrieved from a shared configuration object, rather than performing string lookups and parsing on every iteration of the synchronization loop.</note>
+<notesplit />
+<path>linera-core/src/client/mod.rs</path>
+<side>right</side>
+<from>854</from>
+<to>863</to>
+<note>**[Code Defect]** The loop condition `if received_entries < max_entries` assumes that the server will always return exactly `max_entries` if more are available. 
+
+If the server-side logic (in `chain_worker/state.rs`) returns fewer than `max_entries` for reasons other than reaching the end of the log (e.g., internal storage limits, timeouts, or partial reads), this loop will terminate prematurely, leading to data loss in the synchronization process. You should ensure the loop termination logic is robust against partial responses or explicitly check if the server indicates there are more entries available.</note>
+<notesplit />

@@ -1,0 +1,28 @@
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/struct/DBSObjectFilter.java</path>
+<side>right</side>
+<from>216</from>
+<to>219</to>
+<note>**[Performance]** The use of `Arrays.stream(names).anyMatch(...)` inside `atLeastOneNameMatchesPattern` introduces unnecessary object allocation and stream overhead for every pattern check. 
+
+Since `names` is a small array (typically 1-2 elements in this context), a simple `for` loop is significantly more performant and avoids the overhead of creating a stream pipeline and lambda capture.
+
+**Suggested Fix:**
+```java
+private static boolean atLeastOneNameMatchesPattern(Object pattern, String[] names) {
+    for (String name : names) {
+        if (matchesPattern(pattern, name)) {
+            return true;
+        }
+    }
+    return false;
+}
+```</note>
+<notesplit />
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/struct/DBSObjectFilter.java</path>
+<side>right</side>
+<from>221</from>
+<to>241</to>
+<note>**[Maintainability]** The methods `fillIncludePatterns` and `fillExcludePatterns` are nearly identical, violating the DRY (Don't Repeat Yourself) principle. 
+
+You can refactor these into a single private helper method that accepts the list and the field to populate, or simply accept the duplication if the class structure makes generic field access difficult. However, given the current implementation, a single helper method `fillPatterns(List<String> source, List<Object> target)` would be cleaner.</note>
+<notesplit />

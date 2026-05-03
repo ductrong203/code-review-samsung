@@ -1,0 +1,24 @@
+<path>src/Functions/array/arrayAggregation.cpp</path>
+<side>right</side>
+<from>498</from>
+<to>498</to>
+<note>**[Code Defect]** Incorrect syntax string for `arraySum`.
+
+The syntax string `syntax_sum` is currently set to `"arrayMax(...)"` instead of `"arraySum(...)"`. This will cause confusion in the generated documentation. Please update it to `"arraySum([func(x[, y1, ..., yN])], source_arr[, cond1_arr, ... , condN_arr])"`.</note>
+<notesplit />
+<path>src/Functions/array/arrayAggregation.cpp</path>
+<side>right</side>
+<from>482</from>
+<to>482</to>
+<note>**[Code Defect]** Incorrect description in `returned_value_max`.
+
+The `returned_value_max` string states: "Returns the maximum element in the source array, or the **minimum** element of the lambda results if provided." It should say "maximum" instead of "minimum".</note>
+<notesplit />
+<path>src/Functions/array/arrayFirstLastIndex.cpp</path>
+<side>right</side>
+<from>166</from>
+<to>166</to>
+<note>**[Maintainability]** Inconsistent registration for `arrayLastIndex`.
+
+While `arrayFirstIndex` is now registered with the `documentation_first` object, `arrayLastIndex` is still being registered using the default `factory.registerFunction<FunctionArrayLastIndex>();` (line 166) instead of using the `documentation_last` object defined just above it. This leaves the documentation for `arrayLastIndex` incomplete or missing.</note>
+<notesplit />

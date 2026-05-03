@@ -1,0 +1,24 @@
+<path>src/integrations/misc/extract-text.ts</path>
+<side>right</side>
+<from>12</from>
+<to>16</to>
+<note>**[Code Defect]** The `jschardet.detect` function returns a result object containing `encoding` and `confidence`. The current implementation checks for a string or an object with an `encoding` property, but it ignores the `confidence` score. 
+
+If `jschardet` returns a low-confidence guess (e.g., 0.1), `iconv-lite` will attempt to decode the buffer using that incorrect encoding, likely resulting in garbled text. You should check `detected.confidence` and fallback to `utf8` or a safer default if the confidence is below a reasonable threshold (e.g., 0.5).</note>
+<notesplit />
+<path>src/integrations/misc/extract-text.ts</path>
+<side>right</side>
+<from>19</from>
+<to>22</to>
+<note>**[Performance]** In `detectEncoding`, you are calling `isBinaryFile(fileBuffer)` inside the fallback logic. `isBinaryFile` is already an expensive operation that scans the buffer. 
+
+Since `extractTextFromFile` (the caller) is already reading the entire file into memory (`fs.readFile`), you should perform the binary check *before* calling `detectEncoding` or pass the result of the binary check into `detectEncoding` to avoid redundant processing.</note>
+<notesplit />
+<path>src/integrations/misc/extract-text.ts</path>
+<side>right</side>
+<from>43</from>
+<to>48</to>
+<note>**[Code Defect]** The logic in `extractTextFromFile` has changed to read the entire file into a buffer before checking if it is binary. While this is necessary for encoding detection, you have removed the `isBinaryFile` check that was previously protecting the system from attempting to process binary files as text. 
+
+If `detectEncoding` returns "utf8" for a binary file (which can happen with high confidence on some binary patterns), `iconv.decode` will return a string of garbage characters, which may cause issues in downstream LLM context processing. You should explicitly verify `isBinaryFile` before proceeding with decoding.</note>
+<notesplit />

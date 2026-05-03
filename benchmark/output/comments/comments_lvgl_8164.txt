@@ -1,0 +1,10 @@
+<path>src/widgets/animimage/lv_animimage.c</path>
+<side>right</side>
+<from>111</from>
+<to>114</to>
+<note>**[Code Defect]** Breaking API change without deprecation.
+
+The function signature of `lv_animimg_set_src` has been changed by removing the `reverse` parameter. This is a breaking change for any existing code using this library. 
+
+To maintain backwards compatibility, you should keep the original signature (perhaps marking it as deprecated) and have it call the new internal logic, or provide a macro/wrapper to handle the transition. Simply removing the parameter will cause compilation errors in all downstream projects that haven't updated their code.</note>
+<notesplit />

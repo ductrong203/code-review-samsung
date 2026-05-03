@@ -1,0 +1,22 @@
+<path>src/renderers/webgpu/nodes/WGSLNodeBuilder.js</path>
+<side>right</side>
+<from>2135</from>
+<to>2137</to>
+<note>**[Code Defect]** The calculation of `instanceIndex` in the generated WGSL shader is incorrect.
+
+In WGSL, `globalId` is the global invocation ID. The formula for a flattened index should be:
+`globalId.x + globalId.y * totalWorkgroupsX * workgroupSizeX + globalId.z * totalWorkgroupsX * totalWorkgroupsY * workgroupSizeX * workgroupSizeY`.
+
+Your current implementation:
+`globalId.x + globalId.y * (workgroupSizeX * numWorkgroups.x) + globalId.z * (workgroupSizeX * numWorkgroups.x) * (workgroupSizeY * numWorkgroups.y)`
+
+This is missing the multiplication by the total number of workgroups in the X dimension for the Y component, and similarly for the Z component. Specifically, `numWorkgroups.x` is the number of workgroups dispatched, not the total number of threads in that dimension. The correct multiplier for `globalId.y` should be the total number of threads in the X dimension, which is `(numWorkgroups.x * workgroupSizeX)`. Your code currently uses `(workgroupSizeX * numWorkgroups.x)`, which is correct, but the logic for the Z component is also missing the full product of the previous dimensions.</note>
+<notesplit />
+<path>src/renderers/webgpu/WebGPUBackend.js</path>
+<side>right</side>
+<from>1403</from>
+<to>1404</to>
+<note>**[Maintainability]** The fallback logic `dispatchSize[ 1 ] || 1` is potentially dangerous if `dispatchSize[ 1 ]` is explicitly `0`. 
+
+While `dispatchWorkgroups` expects positive integers, if `dispatchSize` is provided by the user (the `else` block at line 1395), a user might pass `[10, 0, 1]`. Using `|| 1` will silently override a user's explicit `0` to `1`. It is safer to check for `undefined` or `null` explicitly, or ensure the input is validated before reaching this point.</note>
+<notesplit />

@@ -1,0 +1,16 @@
+<path>pkg/gofr/handler.go</path>
+<side>right</side>
+<from>100</from>
+<to>102</to>
+<note>**[Code Defect]** Removing `result = resp.Data` causes a logic regression.
+
+In the original code, `result` was updated to `resp.Data` after processing headers. By removing this line, the `result` variable remains the `response.Response` struct. If subsequent middleware or the `Responder` expects the raw data (which it now handles via a type switch in `responder.go`), this change might be intentional, but it is inconsistent with the previous flow where the handler result was unwrapped. Please ensure that all downstream components are prepared to receive the `response.Response` struct instead of the raw data payload.</note>
+<notesplit />
+<path>pkg/gofr/http/responder_test.go</path>
+<side>right</side>
+<from>75</from>
+<to>75</to>
+<note>**[Code Defect]** Missing import for `bytes` package.
+
+The test file uses `bytes.TrimSpace` on line 75, but the `bytes` package is not included in the `import` block. This will cause a compilation error in the test suite.</note>
+<notesplit />

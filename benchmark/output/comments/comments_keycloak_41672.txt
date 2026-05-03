@@ -1,0 +1,16 @@
+<path>adapters/saml/wildfly/wildfly-subsystem/src/main/java/org/keycloak/subsystem/adapter/saml/extension/KeycloakDependencyProcessor.java</path>
+<side>right</side>
+<from>38</from>
+<to>41</to>
+<note>**[Maintainability]** The visibility of these constants has been changed from `private` to package-private (default). 
+
+While this allows `KeycloakSubsystemDefinition` to access them, it exposes internal implementation details of the dependency processor to the entire package. If these are intended to be shared constants, consider moving them to a dedicated `Constants` class or keeping them `private` and providing a public static getter method to maintain encapsulation.</note>
+<notesplit />
+<path>adapters/saml/wildfly/wildfly-subsystem/src/main/java/org/keycloak/subsystem/adapter/saml/extension/KeycloakDependencyProcessorWildFly.java</path>
+<side>right</side>
+<from>35</from>
+<to>35</to>
+<note>**[Maintainability]** The constant `KEYCLOAK_ELYTRON_ADAPTER` is now defined as a `String` instead of a `ModuleIdentifier`. 
+
+Ensure that all downstream usages of this constant (which likely expect a `ModuleIdentifier` or a specific object type) are updated to handle the `String` conversion correctly. If the JBoss/WildFly APIs require a `ModuleIdentifier` object, you will now be forced to call `ModuleIdentifier.create(KEYCLOAK_ELYTRON_ADAPTER)` repeatedly, which is less efficient and more error-prone than using the object directly.</note>
+<notesplit />

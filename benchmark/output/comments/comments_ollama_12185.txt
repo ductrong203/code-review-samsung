@@ -1,0 +1,16 @@
+<path>runner/ollamarunner/runner.go</path>
+<side>right</side>
+<from>709</from>
+<to>710</to>
+<note>**[Code Defect]** Potential runtime panic due to `activeBatch.batch.Outputs` being nil or uninitialized.
+
+In `reserveWorstCaseGraph`, `batch.Outputs` is initialized as an empty tensor. However, in `forwardBatch`, if `batchOutputs` is empty (e.g., no sequences meet the condition `i+1 == len(seq.inputs) || seq.embeddingOnly`), `batch.Outputs` will be an empty tensor. Calling `.Dim(0)` on an empty tensor is generally safe, but if the tensor itself is nil (which can happen depending on the `ml.Context` implementation), this will cause a panic. Ensure `activeBatch.batch.Outputs` is checked for nil or that the tensor implementation guarantees a non-nil return for `Empty`.</note>
+<notesplit />
+<path>runner/ollamarunner/runner.go</path>
+<side>right</side>
+<from>1067</from>
+<to>1067</to>
+<note>**[Maintainability]** Inconsistent initialization of `batch.Outputs`.
+
+In `reserveWorstCaseGraph`, `batch.Outputs` is initialized using `ctx.Input().Empty(ml.DTypeI32, s.parallel)`. Unlike the previous implementation which populated the slice with indices, this new implementation creates an empty tensor of size `s.parallel`. If the downstream `model.Forward` logic expects these indices to be populated (as they were previously), this will lead to incorrect model behavior or index-out-of-bounds errors during the forward pass. If the model logic relies on these indices, they should be populated here.</note>
+<notesplit />

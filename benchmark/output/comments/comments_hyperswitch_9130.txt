@@ -1,0 +1,12 @@
+<path>crates/hyperswitch_connectors/src/connectors/checkout/transformers.rs</path>
+<side>right</side>
+<from>239</from>
+<to>240</to>
+<note>**[Maintainability]** The field name `_type` is used to map to the JSON key `"type"`. While this works, it is idiomatic in Rust to use `#[serde(rename = "type")]` on a field named `r#type` (or simply `type_` if preferred) to avoid the leading underscore, which often triggers "unused variable" warnings or linter complaints depending on the configuration.</note>
+<notesplit />
+<path>crates/router/src/core/payments.rs</path>
+<side>right</side>
+<from>6998</from>
+<to>7001</to>
+<note>**[Code Defect]** The logic in `is_google_pay_pre_decrypt_type_connector_tokenization` appears to be inverted or potentially buggy. It returns `false` if the filter is `NetworkTokenization`. If the intention of the configuration `google_pay_pre_decrypt_flow = "network_tokenization"` is to *enable* network tokenization, this function will return `false` (disabling it) when the configuration is explicitly set to that value. Please verify if the logic should be `== Some(GooglePayPreDecryptFlow::NetworkTokenization)`.</note>
+<notesplit />

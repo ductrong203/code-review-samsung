@@ -1,0 +1,9 @@
+<path>src/Storages/MergeTree/MergeTreeDataMergerMutator.cpp</path>
+<side>right</side>
+<from>337</from>
+<to>343</to>
+<note>**[Performance]** The `LOG_TRACE` call is executed inside a loop or frequent code path (TTL merge scheduling). While `LOG_TRACE` is generally cheap when disabled, the construction of the log message involves multiple `backQuote` calls and `toString` conversions. 
+
+If this code path is hit frequently, consider wrapping the log statement in a check to ensure the trace level is actually enabled to avoid unnecessary string formatting overhead:
+`if (unlikely(log->trace())) { ... }`</note>
+<notesplit />

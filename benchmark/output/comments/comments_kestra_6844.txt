@@ -1,0 +1,26 @@
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>106</from>
+<to>109</to>
+<note>**[Code Defect]** The exception message construction is fragile and potentially misleading. 
+
+1. `failed` is an `AtomicInteger` object. Concatenating it directly to a string will result in the string representation of the object (e.g., `java.util.concurrent.atomic.AtomicInteger@...`) rather than its numeric value. You should use `failed.get()`.
+2. The logic `failed + " assertion" + (failed.get() > 1 ? "s" : "")` will produce "java.util.concurrent.atomic.AtomicInteger@... assertion(s) failed!".
+3. Fix: Use `failed.get() + " assertion" + (failed.get() > 1 ? "s" : "")`.</note>
+<notesplit />
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>108</from>
+<to>108</to>
+<note>**[Code Defect]** Potential `NullPointerException` or incorrect rendering.
+
+`runContext.render(errorMessage)` returns a `Property<String>`. If `errorMessage` is null, `runContext.render(null)` might throw an exception or return an empty property depending on the implementation. Furthermore, `as(String.class)` on a rendered property is redundant if the property is already typed as `Property<String>`. You should check if `errorMessage` is null before attempting to render it.</note>
+<notesplit />
+<path>core/src/test/java/io/kestra/plugin/core/execution/AssertTest.java</path>
+<side>right</side>
+<from>90</from>
+<to>94</to>
+<note>**[Maintainability]** The test method `dontFailOnCondition` has a misleading name. 
+
+The test asserts that the execution state is `FAILED` (`assertThat(execution.getState().getCurrent(), is(State.Type.FAILED));`), but the method name implies it should not fail. If the intention is to test that the `Assert` task correctly triggers a failure, rename the method to something like `failOnCondition` or `shouldFailWhenAssertionFails`.</note>
+<notesplit />

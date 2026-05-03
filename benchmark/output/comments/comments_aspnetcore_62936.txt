@@ -1,0 +1,8 @@
+<path>src/SignalR/server/StackExchangeRedis/test/Docker.cs</path>
+<side>right</side>
+<from>19</from>
+<to>19</to>
+<note>**[Maintainability]** Hardcoding a private container registry URL (`dotnetdhmirror-f8bzbjakh8cga6ab.azurecr.io`) in the source code creates a tight coupling to specific infrastructure and may cause failures in environments without access to this private registry (e.g., local development or external CI).
+
+Consider using a public image (e.g., `redis:7.4`) or, if a private mirror is required for stability/caching, inject this value via an environment variable or a configuration file that can be overridden by the build environment.</note>
+<notesplit />

@@ -1,0 +1,22 @@
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestEntitlementsRule.java</path>
+<side>right</side>
+<from>166</from>
+<to>172</to>
+<note>**[Maintainability]** The `toString()` method uses `Strings.format` with `dataDirs()`, `sharedDataDir()`, and `repoDirs()`. Since these methods return arrays (`Path[]`), `Strings.format` will likely output the object reference (e.g., `[Ljava.nio.file.Path;@...`) instead of the actual contents of the arrays.
+
+Use `java.util.Arrays.toString()` or `java.util.Arrays.deepToString()` to ensure the paths are readable in logs.</note>
+<notesplit />
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestEntitlementsRule.java</path>
+<side>right</side>
+<from>157</from>
+<to>162</to>
+<note>**[Code Defect]** The `close()` method is currently a no-op with a comment explaining that node grants cannot be removed until the suite completes. However, the `EntitledNodePaths` record is designed to be `Closeable` and is passed a `Consumer<EntitledNodePaths> onClose` callback.
+
+If the intention is to support cleanup, the `onClose.accept(this)` call should be uncommented. If it is truly impossible to remove grants, the class should not implement `Closeable` to avoid misleading callers into thinking they can manage the lifecycle of these entitlements.</note>
+<notesplit />
+<path></path>
+<side>right</side>
+<from>48</from>
+<to>48</to>
+<note>**[Maintainability]** The assertion `assert (policyManager == null) == (pathLookup == null);` is good, but if this fails, the error message will be opaque. Consider adding a descriptive message to the assertion: `assert (policyManager == null) == (pathLookup == null) : "PolicyManager and PathLookup must both be null or both be non-null";`.</note>
+<notesplit />

@@ -1,0 +1,29 @@
+<path>src/Mod/Sketcher/App/AppSketcherPy.cpp</path>
+<side>right</side>
+<from>98</from>
+<to>99</to>
+<note>**[Code Defect]** The fix here is correct, but it highlights a potential lifetime issue. `file.fileNamePure()` returns a temporary `std::string` object. By assigning it to `auto filename` (a `std::string`), you ensure the string remains valid for the duration of the scope. The previous code `file.fileNamePure().c_str()` created a dangling pointer because the temporary string was destroyed at the end of the full expression. This is a good fix.</note>
+<notesplit />
+<path>src/Mod/Spreadsheet/Gui/AppSpreadsheetGui.cpp</path>
+<side>right</side>
+<from>72</from>
+<to>73</to>
+<note>**[Code Defect]** Similar to the Sketcher fix, this correctly addresses a dangling pointer issue. `file.fileNamePure()` returns a temporary object; storing it in a `std::string` variable before calling `.c_str()` ensures the underlying buffer is valid when passed to `addObject`.</note>
+<notesplit />
+<path>src/Mod/Part/App/modelRefine.cpp</path>
+<side>right</side>
+<from>1075</from>
+<to>1080</to>
+<note>**[Maintainability]** Commenting out code with a note that it "might not be an improvement" is generally discouraged in production code. If the `reserve` logic is redundant or potentially harmful, it should be removed entirely rather than left as commented-out "dead code." If you want to keep it for future performance testing, use a version control system (git) to track the history instead of cluttering the source file.</note>
+<notesplit />
+<path>src/Mod/TechDraw/App/EdgeWalker.cpp</path>
+<side>right</side>
+<from>453</from>
+<to>458</to>
+<note>**[Maintainability]** You have initialized the members `v1`, `v2`, and `idx` in the header file (lines 79-82) using brace initialization. The constructor `WalkerEdge()` now manually initializes `ed.m_source` and `ed.m_target`. It is cleaner and more consistent to use a member initializer list for `ed` as well:
+
+```cpp
+WalkerEdge::WalkerEdge() : ed{0, 0} {}
+```
+This avoids the two-step initialization process and is more idiomatic C++.</note>
+<notesplit />

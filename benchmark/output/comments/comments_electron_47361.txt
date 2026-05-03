@@ -1,0 +1,26 @@
+<path>shell/browser/api/electron_api_session.cc</path>
+<side>right</side>
+<from>359</from>
+<to>359</to>
+<note>**[Code Defect]** Potential Use-After-Free / Double Free.
+
+The `ClearDataTask` class now inherits from `gin_helper::CleanedUpAtExit`. If the `CleanedUpAtExit` mechanism triggers the destructor (e.g., during Node environment shutdown), it will delete the object. However, `OnTaskFinished` also calls `delete this`. 
+
+If `OnTaskFinished` is called while the object is being cleaned up by the `CleanedUpAtExit` registry, or if the registry attempts to clean up an object that has already been deleted by `OnTaskFinished`, this will lead to a double-free or use-after-free. You should ensure that `CleanedUpAtExit` is properly unregistered or that the destruction logic is idempotent.</note>
+<notesplit />
+<path>shell/browser/api/electron_api_session.cc</path>
+<side>right</side>
+<from>322</from>
+<to>329</to>
+<note>**[Performance]** Inefficient removal from `std::vector`.
+
+You are using `std::remove_if` followed by `erase` on a `std::vector` of `std::unique_ptr` to remove a single operation. While this is functionally correct, it is an O(N) operation. Given that `ClearDataOperation` is already known by pointer, if the order of operations does not matter, you could swap the target element with the back of the vector and `pop_back()` for O(1) performance. If order must be preserved, consider if `std::vector` is the appropriate container (e.g., `std::list` or `std::set` might be more appropriate if frequent removals are expected).</note>
+<notesplit />
+<path>shell/browser/api/electron_api_session.cc</path>
+<side>right</side>
+<from>217</from>
+<to>217</to>
+<note>**[Maintainability]** Manual memory management (`new`).
+
+The code transitions from `std::shared_ptr` to raw `new` for `ClearDataTask`. While you are managing the lifetime via `CleanedUpAtExit` and `delete this`, this pattern is error-prone in modern C++. If `OnTaskFinished` is not reached due to an early return or an exception (though unlikely here), the memory will leak. Consider using `std::unique_ptr` and `std::move` or a factory method that returns a `std::unique_ptr` to ensure exception safety and clearer ownership semantics.</note>
+<notesplit />

@@ -1,0 +1,36 @@
+<path>rag/utils/infinity_conn.py</path>
+<side>right</side>
+<from>578</from>
+<to>578</to>
+<note>**[Code Defect]** Logic error in string search.
+`ty.lower().find("cha")` returns the index of the substring "cha". If "cha" is found at index 0, the expression evaluates to `0` (falsy), causing the `if` block to be skipped even when the type is a character type. 
+Fix: Use `if "cha" in ty.lower():` instead.</note>
+<notesplit />
+<path>rag/utils/infinity_conn.py</path>
+<side>right</side>
+<from>592</from>
+<to>592</to>
+<note>**[Performance]** Potential performance bottleneck and index error.
+`row_to_opt[0]` assumes the DataFrame `row_to_opt` always has at least one row. If the search returns no results, this will raise an `IndexError`. Additionally, performing a full `to_df()` conversion on a potentially large result set for every update operation can be memory-intensive. Consider checking if the result is empty before accessing it.</note>
+<notesplit />
+<path>rag/utils/infinity_conn.py</path>
+<side>right</side>
+<from>609</from>
+<to>609</to>
+<note>**[Security]** Potential SQL/Query Injection.
+The code constructs a filter string using `",".join([f"'{id}'" for id in ids])`. While `id` is likely a UUID, if `id` values are not strictly validated or sanitized, this pattern is vulnerable to injection. Ensure that `id` values are strictly validated as UUIDs before being interpolated into the query string.</note>
+<notesplit />
+<path>graphrag/utils.py</path>
+<side>right</side>
+<from>595</from>
+<to>595</to>
+<note>**[Code Defect]** Inefficient and potentially incorrect logic.
+`sum([n in d["source_id"] for n in exclude_rebuild])` creates a list of booleans and sums them. If `exclude_rebuild` is a list, this checks if *any* of the items in `exclude_rebuild` exist in `d["source_id"]`. However, `sum` on a list of booleans is less readable than `any(n in d["source_id"] for n in exclude_rebuild)`. Furthermore, if `exclude_rebuild` contains duplicates, the sum might exceed 1, which is logically confusing for a filter check.</note>
+<notesplit />
+<path>graphrag/utils.py</path>
+<side>right</side>
+<from>601</from>
+<to>611</to>
+<note>**[Performance]** Inefficient graph merging.
+Inside the loop, `nx.compose(graph, next_graph)` is called repeatedly. For large graphs, this is an $O(N^2)$ operation relative to the number of subgraphs. Additionally, the manual dictionary comprehension for `merged_source` and the repeated `nx.set_node_attributes` calls inside the loop will significantly degrade performance as the graph grows. Consider batching the merges or using a more efficient graph aggregation strategy.</note>
+<notesplit />

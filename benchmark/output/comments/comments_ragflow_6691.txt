@@ -1,0 +1,24 @@
+<path>graphrag/general/extractor.py</path>
+<side>right</side>
+<from>204</from>
+<to>204</to>
+<note>**[Code Defect]** The `list.extend()` method in Python modifies the list in-place and returns `None`. 
+
+Calling `node0_attrs["source_id"].extend(...)` will return `None`, and passing `None` to `set()` will raise a `TypeError`. You should use the `+` operator to concatenate lists (e.g., `node0_attrs["source_id"] + node1_attrs.get("source_id", [])`) instead of `extend()`.</note>
+<notesplit />
+<path>graphrag/general/extractor.py</path>
+<side>right</side>
+<from>216</from>
+<to>216</to>
+<note>**[Code Defect]** Similar to the previous issue, `list.extend()` returns `None`. 
+
+Using `edge0_attrs[attr].extend(...)` inside the loop will result in `None` being passed to `set()`, causing a `TypeError`. Replace `edge0_attrs[attr].extend(...)` with `edge0_attrs[attr] + edge1_attrs.get(attr, [])`.</note>
+<notesplit />
+<path>graphrag/utils.py</path>
+<side>right</side>
+<from>442</from>
+<to>442</to>
+<note>**[Performance/Maintainability]** Using `lambda` inside a loop for `nursery.start_soon` can lead to closure capture issues (late binding). 
+
+While `trio.to_thread.run_sync` is used correctly here to offload blocking I/O, the `lambda` captures the loop variables `from_node` and `to_node` by reference. If the loop continues before the thread starts, all tasks might execute with the values from the final iteration. It is safer to use `functools.partial` or define a helper function to capture the arguments immediately.</note>
+<notesplit />

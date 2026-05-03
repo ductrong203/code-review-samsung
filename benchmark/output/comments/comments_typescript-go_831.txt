@@ -1,0 +1,24 @@
+<path>internal/ast/ast.go</path>
+<side>right</side>
+<from>3717</from>
+<to>3719</to>
+<note>**[Maintainability]** The removal of the `KindJSTypeAliasDeclaration` check in `VisitEachChild` for `TypeAliasDeclaration` seems to rely on the assumption that `UpdateTypeAliasDeclaration` handles both kinds correctly. However, `UpdateTypeAliasDeclaration` now calls `newTypeAliasOrJSTypeAliasDeclaration` using `node.Kind`, which is correct, but the logic in `VisitEachChild` previously explicitly handled the `JSTypeAliasDeclaration` case. Ensure that `UpdateTypeAliasDeclaration` and the factory methods are fully compatible with the `JSTypeAliasDeclaration` kind without the explicit branch, as this could lead to subtle bugs if the factory logic diverges in the future.</note>
+<notesplit />
+<path>internal/ast/ast.go</path>
+<side>right</side>
+<from>4060</from>
+<to>4062</to>
+<note>**[Maintainability]** The introduction of `NewJSImportDeclaration` is good for clarity, but ensure that all downstream consumers of the AST that expect `ImportDeclaration` are updated to handle `JSImportDeclaration` where appropriate. While you have updated many switch statements, verify that any code using type assertions or specific field access on `ImportDeclaration` (which might now be a `JSImportDeclaration`) is safe.</note>
+<notesplit />
+<path>internal/parser/reparser.go</path>
+<side>right</side>
+<from>119</from>
+<to>126</to>
+<note>**[Code Defect]** In `reparseTags`, you are cloning the `importClause` and setting `IsTypeOnly = true`. If the original `importTag.ImportClause` contains complex structures or references that are not deep-copied by `Clone()`, this could lead to shared mutable state between the original JSDoc tag and the new synthetic `JSImportDeclaration`. Verify that `Clone()` performs a sufficient deep copy for the `ImportClauseNode` to prevent side effects during transformation or type checking.</note>
+<notesplit />
+<path>internal/checker/checker.go</path>
+<side>right</side>
+<from>29413</from>
+<to>29413</to>
+<note>**[Maintainability]** The condition `(parent.Kind == ast.KindImportDeclaration || parent.Kind == ast.KindJSImportDeclaration || parent.Kind == ast.KindExportDeclaration)` is becoming repetitive. Consider creating a helper function like `ast.IsImportOrExportDeclaration(node)` to encapsulate this logic, which would improve readability and reduce the risk of missing a kind in future updates.</note>
+<notesplit />

@@ -1,0 +1,26 @@
+<path>backend/cpp/llama/grpc-server.cpp</path>
+<side>right</side>
+<from>2417</from>
+<to>2422</to>
+<note>**[Code Defect]** Potential runtime panic. 
+
+The code uses `result.result_json.at("timings")` inside an `if` block that checks `contains("timings")`. While this is safe, the subsequent calls to `.value("prompt_ms", 0.0)` and `.value("predicted_ms", 0.0)` are performed on the result of `at("timings")`. If the "timings" key exists but is not a JSON object (e.g., it's a null or a string), `at()` will return the value, but calling `.value()` on a non-object type will throw an exception in `nlohmann::json`. 
+
+Consider using `result.result_json["timings"].value(...)` directly or adding a check to ensure `result.result_json["timings"].is_object()` before accessing keys within it.</note>
+<notesplit />
+<path>core/http/endpoints/openai/chat.go</path>
+<side>right</side>
+<from>185</from>
+<to>185</to>
+<note>**[Maintainability]** Hardcoded header string.
+
+The header name `LocalAI-Extra-Usage` is used as a magic string in multiple files (`chat.go`, `completion.go`, `edit.go`). This should be defined as a constant in a shared package (e.g., `core/http/constants.go` or similar) to prevent typos and improve maintainability.</note>
+<notesplit />
+<path>core/http/endpoints/openai/completion.go</path>
+<side>right</side>
+<from>182</from>
+<to>183</to>
+<note>**[Code Defect]** Logic error in accumulation.
+
+In `CompletionEndpoint`, you are accumulating `TimingTokenGeneration` and `TimingPromptProcessing` into `totalTokenUsage`. However, `TimingPromptProcessing` represents a duration (ms) for the prompt phase. If multiple chunks are processed, summing these durations might lead to misleading metrics if the prompt is only processed once at the start. Ensure that the backend logic correctly distinguishes between per-chunk generation time and the initial prompt processing time to avoid inflating the `totalTokenUsage` metrics.</note>
+<notesplit />

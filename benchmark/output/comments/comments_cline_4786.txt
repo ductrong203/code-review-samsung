@@ -1,0 +1,18 @@
+<path>src/extension.ts</path>
+<side>right</side>
+<from>314</from>
+<to>314</to>
+<note>**[Maintainability and Readability]** The warning message `Store token returned from ${uri.path}` is likely confusing to the end user. 
+
+The `uri.path` will contain the internal path of the callback (e.g., `/auth`), which doesn't provide meaningful context to the user about *why* the state mismatch occurred or what they are actually confirming. Since this is a security-sensitive operation (validating the OAuth state), the message should clearly explain that the authentication request origin could not be verified and ask if they trust the source.</note>
+<notesplit />
+<path>src/services/auth/AuthService.ts</path>
+<side>right</side>
+<from>33</from>
+<to>33</to>
+<note>**[Security Vulnerability]** By making `_authNonce` a static, read-only property generated at class instantiation, you have effectively removed the "nonce" (number used once) property of the state parameter. 
+
+If the `AuthService` is a long-lived singleton, the `authNonce` will remain identical for the entire lifecycle of the extension host. This makes the state parameter predictable and vulnerable to Cross-Site Request Forgery (CSRF) attacks, as an attacker could potentially pre-calculate or guess the static state value. 
+
+**Recommendation:** If you want to avoid race conditions while maintaining security, consider using a Map or a cache with a TTL (Time-To-Live) to store multiple active nonces, or regenerate the nonce periodically/per-request while allowing a small grace period for pending callbacks.</note>
+<notesplit />

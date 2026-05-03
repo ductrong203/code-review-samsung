@@ -1,0 +1,10 @@
+<path>packages/react-dom/src/__tests__/ReactDOMForm-test.js</path>
+<side>right</side>
+<from>1673</from>
+<to>1702</to>
+<note>**[Code Defect]** Potential race condition and test flakiness due to improper `act` usage.
+
+In the second `act` block (lines 1697-1700), you are triggering `requestSubmit()` and calling `resolve()` synchronously. Because `requestSubmit()` is asynchronous and `resolve()` triggers the completion of the first action, the test relies on the internal scheduling of the `submitForm` promise to ensure the second action is actually queued or handled correctly. 
+
+Furthermore, `assertLog(['Action'])` at line 1701 only checks for one 'Action' log, but if the second submission was successfully queued and executed, you should expect two 'Action' logs. If the intention is to verify that the second submission does not throw, you should explicitly assert that both actions eventually complete or that the second action is also logged.</note>
+<notesplit />

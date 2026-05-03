@@ -1,0 +1,16 @@
+<path>packages/cli/src/nonInteractiveCli.ts</path>
+<side>right</side>
+<from>33</from>
+<to>33</to>
+<note>**[Code Defect]** The removal of `await config.initialize()` in `runNonInteractive` is a potential bug. 
+
+The `Config` class now enforces a single-initialization check (added in `packages/core/src/config/config.ts`), and `loadCliConfig` (which calls `new Config(...)`) does not appear to call `initialize()` internally. If `runNonInteractive` is the entry point for non-interactive flows, the configuration might remain uninitialized, potentially causing `getFileService()` or other lazy-loaded dependencies to fail or behave unexpectedly when accessed later. Ensure that `initialize()` is called exactly once in the lifecycle of the `Config` object.</note>
+<notesplit />
+<path>packages/cli/src/config/config.ts</path>
+<side>right</side>
+<from>371</from>
+<to>371</to>
+<note>**[Maintainability]** The logic for determining `interactive` status is duplicated between `loadCliConfig` (line 375) and the logic previously used in `gemini.tsx`. 
+
+While this PR cleans up `gemini.tsx`, it introduces a complex ternary expression for `interactive` inside `loadCliConfig`. Consider moving this logic into a static factory method or a helper function within `Config` or a dedicated utility to ensure consistency and improve testability, as the current implementation relies on `process.stdin.isTTY` and `argv` state which is prone to drift.</note>
+<notesplit />

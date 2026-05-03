@@ -1,0 +1,26 @@
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>right</side>
+<from>46</from>
+<to>46</to>
+<note>**[Code Defect]** Potential URL construction issue.
+
+Using `location.origin` directly inside `generateIframeSrc` can lead to issues if the application is served behind a proxy or if the `token`, `form`, or `beta` variables contain characters that require URL encoding. 
+
+Additionally, if `token`, `form`, or `beta` are user-controlled or come from external sources, they should be passed through `encodeURIComponent()` to prevent malformed URLs or potential injection of unexpected query parameters.</note>
+<notesplit />
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>right</side>
+<from>88</from>
+<to>93</to>
+<note>**[Maintainability]** Missing `allowClear` on the `Select` component.
+
+The `locale` state is initialized as an empty string, but the `Select` component does not provide a way for the user to revert to the "default" (empty) state once a language has been selected. Adding `allowClear` to the `Select` component would improve the user experience by allowing them to clear the selection.</note>
+<notesplit />
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>right</side>
+<from>80</from>
+<to>80</to>
+<note>**[Maintainability]** Use of `<h2>` inside a component.
+
+Using `<h2>` directly inside a component can lead to accessibility issues and inconsistent heading hierarchies (e.g., skipping `<h1>` or nesting headers incorrectly). It is recommended to use the `Typography.Title` component from Ant Design to ensure consistent styling and proper semantic structure.</note>
+<notesplit />

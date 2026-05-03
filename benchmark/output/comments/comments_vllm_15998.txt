@@ -1,0 +1,10 @@
+<path>benchmarks/benchmark_throughput.py</path>
+<side>right</side>
+<from>473</from>
+<to>479</to>
+<note>**[Code Defect]** The logic for validating `args.dataset_path` against `SUPPORTED_DATASET_PATHS` is inconsistent and potentially buggy.
+
+In lines 474-475, you are calling `.keys()` on `VisionArenaDataset.SUPPORTED_DATASET_PATHS` (which implies it is a dictionary), but in line 477, you are performing a set union (`|`) directly on `InstructCoderDataset.SUPPORTED_DATASET_PATHS` (which implies it is a set or a dictionary). 
+
+If `SUPPORTED_DATASET_PATHS` are dictionaries, `|` will not work as expected in Python (it is not supported for dicts). If they are sets, calling `.keys()` will raise an `AttributeError`. Please ensure all `SUPPORTED_DATASET_PATHS` are consistently defined as sets or handle the types appropriately to ensure the union operation is valid.</note>
+<notesplit />

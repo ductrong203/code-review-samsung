@@ -1,0 +1,24 @@
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>79</from>
+<to>93</to>
+<note>**[Performance/Maintainability]** The `retryConnect` method runs an infinite loop with `time.Sleep` without checking for context cancellation or a shutdown signal. 
+
+If the application is shutting down, this goroutine will continue to attempt reconnections indefinitely, potentially causing resource leaks or preventing the application from exiting cleanly. Consider passing a `context.Context` to `retryConnect` and using a `select` statement to handle `ctx.Done()` for graceful termination.</note>
+<notesplit />
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>347</from>
+<to>361</to>
+<note>**[Code Defect]** The `checkClient` function is called in every public method (Publish, CreateTopic, etc.) to ensure the client is connected. However, `checkClient` performs a nil check on `c` (the client itself). 
+
+If `c` is nil, it returns `errClientNotConnected`. While this prevents a panic, it is misleading. If the receiver `c` is nil, the method call itself would have panicked before reaching `checkClient` if it were called as `c.Publish(...)`. If these methods are intended to be safe for nil receivers, the nil check should be at the start of the method, but generally, in Go, methods on nil receivers are discouraged unless explicitly designed for it.</note>
+<notesplit />
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>50</from>
+<to>50</to>
+<note>**[Maintainability]** The `Connect` method spawns a `go c.retryConnect()` goroutine when the initial connection fails. This creates a "hidden" background process that the caller of `Connect` has no control over. 
+
+If the initial connection fails, the `Connect` method returns an error, but the client remains in a state where it will eventually connect in the background. This makes the lifecycle of the `Client` non-deterministic for the user. It would be better to either make `Connect` block until success (with a timeout) or provide a clear way to monitor the connection status.</note>
+<notesplit />

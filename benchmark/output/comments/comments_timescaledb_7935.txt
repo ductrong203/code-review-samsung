@@ -1,0 +1,16 @@
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>3895</from>
+<to>3896</to>
+<note>**[Performance]** The call to `RelationGetHypercoreInfo(rel)` is placed inside a loop in `convert_index_only_scans`. 
+
+Since `RelationGetHypercoreInfo` performs a cache lookup (and potentially a `table_open` if the cache is invalid), calling it repeatedly inside the `for` loop is inefficient. You should move the `RelationGetHypercoreInfo(rel)` call outside the `for` loop, as the `HypercoreInfo` will not change during the iteration of the index keys.</note>
+<notesplit />
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>1865</from>
+<to>1867</to>
+<note>**[Maintainability]** The comment in `hypercore_tuple_delete` correctly identifies that `caminfo` (now `hcinfo`) can be invalidated by `table_open`. However, the code now calls `RelationGetHypercoreInfo(relation)` inside `is_whole_segment_delete` (via `whole_segment_delete_state_create`).
+
+While this fixes the immediate bug, it creates a pattern where `RelationGetHypercoreInfo` is called repeatedly in performance-sensitive paths. Ensure that `RelationGetHypercoreInfo` is as lightweight as possible, as it is now being invoked frequently to guard against cache invalidation.</note>
+<notesplit />

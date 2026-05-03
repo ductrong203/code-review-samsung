@@ -1,0 +1,37 @@
+<path>.github/scripts/download-translations.js</path>
+<side>right</side>
+<from>10</from>
+<to>10</to>
+<note>**[Code Defect]** Environment variable mismatch.
+
+The script attempts to read `process.env.POEDITOR_API`, but the GitHub Actions workflow (in `.github/workflows/poeditor-sync.yml` line 57) provides the secret as `POEDITOR_API_TOKEN`. The script will fail to authenticate because `API_TOKEN` will be undefined. Please update this to `process.env.POEDITOR_API_TOKEN`.</note>
+<notesplit />
+<path>.github/workflows/poeditor-sync.yml</path>
+<side>right</side>
+<from>28</from>
+<to>28</to>
+<note>**[Security Vulnerability]** Insufficient permissions for `GITHUB_TOKEN`.
+
+By default, the `GITHUB_TOKEN` has read-only permissions. Since this workflow performs a `git push` (line 91), the workflow will fail unless the repository settings are configured to grant "Read and write permissions" to the workflow. It is recommended to explicitly define the permissions block at the job level to follow the principle of least privilege.
+
+```yaml
+permissions:
+  contents: write
+```</note>
+<notesplit />
+<path>.github/scripts/download-translations.js</path>
+<side>right</side>
+<from>45</from>
+<to>45</to>
+<note>**[Performance/Maintainability]** Inefficient HTTP request handling.
+
+Using `axios.get(fileUrl, { responseType: 'json' })` is risky for large translation files as it loads the entire file into memory. Furthermore, if the POEditor export URL returns a redirect or a large payload, it is safer to use a streaming approach or ensure the response is validated before parsing. Additionally, consider adding a timeout to the axios request to prevent the workflow from hanging indefinitely if the POEditor API is unresponsive.</note>
+<notesplit />
+<path>.github/workflows/poeditor-sync.yml</path>
+<side>right</side>
+<from>91</from>
+<to>91</to>
+<note>**[Code Defect]** Potential push failure due to branch protection.
+
+If the `main` branch has branch protection rules enabled (e.g., "Require pull request reviews before merging"), the `git push` command will fail. Ensure that the GitHub Actions bot has the necessary bypass permissions or that the workflow is configured to create a Pull Request instead of pushing directly to `main`.</note>
+<notesplit />

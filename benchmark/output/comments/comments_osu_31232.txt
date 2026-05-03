@@ -1,0 +1,10 @@
+<path>osu.Game.Rulesets.Osu/Mods/OsuModSuddenDeath.cs</path>
+<side>right</side>
+<from>30</from>
+<to>30</to>
+<note>**[Code Defect]** The logic `result.HitObject is SliderTailCircle` is likely incorrect for detecting slider tail misses.
+
+In `osu-stable` and `osu-lazer` logic, a slider tail is typically represented by a `SliderTailCircle` nested within a `Slider`. However, depending on the current ruleset implementation, checking `is SliderTailCircle` might not be sufficient if the `HitObject` is the slider itself or if the tail is handled differently during scoring. 
+
+More importantly, if `SliderTailCircle` is a nested object, ensure that `result.HitObject` actually returns the nested object and not the parent `Slider`. If this logic fails to trigger, verify if you need to check `result.HitObject is SliderTailCircle` or if you should be checking the `Judgement` type associated with the result.</note>
+<notesplit />

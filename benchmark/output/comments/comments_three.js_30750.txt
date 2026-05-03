@@ -1,0 +1,23 @@
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>173</from>
+<to>198</to>
+<note>**[Code Defect]** The `mergeOverlappingPoints` function contains an infinite loop risk and logic error. 
+
+1. **Infinite Loop:** The loop condition `i <= points.length` combined with `i--` when an element is removed is dangerous. If the last element is removed, `i` becomes `points.length`, and the loop continues, potentially re-evaluating the same indices or causing an out-of-bounds access.
+2. **Logic Error:** By using `i % points.length` and `points.splice`, you are modifying the array while iterating. When you remove an element, the indices of all subsequent elements shift. The `prevPos` variable is not correctly updated to reflect the new state of the array after a splice, leading to incorrect distance comparisons for the next iteration.
+
+**Recommendation:** Iterate backwards through the array (from `points.length - 1` down to `0`) to safely remove elements without affecting the indices of the elements yet to be processed.</note>
+<notesplit />
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>181</from>
+<to>187</to>
+<note>**[Performance]** The `scalingFactorSqrt` calculation is performed inside the loop for every pair of points. This involves multiple `Math.abs` and `Math.max` calls. While not a massive bottleneck, it is redundant to calculate this for every iteration. Furthermore, if all coordinates are very small (e.g., near 0), `thesholdSqScaled` will approach 0, potentially causing the welding logic to fail for valid small-scale geometry. Consider using a fixed epsilon or a more robust normalization strategy.</note>
+<notesplit />
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>442</from>
+<to>442</to>
+<note>**[Code Defect]** The triangulation logic has been moved inside the `bevelSegments` loop (implied by the context of `t == 0` checks). However, `ShapeUtils.triangulateShape` is now being called inside a loop structure that iterates over `bevelSegments`. If `bevelSegments > 0`, this function is called repeatedly. If the intention was to triangulate the base shape once, this should be moved outside the loop to avoid redundant, expensive triangulation calculations.</note>
+<notesplit />

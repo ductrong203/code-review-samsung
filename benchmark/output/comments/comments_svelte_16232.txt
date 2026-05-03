@@ -1,0 +1,24 @@
+<path>packages/svelte/src/compiler/phases/2-analyze/index.js</path>
+<side>right</side>
+<from>444</from>
+<to>456</to>
+<note>**[Maintainability]** The logic for detecting legacy features (labeled statements, `export let`, etc.) is becoming quite complex and is duplicated in spirit with other parts of the compiler. 
+
+While this is necessary for the "maybe_runes" heuristic, consider extracting this predicate into a named helper function (e.g., `is_legacy_component(instance)`) to improve readability and maintainability of `analyze_component`.</note>
+<notesplit />
+<path>packages/svelte/src/compiler/phases/3-transform/client/visitors/shared/utils.js</path>
+<side>right</side>
+<from>376</from>
+<to>376</to>
+<note>**[Code Defect]** The comment mentions that this change was made because the previous behavior "broke people's existing components." 
+
+By adding `maybe_runes` to the bail condition, you are effectively forcing fine-grained reactivity on components that might have been relying on legacy Svelte 4 behavior (e.g., non-reactive variable updates). Ensure that this "in-between-mode" does not cause silent regressions for components that contain both runes and legacy patterns, as the compiler might now attempt to apply fine-grained reactivity to variables that are not actually reactive.</note>
+<notesplit />
+<path>packages/svelte/tests/snapshot/samples/purity/_expected/client/index.svelte.js</path>
+<side>right</side>
+<from>11</from>
+<to>15</to>
+<note>**[Performance]** The snapshot shows that `$.untrack(() => Math.max(0, Math.min(0, 100)))` was replaced with a static string `'0'`, and `$.untrack(() => location.href)` was replaced with `location.href`. 
+
+While this is a positive optimization (constant folding), ensure that the `maybe_runes` logic isn't over-aggressively stripping `$.untrack` wrappers in cases where the expression might actually have side effects or dependencies that the compiler now incorrectly assumes are static. Verify that the compiler's purity analysis remains sound under this new mode.</note>
+<notesplit />

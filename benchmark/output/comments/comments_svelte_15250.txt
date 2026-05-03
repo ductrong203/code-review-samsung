@@ -1,0 +1,16 @@
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>66</from>
+<to>66</to>
+<note>**[Code Defect]** The check `hydrate_index !== hydrate_index` is a standard way to check for `NaN` in JavaScript, but it is fragile and can be confusing to maintain. 
+
+Consider using `Number.isNaN(hydrate_index)` for better readability and intent.</note>
+<notesplit />
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>65</from>
+<to>65</to>
+<note>**[Code Defect]** `parseInt(data.substring(1))` is used to parse the hydration index. If `data` does not start with a valid integer (e.g., if the comment format is malformed or unexpected), `parseInt` will return `NaN`. 
+
+While you handle the `NaN` case on line 66, ensure that the `substring(1)` operation is safe. If `data` is an empty string, `substring(1)` returns an empty string, and `parseInt('')` returns `NaN`. This is handled, but it is worth adding a defensive check or a comment explaining that `data` is expected to be in the format `<!--[N-->`.</note>
+<notesplit />

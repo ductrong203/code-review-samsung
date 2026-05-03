@@ -1,0 +1,24 @@
+<path>app/views/general/error.phtml</path>
+<side>right</side>
+<from>18</from>
+<to>23</to>
+<note>**[Maintainability]** The code introduces a `_APP_CONSOLE_DOMAIN` override, but the existing "development override" logic (lines 20-22) remains. 
+
+If `_APP_ENV` is set to `development`, the `$hostname` variable is overwritten with `'localhost'`, effectively ignoring the new `_APP_CONSOLE_DOMAIN` configuration. This creates inconsistent behavior across the application. Consider removing the hardcoded development override in favor of setting `_APP_CONSOLE_DOMAIN=localhost` in your development `.env` file to maintain a single source of truth.</note>
+<notesplit />
+<path>app/controllers/api/vcs.php</path>
+<side>right</side>
+<from>119</from>
+<to>120</to>
+<note>**[Maintainability]** There is significant code duplication across multiple methods in `app/controllers/api/vcs.php` where the `$protocol` and `$hostname` are recalculated repeatedly. 
+
+Since these values are derived from environment variables, consider moving this logic into a helper method or a private class property to ensure consistency and reduce boilerplate code.</note>
+<notesplit />
+<path>src/Appwrite/Vcs/Comment.php</path>
+<side>right</side>
+<from>89</from>
+<to>90</to>
+<note>**[Performance]** The `$protocol` and `$hostname` are being recalculated inside a `foreach` loop (lines 88-90). 
+
+Since these values are based on environment variables and do not change during the execution of the loop, they should be calculated once before the loop starts to improve performance.</note>
+<notesplit />

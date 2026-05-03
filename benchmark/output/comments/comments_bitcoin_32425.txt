@@ -1,0 +1,18 @@
+<path>src/init.cpp</path>
+<side>right</side>
+<from>1625</from>
+<to>1638</to>
+<note>**[Code Defect]** Logic error in proxy assignment.
+
+When `net_str` is empty (the default case), the code sets `ipv4_proxy = ipv6_proxy = name_proxy = cjdns_proxy = onion_proxy = proxy;`. However, if a user provides multiple `-proxy` arguments, a later generic `-proxy=...` will overwrite specific network proxies set by earlier arguments. 
+
+While the documentation states "later occurrences override earlier ones", this implementation wipes out all previous network-specific configurations even if the current argument is intended to be global. If the intention is to allow granular control, this "all-or-nothing" assignment makes it difficult to mix global and specific settings. Please verify if this behavior is intended or if it should only update the networks not yet explicitly configured.</note>
+<notesplit />
+<path>src/init.cpp</path>
+<side>right</side>
+<from>1602</from>
+<to>1607</to>
+<note>**[Maintainability]** Potential for subtle bugs with `rfind('=')`.
+
+The code uses `param_value.rfind('=')` to split the proxy address from the network string. If a user provides a UNIX socket path that contains an equals sign (e.g., `-proxy=unix:/path/to/socket=with=equals`), the `rfind` will incorrectly identify the last `=` as the separator for the network string. While UNIX socket paths with `=` are rare, they are technically valid filesystem paths. Consider validating that the part after the last `=` is actually a recognized network string before treating it as such, or document this limitation clearly.</note>
+<notesplit />

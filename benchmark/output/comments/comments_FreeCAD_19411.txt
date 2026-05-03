@@ -1,0 +1,20 @@
+<path>src/Mod/TechDraw/App/DrawViewPart.cpp</path>
+<side>right</side>
+<from>1338</from>
+<to>1383</to>
+<note>**[Code Defect]** The removal of the `else` block in `getDirsFromFront` introduces a potential logic error. 
+
+Previously, if an unknown `viewType` was passed, the function logged an error and returned a fallback pair. Now, if `viewType` does not match any of the `if/else if` conditions, the function proceeds to line 1385 and returns `std::make_pair(projDir, rotVec)` where `projDir` and `rotVec` are uninitialized (default-constructed `Base::Vector3d` objects). This will likely lead to undefined behavior or invalid projection calculations in the calling code. 
+
+**Fix:** Either restore the error handling and fallback return, or ensure that `projDir` and `rotVec` are initialized to safe defaults, or throw an exception if an invalid `viewType` is encountered.</note>
+<notesplit />
+<path>src/Mod/TechDraw/App/DrawProjGroup.cpp</path>
+<side>right</side>
+<from>1112</from>
+<to>1122</to>
+<note>**[Maintainability]** The logic in `updateSecondaryDirs` has been simplified, but it now silently ignores any `ProjDirection` that is not `Front` and not handled by the `getDirsFromFront(t)` call. 
+
+While the previous implementation had a `default` case that logged an error for invalid types, the new implementation simply skips them. If an invalid type is passed, `saveVals` will not contain an entry for that type, which will cause `data = saveVals[type]` at line 1128 to insert a default-constructed `std::pair` into the map, leading to incorrect projection updates.
+
+**Fix:** Add an `else` block to handle unexpected `ProjDirection` values, ideally logging an error or asserting that the type is valid.</note>
+<notesplit />

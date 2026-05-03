@@ -1,0 +1,20 @@
+<path>src/Mod/Fem/App/AppFemPy.cpp</path>
+<side>right</side>
+<from>254</from>
+<to>260</to>
+<note>**[Code Defect]** Potential memory leak and improper resource management.
+
+When using `PyArg_ParseTuple` with the `"et"` format specifier, the caller is responsible for freeing the allocated buffer using `PyMem_Free`. While you are calling `PyMem_Free(filename)`, if `std::string(filename)` throws an exception (e.g., `std::bad_alloc`), the memory will leak. 
+
+**Recommended Fix:** Use a RAII wrapper or ensure the `PyMem_Free` call is protected by a try-catch block or a scope guard. Alternatively, consider using `PyUnicode_AsUTF8` which returns a pointer to the internal buffer of the string object, avoiding manual allocation and `PyMem_Free` entirely.</note>
+<notesplit />
+<path>src/Mod/Fem/App/AppFemPy.cpp</path>
+<side>right</side>
+<from>262</from>
+<to>262</to>
+<note>**[Maintainability]** Missing error handling for file operations.
+
+The function `FemVTKTools::frdToVTK` is called without checking for success or failure. If the file does not exist, is corrupted, or if an internal error occurs during parsing, the user will receive no feedback, or the application might crash depending on the implementation of `frdToVTK`.
+
+**Recommended Fix:** Update `FemVTKTools::frdToVTK` to return a boolean or throw a C++ exception that can be caught and translated into a Python exception, ensuring the user is notified of the failure.</note>
+<notesplit />

@@ -1,0 +1,10 @@
+<path>packages/support/src/helpers.php</path>
+<side>right</side>
+<from>184</from>
+<to>188</to>
+<note>**[Code Defect]** Potential SQL Injection vulnerability.
+
+The code manually constructs a SQL string using `$column = "json_extract({$field}{$path})";` after extracting parts of the column name. If `$field` or `$path` contain user-controlled input that hasn't been properly escaped by the database driver's grammar, this could lead to SQL injection. 
+
+While `wrapJsonFieldAndPath` is an internal method, relying on string concatenation for SQL construction is risky. Ensure that the values returned by the grammar are treated as identifiers and properly escaped, or use the database driver's parameter binding/quoting methods instead of raw string interpolation.</note>
+<notesplit />

@@ -1,0 +1,32 @@
+<path>comfy/weight_adapter/lora.py</path>
+<side>right</side>
+<from>45</from>
+<to>45</to>
+<note>**[Code Defect]** Potential shape mismatch. 
+
+In `LoraDiff.__call__`, `self.lora_up.weight @ self.lora_down.weight` performs a matrix multiplication. If the original weight `w` is a 4D tensor (e.g., Conv2d), the resulting `diff` will be 2D. The subsequent `reshape(w.shape)` on line 51 will fail if the dimensions do not align perfectly. You should ensure the LoRA weights are reshaped to match the target weight's dimensionality before the multiplication or use `torch.einsum` to handle the contraction correctly for higher-dimensional tensors.</note>
+<notesplit />
+<path>comfy/weight_adapter/lora.py</path>
+<side>right</side>
+<from>32</from>
+<to>33</to>
+<note>**[Performance]** Unnecessary memory allocation and copy.
+
+Using `torch.empty(...).copy_(mat)` is less efficient than `torch.nn.Parameter(mat.clone())` or simply assigning the tensor directly if the memory is already on the correct device. Additionally, if `mat1` or `mat2` are already tensors, `copy_` triggers an extra synchronization point. Consider using `torch.nn.Parameter(mat1)` directly to avoid the redundant allocation.</note>
+<notesplit />
+<path>comfy/weight_adapter/base.py</path>
+<side>right</side>
+<from>54</from>
+<to>55</to>
+<note>**[Maintainability]** Incomplete implementation.
+
+The `passive_memory_usage` method raises a `NotImplementedError` in the base class, but it is called in `move_to` (line 59). If a subclass fails to implement this, the training node will crash at runtime. It is safer to provide a default implementation (e.g., returning 0 or calculating based on `self.parameters()`) or enforce implementation via an `@abstractmethod` decorator from the `abc` module to catch this at instantiation time.</note>
+<notesplit />
+<path>folder_paths.py</path>
+<side>right</side>
+<from>417</from>
+<to>421</to>
+<note>**[Performance]** Inefficient directory traversal.
+
+`os.walk` is used to recursively find all subfolders. If the `input` directory contains a very large number of files or deep structures, this will be slow and block the main thread. Since this is likely called during UI initialization or node loading, consider adding a depth limit or caching the result if the directory structure hasn't changed.</note>
+<notesplit />

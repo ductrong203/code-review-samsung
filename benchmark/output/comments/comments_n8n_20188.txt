@@ -1,0 +1,24 @@
+<path>packages/cli/src/controllers/users.controller.ts</path>
+<side>right</side>
+<from>99</from>
+<to>104</to>
+<note>**[Performance]** The `removeSupplementaryFields` method now performs `zod.parse()` inside a loop over the `publicUsers` array. 
+
+`zod.parse()` is a relatively expensive operation involving schema validation. If `publicUsers` contains a large number of items, this will significantly increase the latency of the `GET /users` endpoint. Since `publicUsers` is presumably already validated or comes from a trusted internal source, consider using `zod.safeParse()` or, better yet, a simple object transformation (e.g., `lodash.pick` or object destructuring) to strip the fields instead of re-validating the entire object structure for every item in the list.</note>
+<notesplit />
+<path>packages/cli/src/controllers/users.controller.ts</path>
+<side>right</side>
+<from>101</from>
+<to>103</to>
+<note>**[Code Defect]** The logic `usersSeesAllDetails || user.id === currentUser.id` assumes that `currentUser` is always defined and has an `id` property. 
+
+If `req.user` (passed as `currentUser`) is undefined or malformed, this will throw a runtime error. Ensure that `currentUser` is validated or checked for existence before accessing `currentUser.id` to prevent potential 500 errors.</note>
+<notesplit />
+<path>packages/cli/test/integration/users.api.test.ts</path>
+<side>right</side>
+<from>801</from>
+<to>801</to>
+<note>**[Maintainability]** The test uses `expect(user).not.toHaveProperty(field)` inside a loop. 
+
+While this works, it is brittle. If the `userBaseSchema` or `userDetailSchema` definitions change, this test might pass even if sensitive data is leaked through new fields added to the object. It is safer to explicitly define the expected shape of the "restricted" user object and compare the actual object against that shape, rather than relying on a blacklist of fields.</note>
+<notesplit />

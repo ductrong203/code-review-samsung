@@ -1,0 +1,22 @@
+<path>packages/cli/src/utils/commentJson.ts</path>
+<side>right</side>
+<from>45</from>
+<to>45</to>
+<note>**[Code Defect]** The `applyUpdates` function performs a shallow copy of the `current` object by assigning `const result = current;`. Because `result` is a reference to the original object, the recursive calls to `result[key] = applyUpdates(...)` mutate the original object in place. 
+
+If `updateSettingsFilePreservingFormat` is called multiple times or if the `parsed` object is reused elsewhere, this mutation can lead to unexpected side effects. It is safer to perform a shallow clone of the object at each level of recursion (e.g., `const result = { ...current };`) to ensure immutability during the update process.</note>
+<notesplit />
+<path>packages/cli/src/utils/commentJson.ts</path>
+<side>right</side>
+<from>47</from>
+<to>47</to>
+<note>**[Maintainability]** Using `Object.getOwnPropertyNames(updates)` will include non-enumerable properties if any exist on the `updates` object. While unlikely for a plain JSON object, it is standard practice in JavaScript to use `Object.keys(updates)` or a `for...in` loop with `hasOwnProperty` checks when iterating over data objects to avoid unexpected behavior with prototype properties or non-enumerable metadata.</note>
+<notesplit />
+<path>packages/cli/src/utils/commentJson.ts</path>
+<side>right</side>
+<from>49</from>
+<to>60</to>
+<note>**[Code Defect]** The logic for merging nested objects is overly restrictive. If `result[key]` does not exist (is `undefined`), the current implementation skips the recursive merge and simply overwrites the key with the new value. This prevents the function from correctly merging deep structures if the original file is missing a nested key that is present in the `updates` object.
+
+Consider checking if `result[key]` is undefined and initializing it as an empty object `{}` before recursing.</note>
+<notesplit />

@@ -1,0 +1,20 @@
+<path>plugins/org.jkiss.dbeaver.model.rcp/src/org/jkiss/dbeaver/model/navigator/DBNResource.java</path>
+<side>right</side>
+<from>423</from>
+<to>429</to>
+<note>**[Performance/Resource Management]** The `getAdapter` method is intended to be a lightweight lookup mechanism. By opening an `InputStream` (via `file.getContents()`) inside this method, you are forcing the caller to manage a resource that they may not expect to be opened. 
+
+Furthermore, `getAdapter` is often called multiple times by the Eclipse/DBeaver framework (e.g., for UI property lookups). Opening a file stream every time this is called will lead to resource leaks if the caller does not explicitly close the stream, or performance degradation if the file is large. 
+
+**Recommendation:** Do not open the `InputStream` inside `getAdapter`. Instead, provide a dedicated method (e.g., `getContentStream()`) that clearly indicates the caller is responsible for closing the stream.</note>
+<notesplit />
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/navigator/fs/DBNPathBase.java</path>
+<side>right</side>
+<from>293</from>
+<to>301</to>
+<note>**[Code Defect]** The logic inside the `try-with-resources` block is potentially unsafe. If `node.getAdapter(InputStream.class)` returns a stream, but `Files.copy` fails (e.g., due to an `IOException` like disk full or permission denied), the `monitor.worked(1)` call is inside the `finally` block, which is correct, but the error is not caught or logged. 
+
+Additionally, if `node.getAdapter` returns an `InputStream`, it is assumed that the caller is the owner of that stream. If the implementation of `getAdapter` (as seen in the other file) opens a new stream every time, this is acceptable, but if it were to return a shared stream, this would be dangerous. Given the implementation in `DBNResource.java`, this will leak file handles if `Files.copy` throws an exception before the stream is closed or if the stream is not properly handled.
+
+**Recommendation:** Wrap the `Files.copy` operation in a `try-catch` block to log errors during the copy process, ensuring that the user is notified if the file transfer fails.</note>
+<notesplit />

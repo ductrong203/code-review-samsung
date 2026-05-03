@@ -1,0 +1,26 @@
+<path>src/validation.cpp</path>
+<side>right</side>
+<from>3762</from>
+<to>3765</to>
+<note>**[Code Defect]** The logic for updating `m_chainman.m_best_header` when the current best header is invalidated is potentially incomplete. 
+
+If `best_header_needs_update` is true, the code sets `m_chainman.m_best_header = invalid_walk_tip->pprev`. However, it then proceeds to iterate through `highpow_outofchain_headers` and updates `m_chainman.m_best_header` if it finds a candidate with more work. If no candidates are found in the loop, `m_best_header` remains `invalid_walk_tip->pprev`. 
+
+While this is logically sound for the immediate invalidation, there is a risk that `m_best_header` could be left pointing to a block that is not the actual "best" if the `highpow_outofchain_headers` cache is incomplete or if the `CBlockIndexWorkComparator` logic doesn't align perfectly with the `m_best_header` selection criteria. Ensure that `m_best_header` is always guaranteed to be the block with the most work that is not marked as invalid.</note>
+<notesplit />
+<path>src/validation.cpp</path>
+<side>right</side>
+<from>4523</from>
+<to>4525</to>
+<note>**[Code Defect]** The use of `Assume(state.IsInvalid())` inside `AcceptBlock` is risky. `Assume` is intended for conditions that should be impossible; however, `state.IsInvalid()` is a standard outcome of `CheckBlock` or `ContextualCheckBlock` when a block is rejected. If `state.IsInvalid()` returns `false` (e.g., a block is valid), `Assume` will trigger an assertion failure in debug builds, even though the code flow is perfectly valid. 
+
+If the intention is to only call `InvalidBlockFound` when the block is actually invalid, use a standard `if (state.IsInvalid())` check instead of `Assume`.</note>
+<notesplit />
+<path>src/validation.cpp</path>
+<side>right</side>
+<from>5395</from>
+<to>5395</to>
+<note>**[Performance]** The assertion `assert((pindex->nStatus & BLOCK_FAILED_MASK) || pindex->nChainWork <= m_best_header->nChainWork);` is placed inside `CheckBlockIndex()`, which iterates over all blocks in the index. 
+
+While this is a useful consistency check, `m_best_header` is a single pointer. If the block index is large, this check is fine, but ensure that `m_best_header` is not null before dereferencing it in this assertion. While `m_best_header` is generally initialized, in certain edge cases (like an empty chain or early startup), this could lead to a null pointer dereference.</note>
+<notesplit />

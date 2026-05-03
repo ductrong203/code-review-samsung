@@ -1,0 +1,24 @@
+<path>quarkus/tests/junit5/src/main/java/org/keycloak/it/utils/DockerKeycloakDistribution.java</path>
+<side>right</side>
+<from>122</from>
+<to>124</to>
+<note>**[Code Defect]** The logic here throws a `RuntimeException` if the distribution archive is missing. However, the commented-out block (lines 118-120) suggests that there was a fallback mechanism to resolve the artifact via Maven. If this is intended to be a permanent change, ensure that the CI environment is guaranteed to have the tar.gz file present at that path. If the file is missing, the test will fail cryptically. Consider logging a more descriptive error message that includes instructions on how to generate the missing distribution (e.g., "Run 'mvn package -pl quarkus/server/,quarkus/dist/' first").</note>
+<notesplit />
+<path>quarkus/tests/junit5/src/main/java/org/keycloak/it/utils/DockerKeycloakDistribution.java</path>
+<side>right</side>
+<from>158</from>
+<to>158</to>
+<note>**[Performance]** The `copyToContainer` map is iterated and applied to the `keycloakContainer` every time `run()` is called. If `run()` is called multiple times on the same instance, this could lead to redundant operations or potential issues with Testcontainers' `withCopyFileToContainer` if the container is already in a state where files shouldn't be modified. Ensure that `copyToContainer` is cleared or handled appropriately if the container is reused.</note>
+<notesplit />
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>right</side>
+<from>64</from>
+<to>64</to>
+<note>**[Code Defect]** The use of `assert imagePeServer != null;` is dangerous in production/test code because assertions can be disabled at runtime via the `-da` JVM flag. If `imagePeServer` is null, this will lead to a `NullPointerException` on the next line (`containers.length != imagePeServer.length`). Use a standard `Objects.requireNonNull(imagePeServer)` or an explicit `if` check to throw an `IllegalArgumentException`.</note>
+<notesplit />
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>right</side>
+<from>118</from>
+<to>120</to>
+<note>**[Maintainability]** The `stop()` method uses `Arrays.stream(containers).filter(Objects::nonNull).forEach(...)`. If an exception occurs during the stop of one container, the remaining containers will not be stopped, potentially leaving orphaned Docker containers running. Consider using a `try-finally` block or a loop that catches exceptions to ensure all containers are attempted to be stopped.</note>
+<notesplit />

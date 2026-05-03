@@ -1,0 +1,24 @@
+<path>community/tool-calls/spring-ai-alibaba-starter-tool-calling-alitranslate/src/main/java/com/alibaba/cloud/ai/toolcalling/alitranslate/AliTranslateService.java</path>
+<side>right</side>
+<from>105</from>
+<to>107</to>
+<note>**[Maintainability]** The `apply` method catches `Exception` and returns `null` after logging an error. 
+
+Returning `null` from a `Function` implementation can lead to `NullPointerException` in the calling code if it doesn't explicitly check for nulls. It is better to either throw a custom unchecked exception or return an empty/error `Response` object to maintain a predictable API contract.</note>
+<notesplit />
+<path>community/tool-calls/spring-ai-alibaba-starter-tool-calling-alitranslate/src/main/java/com/alibaba/cloud/ai/toolcalling/alitranslate/AliTranslateService.java</path>
+<side>right</side>
+<from>116</from>
+<to>134</to>
+<note>**[Maintainability]** The `getTranslatedText` method uses `IllegalStateException` for validation errors. 
+
+While this is acceptable, the error messages are somewhat generic. Since this is a library component, consider defining a specific `AliTranslateException` to allow users of your library to catch and handle translation-specific errors distinctly from general runtime exceptions.</note>
+<notesplit />
+<path>community/tool-calls/spring-ai-alibaba-starter-tool-calling-alitranslate/src/main/java/com/alibaba/cloud/ai/toolcalling/alitranslate/AliTranslateProperties.java</path>
+<side>right</side>
+<from>43</from>
+<to>49</to>
+<note>**[Code Defect]** The constructor performs logic (reading environment variables) that is generally discouraged inside a POJO used by Spring's `@ConfigurationProperties`. 
+
+Spring handles property binding automatically. If you need to support environment variables, you should rely on Spring's native relaxed binding (e.g., `spring.ai.alibaba.toolcalling.alitranslate.access-key-id` mapped to `ALITRANSLATE_ACCESS_KEY_ID` via standard Spring Boot environment variable naming conventions) rather than manual `System.getenv` calls in the constructor. This makes the code harder to test and bypasses Spring's configuration lifecycle.</note>
+<notesplit />

@@ -1,0 +1,32 @@
+<path>filters/f_auto_filters.c</path>
+<side>right</side>
+<from>380</from>
+<to>384</to>
+<note>**[Code Defect]** Potential null pointer dereference.
+
+`mp_filter_find_stream_info(f)` can return `NULL`. While the code checks `if (!vflip || (info && info->vflip))`, if `info` is `NULL`, the logic proceeds to potentially create a filter. If `info` is `NULL`, `info->vflip` is not evaluated, but the logic assumes that if `info` is missing, it should proceed to create the filter. Ensure that `info` being `NULL` is a valid state for this filter and that the logic correctly handles the absence of stream info.</note>
+<notesplit />
+<path>video/mp_image.c</path>
+<side>right</side>
+<from>1111</from>
+<to>1112</to>
+<note>**[Code Defect]** Potential integer overflow/precision loss.
+
+The calculation `((int64_t)matrix[0] * (int64_t)matrix[4] - (int64_t)matrix[1] * (int64_t)matrix[3])` is correct for the determinant of a 2x2 matrix, but `matrix` elements are `int32_t`. While casting to `int64_t` prevents overflow during multiplication, ensure that the input `matrix` values are within expected ranges for the display matrix side data. If the matrix is not a simple rotation/flip (e.g., contains scaling), the determinant check might produce unexpected results.</note>
+<notesplit />
+<path>video/out/vo_dmabuf_wayland.c</path>
+<side>right</side>
+<from>688</from>
+<to>690</to>
+<note>**[Maintainability]** Magic numbers in lookup table.
+
+The `transform_enum_lut` uses magic numbers (0-7) which correspond to Wayland's `wl_output_transform` enum. It would be significantly more readable and maintainable to use the actual Wayland protocol constants (e.g., `WL_OUTPUT_TRANSFORM_NORMAL`, `WL_OUTPUT_TRANSFORM_FLIPPED_90`, etc.) instead of hardcoded integers.</note>
+<notesplit />
+<path>video/out/vo_gpu_next.c</path>
+<side>right</side>
+<from>924</from>
+<to>924</to>
+<note>**[Performance]** Unnecessary matrix allocation.
+
+The `pl_matrix2x2` is allocated on the stack and initialized every time `draw_frame` is called for a flipped frame. While the overhead is minimal, this could be defined as a `static const` variable outside the function to avoid repeated initialization.</note>
+<notesplit />

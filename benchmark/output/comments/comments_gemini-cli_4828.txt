@@ -1,0 +1,26 @@
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>180</from>
+<to>180</to>
+<note>**[Code Defect]** The regex `namedArgRegex` uses a capture group for quoted values `(?:"((?:\\.|[^"\\])*)"|([^ ]*))` which is intended to handle escaped quotes. However, the logic in line 187 `const value = match[2] ?? match[3];` assumes that if the first group (quoted) is undefined, the second group (unquoted) must be the value. 
+
+If a user provides an empty quoted string `--key=""`, `match[2]` will be an empty string, which is falsy in JavaScript. This will cause the code to fall back to `match[3]` (which is undefined), resulting in an empty value being incorrectly handled or potentially causing issues downstream. Use `match[2] !== undefined ? match[2] : match[3]` to correctly distinguish between an empty string and a missing match.</note>
+<notesplit />
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>66</from>
+<to>66</to>
+<note>**[Maintainability]** The use of `prompt.arguments?.map((_) => '"foo"')` inside the help message template is fragile. It creates a hardcoded example string that may not accurately reflect the actual argument types or requirements. Additionally, if `prompt.arguments` is undefined, the optional chaining will return `undefined`, which might lead to `[object Object]` or unexpected string concatenation in the `helpMessage`. Consider iterating over the arguments to build a more robust example string.</note>
+<notesplit />
+<path>packages/cli/src/ui/commands/mcpCommand.ts</path>
+<side>right</side>
+<from>255</from>
+<to>260</to>
+<note>**[Performance/Maintainability]** The logic inside `serverPrompts.forEach` performs string concatenation inside a loop for multi-line descriptions. While acceptable for small CLI outputs, it is cleaner to use an array of strings and `join('\n')`. Furthermore, `descLines` is checked for truthiness, but `split('\n')` on a string will always return an array with at least one element (the string itself), making the `else` block at line 261 unreachable.</note>
+<notesplit />
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>137</from>
+<to>137</to>
+<note>**[Code Defect]** `JSON.stringify(result.messages[0].content.text)` is being used to wrap the prompt response. If `result.messages[0].content.text` is already a string (which is implied by the check at line 126), `JSON.stringify` will add unnecessary escaped quotes around the entire content. If the intention is to pass the text content to the next stage, you should likely pass the raw string rather than a JSON-serialized string.</note>
+<notesplit />

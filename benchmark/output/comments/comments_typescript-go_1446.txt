@@ -1,0 +1,24 @@
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>right</side>
+<from>47</from>
+<to>47</to>
+<note>**[Code Defect]** The regex `^\s*t\.Skip\(\)\s*$/m` is likely too restrictive. 
+
+In Go, `t.Skip()` is often followed by a comment or might be indented differently depending on the formatter. If the generated test file contains `t.Skip() // reason`, this regex will fail to match, leaving the `t.Skip()` in the manual test file, which will cause the test to be skipped during execution. 
+
+Consider using a more robust regex like `/^\s*t\.Skip\(\).*/m` to capture the line even if it contains trailing comments.</note>
+<notesplit />
+<path>internal/fourslash/_scripts/convertFourslash.mts</path>
+<side>right</side>
+<from>28</from>
+<to>28</to>
+<note>**[Maintainability]** The manual test name matching logic is case-sensitive and relies on exact string matching between the filename (minus extension) and the entries in `manualTests.txt`. 
+
+If a user adds a test name with different casing or accidental whitespace, the `!manualTests.has(file.slice(0, -3))` check will fail to exclude the file, leading to the manual test being overwritten by the generator. It is recommended to normalize the input (e.g., `.toLowerCase()`) both when reading the file and when checking the set to ensure consistency.</note>
+<notesplit />
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>right</side>
+<from>41</from>
+<to>41</to>
+<note>**[Performance]** Writing the entire `manualTests.txt` file every time `makemanual` is run is acceptable for small lists, but using `[...manualTests, ""].join("\n")` creates a trailing newline. While this is standard for POSIX files, ensure that your `getManualTests` logic in `convertFourslash.mts` (which uses `.filter(line => line.length > 0)`) remains compatible with this format. The current implementation is safe, but be aware that manual edits to `manualTests.txt` that deviate from this trailing newline pattern might cause inconsistent behavior.</note>
+<notesplit />

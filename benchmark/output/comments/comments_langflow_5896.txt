@@ -1,0 +1,32 @@
+<path>src/backend/base/langflow/graph/vertex/base.py</path>
+<side>right</side>
+<from>623</from>
+<to>646</to>
+<note>**[Maintainability]** The method `_log_transaction_async` has been converted to an `async` function but its body is now entirely commented out. This leaves the method as a "no-op" that still requires an `await` at every call site, adding unnecessary complexity and overhead without providing any functionality.
+
+If logging is temporarily disabled, it is better to either remove the calls at the call sites or implement a stub that doesn't require `await` if it performs no I/O. Leaving commented-out code blocks in production logic reduces readability and maintainability.</note>
+<notesplit />
+<path>src/backend/base/langflow/graph/vertex/base.py</path>
+<side>right</side>
+<from>662</from>
+<to>662</to>
+<note>**[Code Defect]** The call to `await self._log_transaction_async(...)` at line 662 now relies on a method that contains only commented-out code. If `log_transaction` is intended to be asynchronous, ensure the implementation is restored or the call is removed. If it is intended to be a no-op, remove the `await` keyword and the `async` definition to avoid unnecessary event loop overhead.</note>
+<notesplit />
+<path>src/backend/base/langflow/graph/vertex/base.py</path>
+<side>right</side>
+<from>668</from>
+<to>668</to>
+<note>**[Code Defect]** Similar to line 662, this `await` call invokes a method that currently performs no operations. Please verify if the transaction logging logic is intended to be active. If it is not, remove the `await` and the `async` modifier from the method definition to simplify the control flow.</note>
+<notesplit />
+<path>src/backend/base/langflow/graph/vertex/vertex_types.py</path>
+<side>right</side>
+<from>110</from>
+<to>110</to>
+<note>**[Code Defect]** The `await` call here invokes `_log_transaction_async`, which is currently a no-op (commented out body). This adds an unnecessary `await` point in the execution flow. Please clean up the implementation of `_log_transaction_async` in `base.py` and ensure that call sites are updated to either properly await an active task or remove the `await` if the operation is synchronous/no-op.</note>
+<notesplit />
+<path>src/backend/base/langflow/graph/vertex/vertex_types.py</path>
+<side>right</side>
+<from>149</from>
+<to>149</to>
+<note>**[Code Defect]** Consistent with the previous comments, this `await` call is invoking a method that currently does nothing. Please resolve the implementation of `_log_transaction_async` to ensure consistent behavior across the codebase.</note>
+<notesplit />

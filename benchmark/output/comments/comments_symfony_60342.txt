@@ -1,0 +1,14 @@
+<path>src/Symfony/Component/Notifier/Bridge/Mercure/MercureOptions.php</path>
+<side>right</side>
+<from>25</from>
+<to>39</to>
+<note>**[Maintainability]** The complex array shape definition is duplicated in both the constructor parameter and the `getContent()` return type.
+
+If the structure of the Mercure notification content changes, you will need to update it in two places, which is error-prone. Define this shape as a type alias using `@phpstan-type` or `@psalm-type` at the class level, or create a dedicated Value Object/DTO if the complexity grows.</note>
+<notesplit />
+<path>src/Symfony/Component/Notifier/Bridge/Mercure/MercureOptions.php</path>
+<side>right</side>
+<from>81</from>
+<to>95</to>
+<note>**[Maintainability]** As noted previously, this docblock duplicates the definition found in the constructor. Please refactor to use a shared type alias to ensure consistency and reduce maintenance overhead.</note>
+<notesplit />

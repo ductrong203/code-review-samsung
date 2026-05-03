@@ -1,0 +1,8 @@
+<path>vllm/distributed/kv_transfer/kv_connector/v1/multi_connector.py</path>
+<side>right</side>
+<from>90</from>
+<to>100</to>
+<note>**[Code Defect]** The `shutdown` method implementation suppresses all but the last exception encountered during the shutdown sequence.
+
+If multiple connectors fail during shutdown, the previous exceptions are lost, which can make debugging complex distributed state issues difficult. Consider using `ExceptionGroup` (if using Python 3.11+) or aggregating the exceptions into a custom exception class to ensure all failures are reported.</note>
+<notesplit />

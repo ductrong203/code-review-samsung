@@ -1,0 +1,18 @@
+<path>osu.Game.Rulesets.Osu/Difficulty/Evaluators/RhythmEvaluator.cs</path>
+<side>right</side>
+<from>71</from>
+<to>71</to>
+<note>**[Code Defect]** Potential `DivideByZeroException`.
+
+In line 71, `Math.Min(prevDelta, currDelta)` is used as a divisor. If both `prevDelta` and `currDelta` are 0 (which can happen in certain edge cases in rhythm calculation), this will result in a division by zero. Ensure that the deltas are validated or clamped to a minimum non-zero value before performing this division.</note>
+<notesplit />
+<path>osu.Game/Rulesets/Difficulty/Utils/DifficultyCalculationUtils.cs</path>
+<side>right</side>
+<from>79</from>
+<to>79</to>
+<note>**[Code Defect]** Logic error in `SmoothstepBellCurve`.
+
+The logic `x = x > 0 ? (width - x) : (width + x);` is intended to calculate the distance from the mean, but it is prone to returning negative values if `x` is outside the range `[mean - width, mean + width]`. 
+
+If `x` is outside the range, `width - x` or `width + x` will result in a negative value. Since `Smoothstep` typically expects the input to be clamped between the edge values (0 and `width`), passing a negative value will result in an incorrect output (likely 0, but potentially unexpected behavior depending on the `Smoothstep` implementation). You should clamp the result of the distance calculation to `[0, width]` before passing it to `Smoothstep`.</note>
+<notesplit />

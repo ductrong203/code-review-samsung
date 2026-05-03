@@ -1,0 +1,16 @@
+<path>src/System.Management.Automation/engine/CommandCompletion/CompletionCompleters.cs</path>
+<side>right</side>
+<from>477</from>
+<to>482</to>
+<note>**[Performance]** The `nestedModulesToFilterOut` HashSet is initialized inside the `CompleteModuleName` method but is only populated if `loadedModulesOnly` is true. While this is functionally correct, `PSModuleInfo.NestedModules` is a `ReadOnlyCollection<PSModuleInfo>`. Creating a new `HashSet` on every call to `CompleteModuleName` when `loadedModulesOnly` is true may be unnecessary overhead if the number of nested modules is small.
+
+Given that `NestedModules` is typically a small collection, a simple `Contains` check on the `ReadOnlyCollection` itself would be more memory-efficient and avoid the allocation of a `HashSet` object on every completion trigger.</note>
+<notesplit />
+<path>src/System.Management.Automation/engine/CommandCompletion/CompletionCompleters.cs</path>
+<side>right</side>
+<from>499</from>
+<to>500</to>
+<note>**[Code Defect]** The logic relies on `nestedModulesToFilterOut.Contains(moduleInfo)`. This assumes that `PSModuleInfo` correctly implements `GetHashCode` and `Equals` for reference equality or value equality that matches the objects stored in `currentModule.NestedModules`. 
+
+If `PSModuleInfo` does not override `Equals`/`GetHashCode`, the `HashSet` will default to reference equality. While this is likely safe here as the objects are retrieved from the same `EngineSessionState`, it is fragile. Please verify that `PSModuleInfo` objects representing the same module are guaranteed to be the same reference or have stable equality semantics. If they are not, this filter may fail to exclude the intended modules.</note>
+<notesplit />

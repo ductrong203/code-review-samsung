@@ -1,0 +1,24 @@
+<path>src/Processors/Executors/ExecutorTasks.cpp</path>
+<side>right</side>
+<from>43</from>
+<to>43</to>
+<note>**[Code Defect]** Potential underflow of `idle_threads`.
+
+The `idle_threads` variable is an `std::atomic_size_t`. While `idle_threads--` is atomic, there is no check to ensure the value does not drop below zero if the logic elsewhere (e.g., `tryGetTask`) is not perfectly synchronized with the state of `threads_queue`. Given that `threads_queue` is a separate structure, if `popAny()` is called when `idle_threads` is 0 due to a race condition or logic error, this will wrap around to a very large number, causing `shouldSpawn()` to return `false` incorrectly and potentially stalling thread spawning. Consider adding a check or using a signed type with a clamp.</note>
+<notesplit />
+<path>src/Processors/Executors/PipelineExecutor.cpp</path>
+<side>right</side>
+<from>385</from>
+<to>389</to>
+<note>**[Maintainability]** Redundant locking logic.
+
+You are using `spawn_lock.try_lock()` followed by `std::lock_guard` with `std::adopt_lock`. This is a valid pattern, but it is more idiomatic and safer to use `std::unique_lock<std::mutex> lock(spawn_lock, std::try_to_lock);` followed by `if (lock.owns_lock())`. This avoids the manual management of the lock state and is less error-prone.</note>
+<notesplit />
+<path>src/Processors/Executors/ExecutorTasks.h</path>
+<side>right</side>
+<from>52</from>
+<to>52</to>
+<note>**[Maintainability]** Magic number for thread threshold.
+
+The `TOO_MANY_IDLE_THRESHOLD` is set to `4`. While this is a constant, it is a "magic number" that significantly impacts performance and resource utilization. It would be better to define this as a configurable setting or at least document the reasoning behind the value `4` (e.g., why 4 and not 2 or 8?) in a comment to assist future maintainers in tuning this parameter.</note>
+<notesplit />

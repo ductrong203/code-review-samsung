@@ -1,0 +1,20 @@
+<path>lib/voyager-core/src/lib.rs</path>
+<side>right</side>
+<from>329</from>
+<to>346</to>
+<note>**[Maintainability]** The `Timestamp` struct wraps a `u64` but implements `TryFrom<Timestamp>` in several modules (e.g., `consensus/cometbls/src/main.rs`, `consensus/movement/src/main.rs`) to convert it back to an integer. This suggests that `Timestamp` is being treated as a transparent wrapper rather than a type-safe abstraction.
+
+Additionally, the `try_into().unwrap()` pattern used throughout the modules (e.g., `consensus/cometbls/src/main.rs` line 170) is fragile. If `Timestamp` is intended to be a robust type, consider implementing `From<u64>` and `Into<u64>` if the conversion is always infallible, or provide a proper `TryFrom` implementation that handles potential overflows/invalid states gracefully instead of panicking.</note>
+<notesplit />
+<path>voyager/modules/consensus/ethereum/src/main.rs</path>
+<side>right</side>
+<from>167</from>
+<to>180</to>
+<note>**[Code Defect]** The logic here calls `Timestamp::from_nanos(...)` and then immediately calls `.try_into().unwrap()`. Since `Timestamp` is a simple `u64` wrapper, this `try_into` is likely redundant or misapplied. If the intention is to convert from a different unit (like seconds to nanos), the logic should be handled within the `Timestamp` methods or a dedicated `From` implementation, rather than chaining `try_into().unwrap()` which will panic if the conversion logic changes or fails.</note>
+<notesplit />
+<path>voyager/plugins/client-update/ethereum/src/main.rs</path>
+<side>right</side>
+<from>539</from>
+<to>542</to>
+<note>**[Code Defect]** The previous implementation multiplied by `NANOS_PER_SECOND` (which is typically `1_000_000_000`). The new implementation uses `Timestamp::from_secs(...)`. Ensure that `Timestamp::from_secs` correctly handles the conversion to nanoseconds internally. If `Timestamp` is expected to store nanoseconds, `from_secs` should multiply by `1_000_000_000`. If it is expected to store seconds, the naming `timestamp_nanos` in `ClientStateMeta` (lib/voyager-core/src/lib.rs) becomes misleading. Please verify the unit consistency across the codebase.</note>
+<notesplit />

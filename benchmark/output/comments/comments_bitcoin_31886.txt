@@ -1,0 +1,24 @@
+<path>src/bitcoin-cli.cpp</path>
+<side>right</side>
+<from>466</from>
+<to>476</to>
+<note>**[Maintainability]** The `ServicesList` function performs string concatenation in a loop using `str += ...`. While acceptable for small lists, this is inefficient due to repeated memory reallocations. 
+
+Additionally, the logic to transform the string (replacing `_` with space and converting to lowercase) iterates over the entire string after construction. It would be more efficient to perform this transformation during the initial construction or use a `std::ostringstream` to build the string once.</note>
+<notesplit />
+<path>src/bitcoin-cli.cpp</path>
+<side>right</side>
+<from>569</from>
+<to>570</to>
+<note>**[Code Defect]** The `services` string is constructed using `FormatServices(networkinfo["localservicesnames"])`. However, the new `ServicesList` function (added in lines 466-476) appears to be intended for this purpose, but it is not being used here. 
+
+If `FormatServices` is an existing function elsewhere in the codebase, ensure it is consistent with the new `ServicesList` logic. If `ServicesList` was intended to replace or augment `FormatServices`, this is a logic inconsistency. Please verify if `FormatServices` handles the same formatting requirements (lowercase, underscore replacement) as `ServicesList`.</note>
+<notesplit />
+<path>test/functional/interface_bitcoin_cli.py</path>
+<side>right</side>
+<from>94</from>
+<to>94</to>
+<note>**[Code Defect]** The regex `rf"^{re.escape(self.config['environment']['CLIENT_NAME'])} client.+services nwl2?$"` is fragile. 
+
+The `nwl2?` suffix assumes a specific set of services (likely `network`, `witness`, `limited`) and specific ordering. If the node configuration or the `localservicesnames` output changes (e.g., due to different build flags or network types), this test will fail. It is safer to check for the presence of expected substrings rather than matching the entire line end with a hardcoded regex.</note>
+<notesplit />

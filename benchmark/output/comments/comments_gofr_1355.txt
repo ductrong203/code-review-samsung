@@ -1,0 +1,28 @@
+<path>pkg/gofr/datasource/mongo/mongo.go</path>
+<side>right</side>
+<from>169</from>
+<to>172</to>
+<note>**[Code Defect]** The `getDBHost` function uses `url.ParseRequestURI(uri)` to parse the MongoDB connection string. 
+
+MongoDB connection strings (e.g., `mongodb://user:pass@host:port/db`) are not always strictly compliant with `net/url`'s `ParseRequestURI` expectations, especially if they contain complex options or specific characters. Furthermore, `url.ParseRequestURI` is intended for absolute URLs. If the URI is malformed or contains characters that `net/url` considers invalid, it will return an error, potentially causing the application to fail to connect even if the driver itself could have parsed it. 
+
+Consider using the official `go.mongodb.org/mongo-driver/x/mongo/driver/connstring` package to parse the connection string, as it is designed specifically for MongoDB URI formats.</note>
+<notesplit />
+<path>pkg/gofr/datasource/mongo/mongo.go</path>
+<side>right</side>
+<from>151</from>
+<to>155</to>
+<note>**[Maintainability]** In `generateMongoURI`, you are manually constructing a `url.URL` struct. 
+
+While this works for simple cases, it is fragile. If the `config.Host` contains an IPv6 address (e.g., `::1`), `net.JoinHostPort` will return `[::1]:27017`. When this is assigned to `u.Host`, the `url.URL` stringer might behave unexpectedly depending on the Go version or environment. Additionally, manually building the URL risks missing edge cases in URI encoding. 
+
+It is safer to use the `mongo-driver`'s connection string builder or ensure that the `Host` field is strictly validated before being passed to `net.JoinHostPort`.</note>
+<notesplit />
+<path>pkg/gofr/datasource/mongo/mongo.go</path>
+<side>right</side>
+<from>100</from>
+<to>100</to>
+<note>**[Maintainability]** The log message `c.logger.Debugf("connecting to MongoDB at %v to database %v", c.config.Host, c.config.Database)` is inconsistent with the `host` variable derived from `generateMongoURI`. 
+
+If `config.URI` is provided, `c.config.Host` might be empty, but the `host` variable (derived from the URI) will contain the actual hostname. You should use the `host` variable returned by `generateMongoURI` for all logging to ensure the logs accurately reflect the connection target.</note>
+<notesplit />

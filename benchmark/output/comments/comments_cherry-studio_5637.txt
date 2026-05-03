@@ -1,0 +1,32 @@
+<path>src/renderer/src/middlewares/extractReasoningMiddleware.ts</path>
+<side>right</side>
+<from>74</from>
+<to>74</to>
+<note>**[Code Defect]** The use of `@ts-expect-error` here is dangerous because it assumes the structure of the chunk without validation. If `chunk` does not contain `textDelta` (e.g., if the stream emits a different type of object), this will cause a runtime error (`undefined` access).
+
+**Fix:** Add a runtime check to ensure `textDelta` exists or use optional chaining (`chunk.textDelta ?? ''`) and ensure the type definition for `T` is strictly enforced.</note>
+<notesplit />
+<path>src/renderer/src/middlewares/extractReasoningMiddleware.ts</path>
+<side>right</side>
+<from>42</from>
+<to>43</to>
+<note>**[Code Defect]** The use of `match.index as number` is unsafe. If `match.index` is `undefined` (which can happen with certain regex patterns or environments), this will throw a runtime error.
+
+**Fix:** Use a null check: `const index = match.index; if (index === undefined) continue;`</note>
+<notesplit />
+<path>src/renderer/src/utils/stream.ts</path>
+<side>right</side>
+<from>2</from>
+<to>2</to>
+<note>**[Code Defect]** The `reader` obtained from `stream.getReader()` is never released. If the stream is cancelled or the iteration finishes prematurely, the reader remains locked to the stream, potentially causing memory leaks or preventing future access to the stream.
+
+**Fix:** Ensure the reader is released in a `finally` block or by using `reader.releaseLock()` when the iteration is complete.</note>
+<notesplit />
+<path>src/renderer/src/middlewares/extractReasoningMiddleware.ts</path>
+<side>right</side>
+<from>92</from>
+<to>110</to>
+<note>**[Performance]** The `while(true)` loop performs string slicing and regex-like searching (`getPotentialStartIndex`) on every chunk. While this is necessary for streaming, repeatedly re-processing the `buffer` can lead to $O(N^2)$ complexity relative to the total stream length if the buffer grows large.
+
+**Fix:** Ensure the `buffer` is kept as small as possible by aggressively clearing it after matches. The current implementation does this, but ensure that `buffer` is capped or that the logic doesn't accidentally retain large amounts of processed text.</note>
+<notesplit />

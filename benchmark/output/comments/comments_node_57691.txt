@@ -1,0 +1,25 @@
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>right</side>
+<from>115</from>
+<to>115</to>
+<note>**[Security]** Use of `eval()` with untrusted input.
+
+While this is a test file, using `eval(code)` on the input string is a bad practice. Even in a test environment, it is safer to use `new Function()` or a controlled execution context to avoid potential side effects or scope pollution. Given that this is a REPL test, consider using a safer alternative or explicitly documenting why `eval` is necessary here.</note>
+<notesplit />
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>right</side>
+<from>125</from>
+<to>125</to>
+<note>**[Security]** Use of `eval()` with untrusted input.
+
+Similar to the comment on line 115, using `eval(code)` here is risky. If the `input` variable is ever modified to include malicious payloads, this test could execute arbitrary code. Please replace with a safer execution mechanism.</note>
+<notesplit />
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>right</side>
+<from>129</from>
+<to>129</to>
+<note>**[Maintainability]** Manual regex escaping.
+
+Instead of manually escaping the `+` character, you can use a simple helper function to escape special regex characters. This makes the code more robust and readable. 
+Example: `const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');`</note>
+<notesplit />

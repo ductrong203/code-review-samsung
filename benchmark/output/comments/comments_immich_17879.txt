@@ -1,0 +1,14 @@
+<path>server/src/repositories/job.repository.ts</path>
+<side>right</side>
+<from>235</from>
+<to>240</to>
+<note>**[Maintainability]** The `removeJob` method is marked as `@deprecated` and contains a `todo` comment. While this is acceptable for internal refactoring, ensure that the "asset notifications" mentioned in the comment are actually tracked in your project management system. Leaving "todo" comments in the codebase without a corresponding ticket often leads to technical debt that is never addressed.</note>
+<notesplit />
+<path>server/src/services/notification.service.ts</path>
+<side>right</side>
+<from>189</from>
+<to>189</to>
+<note>**[Code Defect]** In `onAlbumUpdate`, you are now calling `this.jobRepository.removeJob` using a composite key `${id}/${recipientId}`. However, the `removeJob` implementation in `job.repository.ts` (lines 235-240) performs a `getJob(jobID)` lookup. If the `jobID` passed to `getJob` does not match the exact `jobId` string used when the job was originally queued (which was `item.data.id` in the old version, and is now a composite string in the new version), the job will not be found and removed. 
+
+If there are existing jobs in the queue created with the old logic (where `jobId` was just the album ID), this change will fail to clean them up, potentially leading to duplicate notifications or orphaned jobs. Ensure that a migration strategy exists for existing jobs in Redis if this is a breaking change for production environments.</note>
+<notesplit />

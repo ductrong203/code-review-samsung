@@ -1,0 +1,8 @@
+<path>src/Symfony/Component/TypeInfo/TypeFactoryTrait.php</path>
+<side>right</side>
+<from>415</from>
+<to>415</to>
+<note>**[Code Defect]** The logic `is_subclass_of($value::class, \UnitEnum::class)` will return `false` if `$value` is an instance of an enum itself, because `is_subclass_of` checks if the class is a subclass of the given class, not if it implements the interface.
+
+Since enums implement `UnitEnum`, you should use `is_a($value, \UnitEnum::class)` or `($value instanceof \UnitEnum)` instead. Using `is_subclass_of` will cause this match arm to be skipped for actual enum instances, falling through to the generic object handler.</note>
+<notesplit />

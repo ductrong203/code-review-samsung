@@ -1,0 +1,37 @@
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>327</from>
+<to>328</to>
+<note>**[Code Defect]** Potential unhandled exception when writing to `stdin`.
+
+If the child process exits prematurely or closes its `stdin` stream before the write operation completes, `child.stdin!.write()` will throw an `EPIPE` error. You should add an error handler to the `stdin` stream to prevent the test process from crashing unexpectedly.
+
+```typescript
+child.stdin!.on('error', (err) => {
+  // Handle or log the error
+});
+```</note>
+<notesplit />
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>345</from>
+<to>358</to>
+<note>**[Code Defect]** Potential memory leak / unhandled process error.
+
+If the `spawn`ed process fails to start (e.g., `node` is not found or the command is invalid), the `child` object will emit an `'error'` event. Currently, you only listen for the `'close'` event. If an error occurs during spawning, the promise will remain pending indefinitely, causing the test to hang.
+
+Add an error listener:
+```typescript
+child.on('error', (err) => {
+  reject(err);
+});
+```</note>
+<notesplit />
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>331</from>
+<to>343</to>
+<note>**[Maintainability]** Use of non-null assertion operator (`!`).
+
+You are using `child.stdout!` and `child.stderr!` throughout the method. While `stdio: 'pipe'` ensures these are defined, it is safer and more idiomatic to check for their existence or use optional chaining to avoid potential runtime errors if the configuration were ever changed.</note>
+<notesplit />

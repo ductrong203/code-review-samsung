@@ -1,0 +1,29 @@
+<path>server/src/services/asset.service.ts</path>
+<side>right</side>
+<from>251</from>
+<to>255</to>
+<note>**[Code Defect]** Potential `undefined` values in `files` array.
+
+In line 251, `files` is initialized with `[thumbnailFile?.path, previewFile?.path, asset.encodedVideoPath]`. If these properties are `undefined`, they will be pushed into the `files` array. When `deleteOnDisk` is true, `asset.sidecarPath` and `asset.originalPath` are also pushed. 
+
+If `fs.unlinkSync` (or the underlying deletion mechanism) is called on an array containing `undefined` values, it may throw an error or behave unexpectedly depending on the implementation of the deletion utility (which is not shown here but implied). You should filter out falsy values from the `files` array before processing the deletion.
+
+**Fix:**
+```typescript
+const files = [thumbnailFile?.path, previewFile?.path, asset.encodedVideoPath].filter(Boolean);
+if (deleteOnDisk) {
+  files.push(asset.sidecarPath, asset.originalPath);
+}
+// Ensure you filter again or handle undefined before passing to fs.unlink
+```</note>
+<notesplit />
+<path>e2e/src/api/specs/trash.e2e-spec.ts</path>
+<side>right</side>
+<from>110</from>
+<to>145</to>
+<note>**[Maintainability]** Use of `it.skip` for tests.
+
+The test `should not delete offline assets from disk` is marked as `.skip`. While the comment explains the limitation (no mechanism to forward time), leaving skipped tests in the codebase often leads to "test rot" where they are forgotten and never re-enabled. 
+
+**Fix:** If this functionality is critical, consider implementing a mock for the system clock or a way to trigger the background task synchronously for testing purposes, rather than skipping the test. If it must be skipped, ensure there is a tracking ticket linked in the comment.</note>
+<notesplit />

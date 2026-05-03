@@ -1,0 +1,34 @@
+<path>integration/api_test.go</path>
+<side>right</side>
+<from>104</from>
+<to>104</to>
+<note>**[Code Defect]** Using `rand.Int()` without seeding the global random number generator (or using `math/rand/v2` in Go 1.22+) will result in deterministic behavior across test runs. 
+
+If the goal is to "bust the cache," you should use `crypto/rand` to generate a truly random seed or ensure the global `rand` is seeded in a `TestMain` or `init` function.</note>
+<notesplit />
+<path>integration/api_test.go</path>
+<side>right</side>
+<from>263</from>
+<to>263</to>
+<note>**[Code Defect]** Similar to the `TestAPIGenerate` function, `rand.Int()` is used here without seeding. This will produce the same "random" seed every time the test suite runs, potentially failing to effectively bust the cache if the environment or execution order is consistent.</note>
+<notesplit />
+<path>integration/api_test.go</path>
+<side>right</side>
+<from>110</from>
+<to>115</to>
+<note>**[Maintainability]** The error reporting logic in the `select` block is duplicated in `TestAPIGenerate` and `TestAPIChat`. Consider extracting this into a helper function (e.g., `handleStall(t, buf, timeout)`) to reduce code duplication and improve maintainability.</note>
+<notesplit />
+<path>integration/llm_image_test.go</path>
+<side>right</side>
+<from>57</from>
+<to>57</to>
+<note>**[Performance]** The timeout for `DoGenerate` is set to 240 seconds (4 minutes). While vision models are heavy, ensure that this does not cause CI pipeline timeouts. If this test is intended to run frequently, consider if there's a way to use a smaller model or a more optimized path to keep test execution times reasonable.</note>
+<notesplit />
+<path>integration/max_queue_test.go</path>
+<side>right</side>
+<from>64</from>
+<to>64</to>
+<note>**[Code Defect]** Relying on `time.Sleep` for synchronization in tests is a "flaky test" anti-pattern. If the system is under heavy load, 10ms may not be enough for the generate request to reach the server, leading to intermittent test failures. 
+
+Instead of sleeping, consider using a synchronization primitive (like a channel or a polling loop with a timeout) to verify that the request has actually started before proceeding.</note>
+<notesplit />

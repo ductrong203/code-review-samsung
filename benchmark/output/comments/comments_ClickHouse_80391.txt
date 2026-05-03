@@ -1,0 +1,22 @@
+<path>src/Disks/DiskLocalCheckThread.cpp</path>
+<side>right</side>
+<from>88</from>
+<to>89</to>
+<note>**[Code Defect]** The `CurrentMetrics` update logic is flawed because `DiskLocalCheckThread` is instantiated per-disk, but `CurrentMetrics` are global. 
+
+If multiple `DiskLocalCheckThread` instances exist, they will all attempt to update the same global metrics. However, the `diskStatusChange` logic only compares the *previous* state of the *current* disk instance to its *new* state. If one disk changes state, it adds/subtracts from the global counter, which is correct. However, if the `DiskLocalCheckThread` object is destroyed or if there are multiple threads managing the same disk, the state tracking (`was_readonly`, `was_broken`) will be inconsistent. 
+
+More importantly, if the `DiskLocalCheckThread` is destroyed, the metrics will never be decremented, leading to a permanent leak in the metric value. You should ensure that when a disk is removed or the thread is shut down, the metrics are reset or decremented appropriately.</note>
+<notesplit />
+<path>src/Disks/DiskLocalCheckThread.cpp</path>
+<side>right</side>
+<from>42</from>
+<to>45</to>
+<note>**[Maintainability]** The `diskStatusChange` function is defined in the global namespace within a `.cpp` file. This is prone to naming collisions. It should be marked `static` to limit its scope to this translation unit or moved into an anonymous namespace.</note>
+<notesplit />
+<path>src/Disks/DiskLocalCheckThread.cpp</path>
+<side>right</side>
+<from>88</from>
+<to>89</to>
+<note>**[Performance]** The `CurrentMetrics::add` calls are executed on every iteration of the `run()` loop, even if the disk status has not changed. While `CurrentMetrics::add` is generally fast, it is better practice to only update the metrics when a state transition actually occurs (i.e., `if (was_readonly != disk->isReadOnly())`). This reduces unnecessary atomic operations.</note>
+<notesplit />

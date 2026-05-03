@@ -1,0 +1,28 @@
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>301</from>
+<to>318</to>
+<note>**[Code Defect]** The logic for handling `toolConfig.tools` is inconsistent and potentially buggy. 
+
+When a tool is provided as an object (e.g., a `BaseTool` instance), it is registered into `subagentToolRegistry`. However, if it is a `FunctionDeclaration`, it is ignored in the loop (lines 314-317) and not added to the registry. Later, in `runNonInteractive`, the code attempts to handle `FunctionDeclaration` by checking `typeof tool === 'object' && 'schema' in tool` (line 388). 
+
+If a user passes a `FunctionDeclaration` in `toolConfig.tools`, it will not be present in `subagentToolRegistry` during the validation phase (lines 298-318), meaning it will skip the "requires confirmation" check entirely. This creates a security/safety bypass where unvalidated tools can be executed.</note>
+<notesplit />
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>439</from>
+<to>453</to>
+<note>**[Performance]** The `textResponse` variable is being accumulated inside the `for await` loop. If the model generates a very large amount of text, this string concatenation could lead to significant memory pressure. While LLM responses are usually bounded, it is safer to process the stream or handle the accumulation more efficiently if the response size is not strictly guaranteed.</note>
+<notesplit />
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>471</from>
+<to>483</to>
+<note>**[Maintainability]** The logic to check for goal completion is duplicated. There is a check here (lines 471-483) and another one later when `functionCalls.length === 0` (lines 485-500). This violates the DRY (Don't Repeat Yourself) principle and increases the risk of the two checks drifting apart in behavior. Consider extracting this into a private `isGoalMet()` method.</note>
+<notesplit />
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>545</from>
+<to>559</to>
+<note>**[Maintainability]** The `onMessage` callback is being used to format UI-specific strings (Markdown, bolding, etc.) directly inside the core logic. This tightly couples the `SubAgentScope` to a specific UI representation. It would be cleaner to pass a structured object to `onMessage` and let the caller handle the formatting.</note>
+<notesplit />

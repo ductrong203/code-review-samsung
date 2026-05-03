@@ -1,0 +1,16 @@
+<path>comfy/clip_model.py</path>
+<side>right</side>
+<from>107</from>
+<to>110</to>
+<note>**[Code Defect]** Inconsistent handling of negative infinity.
+
+In the `else` block (line 110), you are using `float("-inf")`, whereas the `if` block (line 108) uses `-torch.finfo(x.dtype).max`. While `float("-inf")` is generally safer for attention masks, using different values for the same logical purpose depending on the device can lead to inconsistent behavior or precision issues in downstream operations. It is recommended to use a consistent approach (preferably `float("-inf")` if the backend supports it) across both branches.</note>
+<notesplit />
+<path>comfy/model_management.py</path>
+<side>right</side>
+<from>993</from>
+<to>998</to>
+<note>**[Maintainability]** Redundant logic.
+
+The function `is_directml_enabled` can be simplified to `return bool(directml_enabled)`. The current implementation uses an `if` statement that returns `True` or `False` explicitly, which is verbose. Additionally, ensure that `directml_enabled` is properly initialized or imported to avoid `NameError` if the global variable is not defined in the current scope.</note>
+<notesplit />

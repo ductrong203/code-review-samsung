@@ -1,0 +1,30 @@
+<path>modules/videoio/misc/java/src/cpp/videoio_converters.cpp</path>
+<side>right</side>
+<from>59</from>
+<to>64</to>
+<note>**[Performance]** The current implementation performs a redundant memory copy. 
+`env->NewByteArray(size)` allocates a new buffer, then `env->CallLongMethod` is invoked, and finally `env->GetByteArrayRegion` copies the data from the Java-allocated buffer into the native `buffer` pointer. 
+
+If the Java `read` method is intended to fill the buffer, you should consider using `env->GetPrimitiveArrayCritical` or `env->GetByteArrayElements` to access the Java array directly without an extra copy, or ensure the JNI overhead is minimized. Additionally, if `size` is large, `NewByteArray` might fail or cause significant GC pressure.</note>
+<notesplit />
+<path>modules/videoio/misc/java/src/cpp/videoio_converters.cpp</path>
+<side>right</side>
+<from>53</from>
+<to>58</to>
+<note>**[Code Defect]** The `read` and `seek` methods in `JavaStreamReader` return `0` if `env` is null or `m_read`/`m_seek` are not found. 
+Returning `0` is ambiguous as it could be interpreted as "End of Stream" or "0 bytes read" by the caller, potentially masking a critical failure in the JNI environment or method lookup. Consider logging an error or throwing a C++ exception that can be caught by the OpenCV wrapper to prevent silent failures.</note>
+<notesplit />
+<path>modules/videoio/misc/java/test/VideoCaptureTest.java</path>
+<side>right</side>
+<from>100</from>
+<to>100</to>
+<note>**[Code Defect]** The `RandomAccessFile` opened in `testConstructorStream` is never closed. 
+If the test fails or completes, the file handle remains open until the GC collects the object. This can lead to resource leaks, especially if this test is run repeatedly in a suite. Use a `try-finally` block or ensure the `RandomAccessFile` is closed in the `tearDown` method.</note>
+<notesplit />
+<path>modules/videoio/misc/java/src/cpp/videoio_converters.cpp</path>
+<side>right</side>
+<from>33</from>
+<to>40</to>
+<note>**[Maintainability]** The `JavaStreamReader` constructor caches `m_read` and `m_seek` method IDs. However, it does not check if `GetMethodID` returns `NULL` (which happens if the Java class signature changes). 
+If the method is not found, `GetMethodID` throws a `NoSuchMethodError` in Java. You should check for `NULL` and handle the exception immediately to avoid undefined behavior when `CallLongMethod` is later invoked with a null ID.</note>
+<notesplit />

@@ -1,0 +1,7 @@
+<path>test/language.c</path>
+<side>right</side>
+<from>92</from>
+<to>92</to>
+<note>**[Code Defect]** Typo in test case.
+Line 92 contains `00` instead of `0`. While this is valid C (octal 0), it is inconsistent with the rest of the test suite and likely a typo. Please change it to `0`.</note>
+<notesplit />

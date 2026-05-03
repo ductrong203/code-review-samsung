@@ -1,0 +1,40 @@
+<path>src/nodes/core/Node.js</path>
+<side>right</side>
+<from>128</from>
+<to>128</to>
+<note>**[Code Defect]** The `@param {boolean} value` tag is incorrectly placed on a setter method. 
+
+In JSDoc, setters should typically be documented using `@param` within the setter definition, but adding it as a standalone tag inside the JSDoc block for a property setter is redundant or confusing for documentation generators. Since this is a setter, the parameter is already defined by the function signature `set needsUpdate( value )`.</note>
+<notesplit />
+<path>src/nodes/core/Node.js</path>
+<side>right</side>
+<from>536</from>
+<to>536</to>
+<note>**[Maintainability]** The `@abstract` tag is used here, but the method `updateBefore` (and others like it) appears to be a base implementation that might be intended to be overridden. 
+
+If this method is meant to be implemented by subclasses, ensure that the base class does not provide a default implementation that is expected to be called via `super`. If it is truly abstract, it should ideally throw an error if called directly.</note>
+<notesplit />
+<path>src/nodes/core/TempNode.js</path>
+<side>right</side>
+<from>42</from>
+<to>42</to>
+<note>**[Code Defect]** The `@param {NodeBuilder} builder` tag is added to `hasDependencies`, but the method signature on line 44 is `hasDependencies( builder )`. 
+
+While this is technically correct, the JSDoc block is missing the `@return {Boolean}` tag which was present in the original code (or implied). Ensure that the return type is explicitly documented to satisfy the `valid-jsdoc` rule `requireReturn: true` (if enabled) or to maintain consistency with other methods.</note>
+<notesplit />
+<path>src/nodes/display/ScreenNode.js</path>
+<side>right</side>
+<from>96</from>
+<to>96</to>
+<note>**[Code Defect]** The removal of the `@return {Boolean?}` tag in `update` is likely a regression. 
+
+The `valid-jsdoc` configuration in `.eslintrc.json` has `requireReturn: false` but `requireReturnType: true`. If you are going to document the return, you must provide the type. If the method returns a boolean, it should be documented. Removing the tag entirely might be acceptable if the method returns nothing, but if it does return a value, it should be documented to maintain API clarity.</note>
+<notesplit />
+<path>src/nodes/utils/StorageArrayElementNode.js</path>
+<side>right</side>
+<from>47</from>
+<to>47</to>
+<note>**[Code Defect]** The `@param {Node} value` tag is placed on the `storageBufferNode` setter. 
+
+Similar to the `Node.js` comment, this is redundant as the setter signature `set storageBufferNode( value )` already defines the parameter. Furthermore, the JSDoc already specifies `@type {StorageBufferNode}`. This creates a conflict between the `@param` type and the `@type` definition.</note>
+<notesplit />

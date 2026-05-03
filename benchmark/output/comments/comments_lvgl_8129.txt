@@ -1,0 +1,16 @@
+<path>src/draw/lv_draw_label.c</path>
+<side>right</side>
+<from>222</from>
+<to>224</to>
+<note>**[Code Defect]** Potential null pointer dereference.
+
+In `lv_draw_label_iterate_characters`, `base_dsc` is initialized from `t->draw_dsc` on line 203. While `t` is passed as an argument, there is no guarantee that `t->draw_dsc` is non-null. Accessing `base_dsc->obj` on line 222 without a null check for `base_dsc` (or `t->draw_dsc`) could lead to a segmentation fault if the draw task is malformed or initialized differently. Please add a null check for `base_dsc` before accessing its members.</note>
+<notesplit />
+<path>src/widgets/label/lv_label.c</path>
+<side>right</side>
+<from>968</from>
+<to>968</to>
+<note>**[Maintainability]** Potential stale cache.
+
+In `lv_label_refr_text`, you are updating `label->text_size` after calling `lv_text_get_size`. However, `lv_text_get_size` is called with `max_w` and `flag`. If the label's `long_mode` changes or the object width is updated, `lv_label_refr_text` is responsible for recalculating. Ensure that `label->text_size` is always kept in sync with the actual rendered text size, especially if `lv_text_get_size` is called with different constraints elsewhere. If `text_size` is intended to represent the "unconstrained" size (as implied by the usage in `lv_draw_label.c` with `LV_COORD_MAX`), ensure that `lv_label_refr_text` also calculates that specific value, otherwise the optimization in `lv_draw_label.c` might use incorrect dimensions.</note>
+<notesplit />

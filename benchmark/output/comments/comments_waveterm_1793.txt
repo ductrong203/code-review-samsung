@@ -1,0 +1,24 @@
+<path>pkg/shellexec/shellexec.go</path>
+<side>right</side>
+<from>258</from>
+<to>264</to>
+<note>**[Code Defect]** The error handling for `cmdOpts.SwapToken.PackForClient()` is insufficient. 
+
+If `cmdOpts.SwapToken` is `nil`, this code will trigger a panic (nil pointer dereference). Additionally, if packing fails, the function continues execution without the token, which may lead to downstream authentication failures that are harder to debug. You should check if `cmdOpts.SwapToken` is nil before calling `PackForClient` and return an error if the token is required for the shell process to function correctly.</note>
+<notesplit />
+<path>pkg/wslconn/wslconn.go</path>
+<side>right</side>
+<from>120</from>
+<to>122</to>
+<note>**[Maintainability]** The `Debugf` method implementation is identical to `Infof`. 
+
+While this is not a functional bug, it defeats the purpose of having separate log levels. If `Debugf` is intended to be used for verbose logging, it should ideally use a different log level or a different prefix/logger configuration to allow filtering in production environments.</note>
+<notesplit />
+<path>pkg/wslconn/wslconn.go</path>
+<side>right</side>
+<from>758</from>
+<to>761</to>
+<note>**[Performance/Maintainability]** The removal of `shouldConnect` and the `ctx` parameter from `GetWslConn` changes the contract of this function significantly. 
+
+Previously, callers could trigger a connection attempt on demand. Now, callers are forced to rely on `getConnInternal` which may return a disconnected state. Ensure that all callers of `GetWslConn` are now explicitly calling a connection method elsewhere, otherwise, this change will likely break existing functionality where connections were lazily initialized upon retrieval.</note>
+<notesplit />

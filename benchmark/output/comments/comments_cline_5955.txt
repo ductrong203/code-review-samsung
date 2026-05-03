@@ -1,0 +1,38 @@
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1512</from>
+<to>1515</to>
+<note>**[Code Defect]** Potential memory leak / logic error with `bufferStuckTimer`.
+
+In `flushBuffer`, the `bufferStuckTimer` is assigned a new `setTimeout` every time the function is called. If `flushBuffer` is called multiple times in rapid succession (e.g., due to high-frequency terminal output), the previous timer is not cleared before the new one is assigned. This leads to orphaned timers that will fire incorrectly.
+
+**Fix:** Add `if (bufferStuckTimer) clearTimeout(bufferStuckTimer);` before assigning the new timer.</note>
+<notesplit />
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1578</from>
+<to>1583</to>
+<note>**[Maintainability]** Hardcoded magic number.
+
+The `COMPLETION_TIMEOUT_MS` is defined as `6000` (6 seconds). This is the same value as `BUFFER_STUCK_TIMEOUT_MS`. If these are intended to be the same, consider defining a shared constant (e.g., `TERMINAL_TIMEOUT_MS`) to avoid duplication and ensure consistency if the timeout duration needs to be adjusted in the future.</note>
+<notesplit />
+<path>src/integrations/terminal/TerminalProcess.ts</path>
+<side>right</side>
+<from>198</from>
+<to>203</to>
+<note>**[Performance]** Redundant asynchronous calls.
+
+You are calling `getLatestTerminalOutput()` immediately after `returnCurrentTerminalContents()`. Depending on the implementation of `returnCurrentTerminalContents`, this might trigger two separate expensive operations to read the terminal buffer. If `returnCurrentTerminalContents` already updates the internal state that `getLatestTerminalOutput` reads, this is redundant.
+
+**Fix:** Ensure that `returnCurrentTerminalContents` returns the snapshot directly or updates the state in a way that avoids a second I/O-bound read.</note>
+<notesplit />
+<path>src/services/telemetry/TelemetryService.ts</path>
+<side>right</side>
+<from>959</from>
+<to>967</to>
+<note>**[Maintainability]** Inconsistent type definition.
+
+The `method` parameter in `captureTerminalExecution` uses a union type literal (`"shell_integration" | "clipboard" | "none"`). However, this logic is duplicated in `TerminalProcess.ts`. If you add a new capture method (e.g., "xterm_addon"), you will have to update both the `TelemetryService` method signature and the call sites.
+
+**Fix:** Define a `TerminalCaptureMethod` type or enum in `TelemetryService.ts` and use it in both the method signature and the `TerminalProcess.ts` logic.</note>
+<notesplit />

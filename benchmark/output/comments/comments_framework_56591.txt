@@ -1,0 +1,10 @@
+<path>src/Illuminate/Database/Console/Migrations/MigrateMakeCommand.php</path>
+<side>right</side>
+<from>115</from>
+<to>117</to>
+<note>**[Maintainability]** The manual replacement of directory separators is unnecessary and potentially harmful.
+
+Laravel's filesystem abstractions and underlying PHP functions (like `file_put_contents` or `fopen`) generally handle forward slashes (`/`) correctly even on Windows. By forcing backslashes, you may break compatibility with tools or IDEs that expect standard POSIX-style paths, and you introduce platform-specific logic into a command that should ideally remain platform-agnostic. 
+
+If the goal is simply to display the path correctly in the console output, consider using `realpath()` or `DIRECTORY_SEPARATOR` if necessary, but avoid modifying the path string manually unless there is a specific, verified failure in the migration creation process.</note>
+<notesplit />

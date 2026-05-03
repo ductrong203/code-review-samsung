@@ -1,0 +1,24 @@
+<path>server/src/main/java/org/elasticsearch/index/codec/tsdb/es819/ES819TSDBDocValuesProducer.java</path>
+<side>right</side>
+<from>1538</from>
+<to>1547</to>
+<note>**[Performance]** The `lookAheadDISI` is lazily initialized inside `tryRead`. If `tryRead` is called multiple times, this object is recreated or checked repeatedly. While the current implementation checks for `null`, consider if this `IndexedDISI` should be initialized once during the construction of the anonymous class or if the state management could be simplified to avoid repeated object allocation/initialization logic.</note>
+<notesplit />
+<path>server/src/main/java/org/elasticsearch/index/codec/tsdb/es819/ES819TSDBDocValuesProducer.java</path>
+<side>right</side>
+<from>1553</from>
+<to>1561</to>
+<note>**[Code Defect]** The comment "Assumes docIds are unique" is critical. If the `docs` provided to `tryRead` contain duplicate document IDs, the logic `valueCount = lastIndex - firstIndex + 1` will be incorrect, potentially leading to an `ArrayIndexOutOfBoundsException` or reading incorrect data during the `singletonLongBuilder.appendLongs` loop. Ensure that the contract for `docs` guarantees unique, sorted IDs, or add an explicit check/assertion to validate this assumption.</note>
+<notesplit />
+<path>server/src/main/java/org/elasticsearch/index/codec/tsdb/es819/ES819TSDBDocValuesProducer.java</path>
+<side>right</side>
+<from>1574</from>
+<to>1581</to>
+<note>**[Performance]** The logic inside the loop performs a `valuesData.seek` if the block index is not sequential. While this is necessary for sparse access, ensure that `valuesData` (which is likely a `DataInput` or `IndexInput`) is efficient for seeking. If this is a heavy operation, verify if the `currentBlockIndex` logic is sufficient to minimize I/O overhead in all expected access patterns.</note>
+<notesplit />
+<path>x-pack/plugin/esql/compute/src/main/java/org/elasticsearch/compute/lucene/read/SingletonDoubleBuilder.java</path>
+<side>right</side>
+<from>69</from>
+<to>71</to>
+<note>**[Maintainability]** The `IllegalStateException` added in `build()` is good for debugging, but ensure that the `values` array size is correctly calculated/passed in the constructor. If `count` is consistently less than `values.length`, this will throw an exception on every call to `build()`. Verify that all callers of `appendLongs` correctly account for the total number of elements expected.</note>
+<notesplit />

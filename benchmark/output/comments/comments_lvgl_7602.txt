@@ -1,0 +1,26 @@
+<path>src/misc/lv_text.c</path>
+<side>right</side>
+<from>653</from>
+<to>653</to>
+<note>**[Code Defect]** Potential out-of-bounds read.
+
+In `lv_text_utf8_next`, you are checking `txt[*i] == '\0'` after verifying `txt != NULL`. However, if `*i` is already pointing to an index beyond the actual length of the string (e.g., if `*i` was passed as a value larger than the string length), `txt[*i]` will result in an out-of-bounds read. 
+
+While the caller is responsible for providing a valid index, it is safer to ensure that `*i` is within the bounds of the string if the length is known, or at least document that `*i` must be a valid index within the null-terminated string.</note>
+<notesplit />
+<path>tests/src/test_cases/test_txt.c</path>
+<side>right</side>
+<from>147</from>
+<to>147</to>
+<note>**[Code Defect]** Potential segmentation fault in test.
+
+In `test_lv_text_encoded_letter_next_2_should_handle_null_pointer`, you pass `NULL` as the `txt` argument to `lv_text_encoded_letter_next_2`. If the implementation of `lv_text_encoded_letter_next_2` does not explicitly check for `txt == NULL` before dereferencing it, this test will cause a segmentation fault. Ensure the function under test handles the `NULL` pointer gracefully before relying on this test case.</note>
+<notesplit />
+<path>tests/src/test_cases/widgets/test_label.c</path>
+<side>right</side>
+<from>59</from>
+<to>59</to>
+<note>**[Maintainability]** Unclear change in test logic.
+
+You have replaced `LV_STYLE_STATE_CMP_SAME` with `0` in multiple `lv_obj_set_style_text_align` calls. If `LV_STYLE_STATE_CMP_SAME` was intended to represent a specific state or flag, replacing it with `0` might mask the intent or change the behavior of the test. Please verify if `0` is the correct equivalent for the intended state in these test cases.</note>
+<notesplit />

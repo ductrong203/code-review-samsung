@@ -1,0 +1,16 @@
+<path>server/src/main/java/org/elasticsearch/snapshots/SnapshotsService.java</path>
+<side>right</side>
+<from>1602</from>
+<to>1602</to>
+<note>**[Code Defect]** The use of `assert false : new AssertionError(...)` is problematic in production code.
+
+While `assert` statements are useful for development, they are typically disabled in production environments via the `-da` JVM flag. If this code path is reached in production, the `AssertionError` will not be thrown, and the logic will proceed to `handleFinalizationFailure` without the intended diagnostic halt. If this is a critical state that should never be reached, consider using `ExceptionsHelper.requireNonNull` or throwing a runtime exception directly to ensure the error is logged and handled regardless of JVM flags.</note>
+<notesplit />
+<path>server/src/main/java/org/elasticsearch/snapshots/SnapshotsService.java</path>
+<side>right</side>
+<from>1458</from>
+<to>1460</to>
+<note>**[Maintainability]** The comment "This listener is kinda unnecessary since we now always complete it synchronously" suggests that the `ListenableFuture` pattern is being used as a wrapper for synchronous execution.
+
+Using `ListenableFuture` for synchronous operations adds unnecessary object allocation and complexity. Since the logic inside `ActionListener.completeWith` is now synchronous, consider refactoring `finalizeSnapshotEntry` to return the `Metadata` object directly or using a simpler functional approach instead of maintaining the `ListenableFuture` lifecycle.</note>
+<notesplit />

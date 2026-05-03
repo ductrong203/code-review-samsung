@@ -1,0 +1,24 @@
+<path>packages/react-reconciler/src/ReactFiberBeginWork.js</path>
+<side>right</side>
+<from>871</from>
+<to>909</to>
+<note>**[Maintainability]** The `updateActivityComponent` function is essentially a duplicate of the logic found in `updateOffscreenComponent`. 
+
+Since `Activity` and `Offscreen` share the same underlying implementation requirements, consider refactoring this to share the logic rather than duplicating it. If they must remain separate for future-proofing, ensure that any changes to `Offscreen` logic are manually synchronized here, which is error-prone.</note>
+<notesplit />
+<path>packages/react-server/src/ReactFizzServer.js</path>
+<side>right</side>
+<from>2256</from>
+<to>2259</to>
+<note>**[Code Defect]** You have replaced `REACT_OFFSCREEN_TYPE` with `REACT_ACTIVITY_TYPE` in the `renderElement` switch statement. 
+
+If `Offscreen` components are still expected to be handled by the server, this change will break existing `Offscreen` rendering. If `Activity` is intended to be a distinct type that *replaces* `Offscreen` in the server-side rendering path, ensure that `renderOffscreen` is fully compatible with the new `Activity` props and behavior. If both should be supported, you need to add a case for `REACT_ACTIVITY_TYPE` rather than replacing the existing one.</note>
+<notesplit />
+<path>packages/react-devtools-shared/src/devtools/views/Settings/ComponentsSettings.js</path>
+<side>right</side>
+<from>475</from>
+<to>493</to>
+<note>**[Maintainability]** The PR introduces `ElementTypeActivity` but leaves the UI options commented out with TODOs. 
+
+If this is intended to be a production-ready feature, these should be enabled. If it is strictly experimental, ensure there is a clear mechanism (e.g., a feature flag or environment check) to toggle these options rather than leaving dead code/commented-out blocks in the codebase.</note>
+<notesplit />

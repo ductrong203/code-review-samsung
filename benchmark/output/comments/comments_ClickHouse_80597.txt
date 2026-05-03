@@ -1,0 +1,18 @@
+<path>src/Storages/MergeTree/KeyCondition.cpp</path>
+<side>right</side>
+<from>2904</from>
+<to>2922</to>
+<note>**[Code Defect]** The `is_always_monotonic_chain` lambda uses a default-constructed `Field field{}` to check monotonicity. 
+
+`getMonotonicityForRange` relies on the provided `left` and `right` bounds to determine if a function is monotonic over that specific interval. By passing an empty `Field` (which represents `null` or a default value) for both bounds, you are checking if the function is monotonic at a single point or over an undefined range. This may return `false` for functions that are monotonic over the actual data range but not globally, or vice versa, leading to incorrect optimization decisions (e.g., failing to use binary search when it is actually safe). 
+
+If the intent is to check for global monotonicity, ensure the function documentation or implementation supports this usage, otherwise, this logic may be flawed for non-linear monotonic functions.</note>
+<notesplit />
+<path>src/Storages/MergeTree/KeyCondition.cpp</path>
+<side>right</side>
+<from>2934</from>
+<to>2936</to>
+<note>**[Performance]** The `is_always_monotonic_chain` check is performed inside a loop over `rpn` elements and again inside a loop over `getIndexesMapping()`. 
+
+If `getIndexesMapping()` returns a large number of functions, this could become a performance bottleneck during query planning. Consider if the result of `is_always_monotonic_chain` can be cached or if the `RPNElement` can store a pre-computed flag indicating whether its chains are always monotonic.</note>
+<notesplit />

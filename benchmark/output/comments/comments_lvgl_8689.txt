@@ -1,0 +1,27 @@
+<path>src/others/xml/lv_xml_utils.c</path>
+<side>right</side>
+<from>264</from>
+<to>269</to>
+<note>**[Code Defect]** Potential pointer arithmetic error in `lv_xml_split_str`.
+
+The code uses `*src[0]`, which is equivalent to `**src`. If `src` is a pointer to a pointer (as indicated by the signature `char ** src`), `src++` increments the pointer to the pointer, not the character pointer itself. This will likely lead to an out-of-bounds memory access or incorrect logic when the caller expects the original `char *` to be updated.
+
+If the intention is to skip delimiters in the string pointed to by `*src`, it should be:
+`while(**src == delimiter) (*src)++;`</note>
+<notesplit />
+<path>src/others/xml/lv_xml_utils.c</path>
+<side>right</side>
+<from>87</from>
+<to>87</to>
+<note>**[Code Defect]** Potential out-of-bounds read in `lv_xml_atoi_split`.
+
+The loop `while(*s == delimiter || *s == ' ' || *s == '\t') s++;` does not check for the null terminator `\0`. If the string consists only of delimiters and whitespace, `s` will increment past the end of the buffer, leading to an undefined behavior read. Add a check for `*s != '\0'`.</note>
+<notesplit />
+<path>src/others/xml/lv_xml_utils.c</path>
+<side>right</side>
+<from>132</from>
+<to>132</to>
+<note>**[Code Defect]** Potential out-of-bounds read in `lv_xml_atof_split`.
+
+Similar to the issue in `lv_xml_atoi_split`, the loop `while(*s == delimiter || *s == ' ' || *s == '\t') s++;` lacks a null-terminator check. This will cause an out-of-bounds read if the input string is empty or contains only delimiters/whitespace.</note>
+<notesplit />

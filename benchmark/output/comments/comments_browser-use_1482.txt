@@ -1,0 +1,32 @@
+<path>browser_use/browser/browser.py</path>
+<side>right</side>
+<from>217</from>
+<to>227</to>
+<note>**[Maintainability]** The logic for constructing `chrome_launch_args` uses a `set` literal to remove duplicates. While this is clever, it is fragile because `set` does not guarantee order. Chrome command-line arguments are generally order-independent, but some flags (like those that override others) can behave unexpectedly if the order is non-deterministic. Furthermore, using a `set` prevents the use of arguments that might need to appear multiple times (though rare for Chrome).
+
+Consider using a list and a helper function to filter duplicates while preserving order, or simply rely on the fact that `BrowserConfig` and `CHROME_ARGS` should be managed to avoid duplicates at the source.</note>
+<notesplit />
+<path>browser_use/browser/browser.py</path>
+<side>right</side>
+<from>228</from>
+<to>235</to>
+<note>**[Code Defect]** The `asyncio.create_subprocess_exec` call is missing an `await` on the `communicate()` or proper handling of the process lifecycle if it fails to start. More importantly, if `self.config.browser_binary_path` is invalid or the process fails to spawn (e.g., `FileNotFoundError`), the current code will raise an exception that might leave the `Browser` object in an inconsistent state.
+
+Additionally, you are using `psutil.Process(chrome_sub_process.pid)`. If the process exits immediately due to an invalid flag or path, `psutil` might raise a `NoSuchProcess` exception when you later attempt to interact with it. Ensure you handle the process startup failure explicitly.</note>
+<notesplit />
+<path>browser_use/browser/browser.py</path>
+<side>right</side>
+<from>238</from>
+<to>246</to>
+<note>**[Performance]** The retry loop for checking the debugging port uses `httpx.AsyncClient()` inside the loop. Creating a new `AsyncClient` instance 10 times in a loop is inefficient. 
+
+Move the `async with httpx.AsyncClient() as client:` block outside the `for _ in range(10):` loop to reuse the connection pool.</note>
+<notesplit />
+<path>tests/test_browser.py</path>
+<side>right</side>
+<from>180</from>
+<to>180</to>
+<note>**[Code Defect]** In your test, you are monkeypatching `requests.get`, but the implementation code in `browser_use/browser/browser.py` uses `httpx.AsyncClient().get()`. 
+
+Your test will fail to intercept the actual network calls made by the `Browser` class because `httpx` and `requests` are different libraries. You must monkeypatch `httpx.AsyncClient.get` instead.</note>
+<notesplit />

@@ -1,0 +1,22 @@
+<path>packages/testing/playwright/composables/TestEntryComposer.ts</path>
+<side>right</side>
+<from>100</from>
+<to>106</to>
+<note>**[Maintainability]** The `withUser` method creates a new browser context and page, but it does not appear to handle the cleanup of these resources. 
+
+In Playwright, creating new contexts manually inside a test helper can lead to memory leaks if the context is not closed after the test finishes. Consider using `test.step` or ensuring the caller is responsible for closing the context, or ideally, use Playwright's built-in fixture system to manage user-specific contexts to ensure proper teardown.</note>
+<notesplit />
+<path>packages/testing/playwright/pages/SettingsUsersPage.ts</path>
+<side>right</side>
+<from>39</from>
+<to>40</to>
+<note>**[Maintainability]** The use of `force: true` on click actions is generally discouraged as it bypasses Playwright's actionability checks (e.g., checking if the element is visible, stable, or receiving events). 
+
+If the element is obscured or not yet ready, `force: true` might hide underlying UI issues or race conditions. Please verify if there is a more robust way to wait for the element to be interactable (e.g., `waitFor()` or ensuring the modal animation has completed) before clicking.</note>
+<notesplit />
+<path>packages/testing/playwright/pages/SettingsUsersPage.ts</path>
+<side>right</side>
+<from>53</from>
+<to>54</to>
+<note>**[Maintainability]** Similar to the previous comment, using `force: true` on `check()` should be avoided if possible. If the checkbox is covered by a custom label or overlay, consider clicking the label or the specific element that triggers the state change instead of forcing the interaction on the input element itself.</note>
+<notesplit />

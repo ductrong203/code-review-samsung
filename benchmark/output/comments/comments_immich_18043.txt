@@ -1,0 +1,24 @@
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>52</from>
+<to>56</to>
+<note>**[Maintainability]** Returning a custom 499 status code for all fetch errors (including network failures, DNS issues, or actual aborts) can be misleading for debugging. 
+
+While 499 is a common non-standard code for client-closed requests, it is better to distinguish between an intentional `AbortError` and other network failures. Consider checking if the error is an `AbortError` (via `error.name === 'AbortError'`) and only then returning the 499 response; otherwise, re-throw or return a standard 500/503 error to avoid masking genuine network issues.</note>
+<notesplit />
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>87</from>
+<to>89</to>
+<note>**[Code Defect]** The `setCached` function only caches responses with a `200` status code. 
+
+If the server returns a `304 Not Modified` or other successful status codes (like `206 Partial Content` for media), they will not be cached. Additionally, if the response is a `404` or `500`, you might not want to cache it, but you should ensure that the logic explicitly handles or ignores these cases rather than silently failing to cache. Consider checking `response.ok` instead of strictly `response.status === 200`.</note>
+<notesplit />
+<path>web/src/service-worker/fetch-event.ts</path>
+<side>right</side>
+<from>36</from>
+<to>37</to>
+<note>**[Performance]** The fallback logic `event.respondWith(getCachedOrFetch(slash))` is problematic for a Service Worker. 
+
+By forcing a fetch to the root (`/`) for every non-matching request, you are effectively turning the Service Worker into a "Single Page Application" router that ignores the actual requested path. If the user navigates to a deep link that isn't an asset or a static file, this will always return the index page. While this is standard for SPAs, ensure that `getCachedOrFetch` is intended to serve the index page for all unknown routes, as this can lead to unexpected behavior if the user expects a 404 for invalid API paths.</note>
+<notesplit />

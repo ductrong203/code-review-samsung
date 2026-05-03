@@ -1,0 +1,24 @@
+<path>src/System.Management.Automation/engine/remoting/common/RunspaceConnectionInfo.cs</path>
+<side>right</side>
+<from>2240</from>
+<to>2240</to>
+<note>**[Code Defect]** The manual PATH lookup logic fails to account for platform-specific executable extensions (e.g., `.exe`, `.cmd`) on Windows.
+
+On Windows, `ssh` is often `ssh.exe`. Simply appending `sshCommand` (which is likely just "ssh") to the path will fail to find the file if the extension is required. You should check for the existence of the file with common executable extensions if `File.Exists` returns false for the base name, or use `Path.ChangeExtension` logic to verify the file existence correctly across platforms.</note>
+<notesplit />
+<path>src/System.Management.Automation/engine/remoting/common/RunspaceConnectionInfo.cs</path>
+<side>right</side>
+<from>2230</from>
+<to>2232</to>
+<note>**[Performance]** The `PATH` environment variable is being split and processed every time `StartSSHProcess` is called.
+
+If this method is called frequently, this creates unnecessary allocations. Consider caching the parsed `PATH` entries or using a more efficient lookup mechanism if the `PATH` has not changed. At a minimum, ensure that the `entries` array is not re-allocated if the `PATH` string remains identical to a previously cached version.</note>
+<notesplit />
+<path>src/System.Management.Automation/engine/remoting/common/RunspaceConnectionInfo.cs</path>
+<side>right</side>
+<from>2241</from>
+<to>2241</to>
+<note>**[Code Defect]** `File.Exists` does not verify if the file is actually executable.
+
+While `File.Exists` confirms the file is present, it does not guarantee that the current process has permission to execute it. In a robust implementation, you should verify that the file is executable (e.g., checking file permissions on Unix or using `RuntimeInformation.IsOSPlatform(OSPlatform.Windows)` logic to verify the file type).</note>
+<notesplit />

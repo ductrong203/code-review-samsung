@@ -1,0 +1,26 @@
+<path>src/Analyzer/Identifier.cpp</path>
+<side>right</side>
+<from>40</from>
+<to>40</to>
+<note>**[Code Defect]** The use of `chassert` in `Identifier::popFirst` is correct for debug builds, but `parts_to_remove_size` is an unsigned `size_t`. If `parts_to_remove_size > parts.size()`, the subsequent `reserve` calculation at line 44 (`parts_size - parts_to_remove_size`) will underflow, resulting in a massive allocation request and likely a `std::bad_alloc` or memory corruption.
+
+Even with the assertion, it is safer to handle this gracefully or use a checked subtraction.</note>
+<notesplit />
+<path>src/Analyzer/Identifier.cpp</path>
+<side>right</side>
+<from>55</from>
+<to>55</to>
+<note>**[Code Defect]** Similar to `popFirst`, `Identifier::popLast` uses `chassert` to validate `parts_to_remove_size`. If this assertion is disabled in release builds and the condition is violated, `parts.pop_back()` will be called on an empty vector, leading to undefined behavior. Consider adding an explicit check that throws an exception or returns early if the input is invalid.</note>
+<notesplit />
+<path>src/Analyzer/Identifier.cpp</path>
+<side>right</side>
+<from>68</from>
+<to>68</to>
+<note>**[Code Defect]** In `IdentifierView::popFirst`, the `chassert` validates the input, but if it fails in a release build, the loop `for (size_t i = 0; i < parts_to_remove_size; ++i)` will attempt to increment `parts_start_it` beyond `parts_end_it`, leading to iterator invalidation and undefined behavior. Always ensure bounds are strictly enforced in production code.</note>
+<notesplit />
+<path>src/Analyzer/Identifier.cpp</path>
+<side>right</side>
+<from>81</from>
+<to>81</to>
+<note>**[Code Defect]** In `IdentifierView::popLast`, if `parts_to_remove_size > getPartsSize()` (and assertions are disabled), `(parts_end_it - 1)` will be evaluated on an invalid iterator (or `parts_start_it == parts_end_it`), causing undefined behavior.</note>
+<notesplit />

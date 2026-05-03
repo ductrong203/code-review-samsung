@@ -1,0 +1,16 @@
+<path>internal/checker/checker.go</path>
+<side>right</side>
+<from>10854</from>
+<to>10858</to>
+<note>**[Performance]** The loop `for _, r := range name` is used to validate that the remaining part of the string consists only of ASCII letters. 
+
+While correct, this can be simplified and made more performant by using `strings.IndexFunc` or a simple loop that checks the byte values directly, as `name` is guaranteed to be ASCII-compatible by the logic preceding it. Furthermore, if `name` is empty (e.g., the type was exactly "HTMLElement"), the loop is skipped, which is correct, but the logic could be cleaner.</note>
+<notesplit />
+<path>internal/checker/checker.go</path>
+<side>right</side>
+<from>10829</from>
+<to>10831</to>
+<note>**[Code Defect]** The condition `slices.Contains(c.compilerOptions.Lib, "lib.dom.d.ts")` is likely incorrect for the intended logic. 
+
+If the user *has* included `lib.dom.d.ts`, the DOM types should be available, and the checker should likely *not* be flagging these as "empty DOM elements" (or at least, it shouldn't be returning `false` to suppress the logic). Usually, you want to trigger this specific error/check when the DOM library is **missing**. Please verify if the logic should be `!slices.Contains(...)`.</note>
+<notesplit />

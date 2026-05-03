@@ -1,0 +1,14 @@
+<path>packages/forms/src/Commands/FileGenerators/Concerns/CanGenerateModelForms.php</path>
+<side>right</side>
+<from>11</from>
+<to>11</to>
+<note>**[Maintainability]** The `TimePicker` class is imported but not used in the `use` statements block in a way that follows the existing alphabetical or logical grouping of the other imports. While minor, ensure that new imports are added in a way that maintains the existing structure of the file to prevent merge conflicts and improve readability.</note>
+<notesplit />
+<path>packages/tables/src/Commands/FileGenerators/Concerns/CanGenerateModelTables.php</path>
+<side>right</side>
+<from>138</from>
+<to>146</to>
+<note>**[Maintainability]** The logic for handling column types is becoming fragmented with multiple `if` statements checking for specific types. This violates the DRY (Don't Repeat Yourself) principle. 
+
+Consider refactoring this into a configuration array or a `match` expression (similar to the implementation in `CanGenerateModelForms`) to map column types to their respective column data configurations. This would make the code easier to extend when adding future types (e.g., `year`, `timestamp`) without adding more `if` blocks.</note>
+<notesplit />

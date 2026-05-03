@@ -1,0 +1,17 @@
+<path>src/Mod/TechDraw/App/DrawViewPart.h</path>
+<side>right</side>
+<from>242</from>
+<to>244</to>
+<note>**[Maintainability]** These new methods should be marked as `const` because they perform read-only operations on the `DrawViewPart` state.
+
+Marking them as `const` (e.g., `bool isCosmeticVertex(const std::string& element) const;`) ensures they can be called on `const DrawViewPart` instances and clearly communicates their side-effect-free nature to other developers.</note>
+<notesplit />
+<path>src/Mod/TechDraw/App/DrawViewPart.cpp</path>
+<side>right</side>
+<from>1502</from>
+<to>1530</to>
+<note>**[Maintainability]** Following the change in the header file, these method definitions should also be updated to be `const` member functions to match the signature.
+
+Example:
+`bool DrawViewPart::isCosmeticVertex(const std::string& element) const { ... }`</note>
+<notesplit />

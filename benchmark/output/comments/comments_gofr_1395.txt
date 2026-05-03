@@ -1,0 +1,18 @@
+<path>pkg/gofr/config/godotenv_test.go</path>
+<side>right</side>
+<from>94</from>
+<to>97</to>
+<note>**[Code Defect]** The error handling for `os.Setenv` is incorrect. 
+
+Returning from the test function when an error occurs will cause the test to exit silently without failing, potentially leading to false positives in CI. If `os.Setenv` fails, the test should explicitly fail using `t.Fatalf` or `t.Errorf` to ensure the issue is caught.</note>
+<notesplit />
+<path>pkg/gofr/testutil/port.go</path>
+<side>right</side>
+<from>43</from>
+<to>45</to>
+<note>**[Performance]** `GetFreePort` opens a listener to verify port availability. 
+
+In `NewServerConfigs`, you are calling `GetFreePort` three times sequentially. While this is acceptable for small test suites, it is a common source of "flaky" tests in parallelized environments (race conditions where a port is grabbed by another process between the time `GetFreePort` closes its listener and the actual server starts). 
+
+While this PR improves maintainability, consider documenting that this helper does not guarantee the port will remain free until the server starts, or consider if the server implementation can accept a listener object directly instead of a port number to avoid this race condition entirely.</note>
+<notesplit />

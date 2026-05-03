@@ -1,0 +1,24 @@
+<path>modules/imgcodecs/src/grfmt_png.cpp</path>
+<side>right</side>
+<from>293</from>
+<to>293</to>
+<note>**[Maintainability]** Using `NULL` as the first argument for `CV_LOG_ERROR` is discouraged in modern OpenCV codebases. 
+
+While `CV_LOG_ERROR` macro definitions vary, it is generally preferred to pass a specific module tag (e.g., `cv::Error::StsError` or a string literal representing the module) to ensure logs are properly categorized and searchable. Please check the project's logging conventions to see if a specific tag should be used instead of `NULL`.</note>
+<notesplit />
+<path>modules/imgcodecs/test/test_png.cpp</path>
+<side>right</side>
+<from>127</from>
+<to>130</to>
+<note>**[Code Defect]** The test assumes that the `imencode` output will always place the `IHDR` chunk immediately after the 8-byte PNG signature and the 4-byte length field. 
+
+While this is true for standard PNG encoders, relying on hardcoded offsets (`8+4+0`, etc.) makes the test fragile. If the encoder implementation changes or if an ancillary chunk (like `gAMA` or `sRGB`) is inserted before `IHDR` by a future update to the underlying library, this test will fail or produce false positives. Consider using a more robust way to locate the chunk or verify the structure, such as parsing the chunk header bytes dynamically.</note>
+<notesplit />
+<path>modules/imgcodecs/test/test_png.cpp</path>
+<side>right</side>
+<from>135</from>
+<to>146</to>
+<note>**[Code Defect]** The test manually modifies the chunk type bytes in the `buff` vector without updating the CRC (Cyclic Redundancy Check) field that follows the chunk data. 
+
+While the current `PngDecoder` implementation might not validate the CRC before checking the chunk type, this is technically a malformed PNG file. If the decoder is updated in the future to perform strict CRC validation, these tests will fail. It is recommended to either update the CRC bytes or ensure the test environment is aware that it is injecting intentionally corrupted data.</note>
+<notesplit />

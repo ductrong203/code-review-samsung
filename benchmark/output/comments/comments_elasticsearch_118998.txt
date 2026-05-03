@@ -1,0 +1,8 @@
+<path>x-pack/plugin/inference/src/main/java/org/elasticsearch/xpack/inference/external/request/openai/OpenAiUnifiedChatCompletionRequestEntity.java</path>
+<side>right</side>
+<from>81</from>
+<to>84</to>
+<note>**[Maintainability]** The addition of an empty `case null -> {}` block is redundant and potentially hides logic errors. 
+
+In Java's switch expressions/statements, if the `message.content()` is null and you do not wish to perform any action, you can simply omit the `case null` branch entirely, provided the switch is exhaustive or has a `default` case. If this is intended to suppress a potential `NullPointerException` from a previous implementation, it is better to handle the nullability explicitly at the source (e.g., using `Optional` or a null check before entering the switch) rather than adding empty branches that clutter the code.</note>
+<notesplit />

@@ -1,0 +1,30 @@
+<path>plugins/org.jkiss.dbeaver.ext.databricks/src/org/jkiss/dbeaver/ext/databricks/DatabricksExecutionContext.java</path>
+<side>right</side>
+<from>64</from>
+<to>70</to>
+<note>**[Code Defect]** Swallowing the exception in `setDefaultCatalog` is dangerous.
+
+By catching `DBCException` and only logging it, the method fails to propagate the error to the caller. If `super.setDefaultCatalog` fails (e.g., due to a connection issue or invalid catalog), the UI will incorrectly assume the operation succeeded because `activeCatalogName` might be updated or the caller will not be notified of the failure. 
+
+**Fix:** Remove the `try-catch` block and allow the `DBCException` to propagate, or rethrow it after logging.</note>
+<notesplit />
+<path>plugins/org.jkiss.dbeaver.ext.databricks/src/org/jkiss/dbeaver/ext/databricks/DatabricksExecutionContext.java</path>
+<side>right</side>
+<from>76</from>
+<to>92</to>
+<note>**[Performance]** Executing a metadata query (`SELECT CURRENT_CATALOG()`) inside `refreshDefaults` can cause performance degradation if `refreshDefaults` is called frequently.
+
+While `refreshDefaults` is intended to sync state, performing a network round-trip for every refresh might be heavy. Additionally, if the session is not yet fully established or the connection is unstable, this query could hang or fail.
+
+**Fix:** Ensure that this logic is only executed when necessary, or consider caching the result with a short TTL if the catalog is not expected to change frequently within the same session.</note>
+<notesplit />
+<path>plugins/org.jkiss.dbeaver.ext.databricks/src/org/jkiss/dbeaver/ext/databricks/DatabricksExecutionContext.java</path>
+<side>right</side>
+<from>78</from>
+<to>78</to>
+<note>**[Security/Code Defect]** Potential for SQL injection or syntax errors if the driver/environment does not support `CURRENT_CATALOG()`.
+
+While `SELECT CURRENT_CATALOG()` is standard in many Spark/Databricks environments, hardcoding SQL strings can be risky if the environment configuration varies. 
+
+**Fix:** Ensure that the query is compatible with the specific Databricks driver version being used. If the driver provides a JDBC metadata method to retrieve the current catalog (e.g., `connection.getCatalog()`), prefer that over executing a raw SQL query, as it is more performant and safer.</note>
+<notesplit />

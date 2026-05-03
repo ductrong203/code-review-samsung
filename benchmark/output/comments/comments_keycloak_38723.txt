@@ -1,0 +1,18 @@
+<path>docs/maven-plugin/src/main/java/org/keycloak/guides/maven/GuideParser.java</path>
+<side>right</side>
+<from>81</from>
+<to>83</to>
+<note>**[Code Defect]** Missing `break` statement in `switch` block.
+
+In the `setAttributes` method, the new `case "tileVisible":` block is missing a `break` statement. This will cause a "fall-through" to any subsequent cases (if added in the future) or simply continue execution unnecessarily. While there are no cases after it currently, this is a dangerous pattern that leads to bugs when the code is extended. Always include a `break` or `return` in switch cases.</note>
+<notesplit />
+<path>docs/maven-plugin/src/main/java/org/keycloak/guides/maven/GuideParser.java</path>
+<side>right</side>
+<from>82</from>
+<to>82</to>
+<note>**[Code Defect]** Incorrect parsing of boolean attribute.
+
+The `GUIDE_ELEMENT_PATTERN` regex captures the value of `tileVisible` into the `valueString` group. However, `Boolean.parseBoolean()` returns `false` for any string that is not exactly `"true"` (case-insensitive). If a user provides `tileVisible="1"` or `tileVisible="yes"`, it will silently evaluate to `false`. 
+
+If the intention is to support standard boolean strings, consider using a more robust check or ensuring the documentation strictly enforces `"true"`/`"false"`. Additionally, if the attribute is missing, `Boolean.parseBoolean(null)` returns `false`, which might conflict with the default value of `true` set in the `Guide` class.</note>
+<notesplit />

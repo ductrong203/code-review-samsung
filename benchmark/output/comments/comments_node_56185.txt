@@ -1,0 +1,24 @@
+<path>lib/internal/bootstrap/realm.js</path>
+<side>right</side>
+<from>328</from>
+<to>332</to>
+<note>**[Performance]** The `getAllBuiltinModuleIds` method creates a new array and performs a mapping operation every time it is called. Since `module.builtinModules` is initialized once at runtime and then frozen, this method is likely called during the bootstrap phase. However, if this were to be called repeatedly in other contexts, it would be inefficient. 
+
+Consider caching the result of this computation if `getAllBuiltinModuleIds` is expected to be called more than once during the application lifecycle.</note>
+<notesplit />
+<path>test/parallel/test-process-get-builtin.mjs</path>
+<side>right</side>
+<from>44</from>
+<to>47</to>
+<note>**[Code Defect]** The logic change here skips testing `process.getBuiltinModule(id)` for modules that already have the `node:` prefix. 
+
+If `publicBuiltins` contains a module that is already prefixed (e.g., `node:test`), the test now silently skips verification for that module. If the intention is to test both prefixed and non-prefixed variants, you should ensure the test covers the `node:` prefixed version explicitly rather than skipping the iteration entirely.</note>
+<notesplit />
+<path>test/parallel/test-require-resolve.js</path>
+<side>right</side>
+<from>64</from>
+<to>67</to>
+<note>**[Code Defect]** By adding the `if (!mod.startsWith('node:'))` check, you are no longer verifying `require.resolve.paths` for modules that are already prefixed. 
+
+If `builtinModules` contains `node:test`, the previous code would have checked `require.resolve.paths('node:node:test')`. While that might be invalid, the new code completely skips the assertion for existing `node:` prefixed modules. Ensure that you are still asserting the expected behavior for all modules in the list, regardless of their prefix status.</note>
+<notesplit />

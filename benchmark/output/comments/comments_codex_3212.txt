@@ -1,0 +1,16 @@
+<path>codex-rs/protocol/src/models.rs</path>
+<side>right</side>
+<from>45</from>
+<to>46</to>
+<note>**[Maintainability]** The `id` field in `ResponseItem::Message` is now marked with `#[serde(skip_serializing)]`. 
+
+If this `id` field is still used for internal logic (e.g., tracking conversation history or deduplication), ensure that removing it from serialization does not break downstream consumers or API compatibility. If the field is truly obsolete, consider removing it from the struct definition entirely rather than just skipping serialization to avoid "dead" data in memory.</note>
+<notesplit />
+<path>codex-rs/protocol/src/models.rs</path>
+<side>right</side>
+<from>50</from>
+<to>52</to>
+<note>**[Code Defect]** The `id` field in `ResponseItem::Reasoning` is now marked with `#[serde(default)]`. 
+
+If this field was previously required or expected to be populated by the API, adding `#[serde(default)]` will cause it to deserialize as an empty string `""` if missing. Verify that the rest of the application logic can safely handle an empty string `id` for reasoning items without causing logic errors or UI issues.</note>
+<notesplit />

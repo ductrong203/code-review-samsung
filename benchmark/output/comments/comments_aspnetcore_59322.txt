@@ -1,0 +1,22 @@
+<path>src/DataProtection/DataProtection/src/KeyManagement/KeyRingBasedDataProtector.cs</path>
+<side>right</side>
+<from>372</from>
+<to>372</to>
+<note>**[Performance]** The use of `ArrayPool<int>.Shared.Rent(targetLength)` is good, but the `lease` variable is initialized to `null` and then assigned inside the ternary operator. If `targetLength` is 0, the `lease` remains `null`, but the `purposeLengthsPool` will be an empty span. This is correct, but the logic is slightly fragile. More importantly, if `purposes` is empty, `targetLength` is 0, and `purposeLengthsPool` is `stackalloc int[0]`. This is fine, but ensure that `ArrayPool` usage is strictly balanced. The current implementation is safe, but consider using `ArrayPool<int>.Shared.Rent` only if `targetLength > 32` to avoid unnecessary allocations for small arrays, which you have done. The logic is sound.</note>
+<notesplit />
+<path>src/Shared/Encoding/Int7BitEncodingUtils.cs</path>
+<side>right</side>
+<from>45</from>
+<to>45</to>
+<note>**[Code Defect]** In `Write7BitEncodedInt`, the line `target[index++] = (byte)(uValue | ~0x7Fu);` is logically incorrect for 7-bit encoding. 
+
+The standard way to set the continuation bit (the high bit) is `(byte)((uValue & 0x7F) | 0x80)`. Using `uValue | ~0x7Fu` performs a bitwise OR with a mask that has all bits set except the lowest 7. This will result in `0xFF` for any value where the high bits are set, effectively corrupting the data. 
+
+Fix: `target[index++] = (byte)((uValue & 0x7F) | 0x80);`</note>
+<notesplit />
+<path>src/DataProtection/DataProtection/test/Microsoft.AspNetCore.DataProtection.Tests/KeyManagement/AdditionalAuthenticatedDataTemplateTests.cs</path>
+<side>right</side>
+<from>46</from>
+<to>46</to>
+<note>**[Maintainability]** The test case ` "😀"[0] + "X"` is fragile. `😀` is a surrogate pair in C# (UTF-16). Accessing `[0]` returns the high surrogate, which is an invalid standalone character. While this correctly triggers an `EncoderFallbackException` (as intended for the test), it is better to use a known invalid sequence explicitly, such as `new string(new char[] { '\uD800' })`, to make the intent of the test clearer to other developers.</note>
+<notesplit />

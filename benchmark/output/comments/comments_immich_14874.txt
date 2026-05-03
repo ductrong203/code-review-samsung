@@ -1,0 +1,17 @@
+<path>server/src/services/metadata.service.ts</path>
+<side>right</side>
+<from>615</from>
+<to>617</to>
+<note>**[Code Defect]** The `earliestDate` method does not handle cases where `asset.fileModifiedAt` or `asset.fileCreatedAt` might be `null` or `undefined`. 
+
+In TypeScript, if one of these values is `null`, `valueOf()` will throw a `TypeError`. Since these properties are likely nullable in the database entity, you should add a null check or provide a fallback to ensure the application doesn't crash during metadata extraction.
+
+Suggested fix:
+```typescript
+private earliestDate(a?: Date | null, b?: Date | null) {
+  const dates = [a, b].filter((d): d is Date => d instanceof Date);
+  if (dates.length === 0) return new Date(); // Or handle as appropriate
+  return new Date(Math.min(...dates.map(d => d.valueOf())));
+}
+```</note>
+<notesplit />

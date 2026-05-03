@@ -1,0 +1,24 @@
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/configuration/NestedPropertyMappingInterceptor.java</path>
+<side>right</side>
+<from>63</from>
+<to>66</to>
+<note>**[Performance/Maintainability]** The logic to clear the `ThreadLocal` is potentially unsafe or inefficient.
+
+Setting `recursions.set(null)` inside the `finally` block is correct for cleanup, but `recursions.remove()` is the standard and preferred way to clear a `ThreadLocal` to avoid memory leaks in container environments (like application servers where threads are pooled). Additionally, checking `recursing.isEmpty()` before setting to `null` is redundant if you use `remove()`.</note>
+<notesplit />
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/configuration/NestedPropertyMappingInterceptor.java</path>
+<side>right</side>
+<from>46</from>
+<to>48</to>
+<note>**[Code Defect]** The check `Character.isUpperCase(name.charAt(0))` is fragile.
+
+While this is likely intended to skip environment variables (which are often uppercase), relying on the first character of a configuration key is brittle. If a configuration key happens to start with an uppercase letter (e.g., a custom SPI or a specific property format), this logic will bypass the interceptor entirely, potentially leading to inconsistent configuration resolution. Consider checking against a known prefix or using a more robust mechanism to identify environment-sourced properties.</note>
+<notesplit />
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/cli/Picocli.java</path>
+<side>right</side>
+<from>396</from>
+<to>402</to>
+<note>**[Maintainability]** The `TODO` comment regarding wildcard mappers indicates a known gap in the current implementation.
+
+The logic for validating properties has been significantly refactored. Leaving a `TODO` in the middle of a critical validation path (especially one that handles CLI arguments and configuration) is risky. If wildcard mappers are not correctly identified or validated, it could lead to silent configuration failures or invalid states being accepted by the application. Please ensure this is tracked in your issue tracker and consider if a more explicit handling (e.g., logging a warning or throwing an exception) is safer than a silent `return`.</note>
+<notesplit />

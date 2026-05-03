@@ -1,0 +1,28 @@
+<path>browser_use/llm/google/chat.py</path>
+<side>right</side>
+<from>269</from>
+<to>274</to>
+<note>**[Code Defect]** The logic for stripping markdown code fences is fragile. 
+
+If the model returns ` ```json\n{...}\n``` `, the current logic `text[7:-3]` will fail to correctly strip the trailing newline or handle variations in whitespace. Furthermore, if the model returns ` ``` ` without the `json` tag, the logic `text[3:-3]` is also prone to off-by-one errors if there is trailing whitespace.
+
+**Recommendation:** Use a more robust regex approach to extract JSON content, such as `re.search(r'\{.*\}', text, re.DOTALL)` or a dedicated library, to ensure the JSON payload is correctly isolated regardless of surrounding whitespace or specific markdown tag variations.</note>
+<notesplit />
+<path>browser_use/llm/google/chat.py</path>
+<side>right</side>
+<from>349</from>
+<to>352</to>
+<note>**[Maintainability]** Code duplication.
+
+The logic for stripping markdown code fences is duplicated exactly between the native JSON mode block (lines 269-274) and the fallback JSON mode block (lines 349-352). 
+
+**Recommendation:** Extract this logic into a private helper method (e.g., `_extract_json_from_text(text: str) -> str`) to improve maintainability and reduce the risk of bugs when updating the parsing logic.</note>
+<notesplit />
+<path>browser_use/llm/google/chat.py</path>
+<side>right</side>
+<from>393</from>
+<to>393</to>
+<note>**[Code Defect]** The check `isinstance(e, asyncio.CancelledError) or 'CancelledError' in str(type(e))` is redundant and potentially misleading.
+
+In Python, `asyncio.CancelledError` is the standard exception for task cancellation. Checking the string representation of the type is unnecessary and brittle. If the intent is to catch timeouts, relying on the specific exception type provided by the Google SDK (usually `google.api_core.exceptions.DeadlineExceeded`) is more reliable than string matching on the error message or type name.</note>
+<notesplit />

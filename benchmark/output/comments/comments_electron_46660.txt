@@ -1,0 +1,12 @@
+<path>shell/browser/ui/file_dialog_linux.cc</path>
+<side>right</side>
+<from>47</from>
+<to>56</to>
+<note>**[Code Defect]** Logic error in `extension_description_overrides` mapping.
+
+By moving the `extension_description_overrides.push_back` call inside the `else` block, you have created a mismatch between the `extension_description_overrides` vector and the `extensions` vector when `has_all_files_wildcard` is true. 
+
+`ui::SelectFileDialog::FileTypeInfo` expects these two vectors to be aligned (index `i` in `extensions` corresponds to index `i` in `extension_description_overrides`). If a filter group contains `*`, it is skipped in the description list but kept in the logic, causing subsequent descriptions to be associated with the wrong extension groups in the UI.
+
+**Fix:** If you wish to omit the description for the "All Files" wildcard group, you must also ensure that the `extensions` vector is not populated for that group, or maintain a placeholder/empty string in the description vector to keep the indices aligned.</note>
+<notesplit />

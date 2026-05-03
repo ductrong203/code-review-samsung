@@ -1,0 +1,30 @@
+<path>middleware/cache_middleware.py</path>
+<side>right</side>
+<from>30</from>
+<to>32</to>
+<note>**[Maintainability]** The logic for identifying static assets is brittle and prone to bugs. 
+
+Using `request.path.endswith(...)` will fail if the URL contains query parameters (e.g., `/script.js?v=1.0`). While the test suite includes a test for query strings in images, it does not test them for JS/CSS files. Furthermore, `index.json` is checked as a suffix, which would incorrectly match `/some/path/not-index.json`.
+
+**Fix:** Use `os.path.splitext(request.path.split('?')[0])` to reliably extract the extension and check against a set of allowed extensions.</note>
+<notesplit />
+<path>middleware/cache_middleware.py</path>
+<side>right</side>
+<from>38</from>
+<to>38</to>
+<note>**[Performance]** The `request.path.lower().endswith(IMG_EXTENSIONS)` check is performed on every single request to the server. 
+
+While `IMG_EXTENSIONS` is a tuple, calling `.lower()` on the path string for every request creates a new string object in memory every time. Given that this middleware runs on every request, this is unnecessary overhead.
+
+**Fix:** Since `IMG_EXTENSIONS` is already defined, consider checking the extension more efficiently or ensuring the path is only lowercased if necessary. Alternatively, if the path is guaranteed to be consistent, you can avoid the allocation.</note>
+<notesplit />
+<path>middleware/cache_middleware.py</path>
+<side>right</side>
+<from>42</from>
+<to>43</to>
+<note>**[Code Defect]** Caching 404 responses for one hour can lead to a poor user experience if a missing file is subsequently uploaded or generated. 
+
+If a user triggers a 404 for a preview image and then the system generates that image, the browser will continue to show the 404 (or a broken image) for up to an hour because of the cached 404 response. 
+
+**Fix:** Consider using `no-cache` or a much shorter `max-age` for 404 responses, or ensure that the frontend/backend has a cache-busting mechanism (like a version hash) to invalidate this cache when the resource becomes available.</note>
+<notesplit />

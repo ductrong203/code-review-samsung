@@ -1,0 +1,16 @@
+<path>linera-core/src/updater.rs</path>
+<side>right</side>
+<from>173</from>
+<to>175</to>
+<note>**[Code Defect]** The logic change here introduces a potential bug. By breaking early when `highest_key_score + remaining_votes < committee.quorum_threshold()`, you are assuming that `remaining_votes` is always accurate and up-to-date. 
+
+If `remaining_votes` is calculated based on the initial committee size and does not account for validators that have already returned errors or timed out, this condition might trigger prematurely, causing the function to return an incomplete result or an error when it could have potentially reached a quorum if it had waited longer. Ensure that `remaining_votes` is strictly maintained to reflect only the validators that have not yet responded or errored.</note>
+<notesplit />
+<path>linera-client/src/client_options.rs</path>
+<side>right</side>
+<from>163</from>
+<to>163</to>
+<note>**[Maintainability]** The `grace_period` is a `f64` used as a multiplier for time. There is no validation logic to ensure this value is non-negative. If a user provides a negative value (e.g., via CLI), `Instant::now() + ...mul_f64(-0.2)` will cause a panic at runtime because `Instant` cannot represent a time in the past relative to the current `Instant`.
+
+Consider adding a validator to the `#[arg]` attribute or checking the value in the `ClientOptions` constructor to ensure `grace_period >= 0.0`.</note>
+<notesplit />

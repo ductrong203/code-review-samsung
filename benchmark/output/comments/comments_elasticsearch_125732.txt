@@ -1,0 +1,22 @@
+<path>server/src/main/java/org/elasticsearch/search/SearchService.java</path>
+<side>right</side>
+<from>595</from>
+<to>595</to>
+<note>**[Maintainability]** The logic `ExceptionsHelper.status(e).getStatus() < 500` is used to determine whether to log at `DEBUG` or `WARN` level. While this aligns with `RestResponse`, it is fragile because `ExceptionsHelper.status(e)` can return `RestStatus.INTERNAL_SERVER_ERROR` (500) for many exceptions that are not necessarily "server errors" in the context of search execution (e.g., certain query parsing errors). 
+
+Additionally, `ExceptionsHelper.isNodeOrShardUnavailableTypeException(e)` is a good check, but ensure that this logging doesn't become overly verbose in production if a cluster is experiencing widespread shard unavailability, as this will now trigger a `WARN` log for every failed shard search. Consider if a rate-limiting mechanism or a more specific exception filter is needed to prevent log flooding.</note>
+<notesplit />
+<path>server/src/main/java/org/elasticsearch/search/SearchService.java</path>
+<side>right</side>
+<from>588</from>
+<to>593</to>
+<note>**[Performance]** You are using a `Supplier<String>` for the log message, which is excellent for performance. However, inside the `maybeWrapListenerForStackTrace` method, you are capturing `nodeId`, `shardId`, and `taskId` into the closure. This is correct and efficient. 
+
+One minor improvement: `format` is called inside the supplier. Since this is only evaluated if the log level is enabled, this is fine. However, ensure that `shardId` and `nodeId` are not null to avoid `NullPointerException` during the logging phase if an unexpected error occurs during the search lifecycle.</note>
+<notesplit />
+<path>test/framework/src/main/java/org/elasticsearch/search/ErrorTraceHelper.java</path>
+<side>right</side>
+<from>66</from>
+<to>69</to>
+<note>**[Code Defect]** The `nodesDisjunction` regex construction uses `internalCluster().getNodeNames()`. If the cluster state changes or nodes are added/removed during the test execution, this list might become stale. While `ESIntegTestCase` usually manages this well, relying on a regex disjunction of all node IDs is brittle. If a node name contains special regex characters, this will cause the `PatternAndExceptionSeenEventExpectation` to fail or behave unexpectedly. Ensure node names are sanitized or escaped before being used in a regex pattern.</note>
+<notesplit />

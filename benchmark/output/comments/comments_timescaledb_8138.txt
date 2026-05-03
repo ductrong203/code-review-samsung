@@ -1,0 +1,24 @@
+<path>tsl/src/compression/compression_dml.c</path>
+<side>right</side>
+<from>560</from>
+<to>568</to>
+<note>**[Code Defect]** The `table_tuple_delete` call uses `GetCurrentCommandId(true)` directly. In the previous implementation, `decompressor.mycid` was used, which was initialized once at the start of the operation. 
+
+Using `GetCurrentCommandId(true)` inside a loop that may span multiple tuples can lead to inconsistent visibility if the command ID is incremented elsewhere (e.g., via `CommandCounterIncrement()`) during the scan. If the intention is to maintain the same snapshot/CID throughout the batch processing, you should store the CID once before the loop and reuse it, similar to how it was handled in `hypercore_decompress_update_segment` (line 1931).</note>
+<notesplit />
+<path>tsl/src/compression/compression_dml.c</path>
+<side>right</side>
+<from>570</from>
+<to>576</to>
+<note>**[Maintainability]** The comment block regarding isolation levels and concurrent decompression is incomplete/cut off ("...when in Read Committed level"). 
+
+Please ensure the documentation for this error handling logic is finished, as it is critical for understanding why `TM_Result` errors are being ignored or handled specifically in this context.</note>
+<notesplit />
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>1948</from>
+<to>1948</to>
+<note>**[Performance]** The `BulkWriter` is initialized inside `hypercore_decompress_update_segment` for every single segment update. 
+
+If this function is called in a tight loop for multiple segments, the overhead of `bulk_writer_build` (which likely involves index state initialization and memory allocation) could be significant. Consider if the `BulkWriter` can be initialized once at a higher level or cached if the `relation` remains the same across multiple calls.</note>
+<notesplit />

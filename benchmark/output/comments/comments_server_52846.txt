@@ -1,0 +1,18 @@
+<path>lib/public/AppFramework/ApiController.php</path>
+<side>right</side>
+<from>61</from>
+<to>64</to>
+<note>**[Code Defect]** The logic change for CORS preflight origin handling is potentially incorrect. 
+
+The original code checked `isset($this->request->server['HTTP_ORIGIN'])`. The new code uses `$this->request->getHeader('origin')`, which returns an empty string if the header is missing. While this is cleaner, if `getHeader()` returns an empty string for a missing header, the logic `if ($origin === '') { $origin = '*'; }` effectively sets the origin to `*` for requests *without* an origin header. 
+
+If the intention is to only set `*` when the header is missing, ensure that `getHeader()` behavior matches this expectation. If `getHeader()` returns `null` for missing headers (common in many PSR-7 implementations), the strict comparison `=== ''` will fail, and the code will proceed with an empty string instead of `*`. Please verify the return type of `getHeader()` for missing keys.</note>
+<notesplit />
+<path>lib/public/Util.php</path>
+<side>right</side>
+<from>585</from>
+<to>585</to>
+<note>**[Maintainability]** You are replacing a call to `\OC::$server` with `\OCP\Server::get(\OC\SystemConfig::class)`. 
+
+The `OCP` namespace is intended for the public API. Referencing `\OC\SystemConfig` (a private/internal class) inside `lib/public/Util.php` violates the encapsulation principle you are trying to enforce by moving away from `\OC::$server`. If `SystemConfig` is required, it should ideally be exposed via an interface in `OCP` or handled through a different public service.</note>
+<notesplit />

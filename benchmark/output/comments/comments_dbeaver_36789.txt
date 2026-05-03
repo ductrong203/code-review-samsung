@@ -1,0 +1,16 @@
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANATable.java</path>
+<side>right</side>
+<from>157</from>
+<to>162</to>
+<note>**[Code Defect]** Null check performed after accessing the object.
+
+In `fetchObject`, you are calling `JDBCUtils.safeGetInt(dbResult, "PART_ID")` on line 157, but the null check for `dbResult` is performed on line 158. If `dbResult` were null, line 157 would throw a `NullPointerException`. Furthermore, `JDBCObjectCache.fetchObject` contract implies `dbResult` is not null. You should remove the redundant null check or move it before the `safeGetInt` call.</note>
+<notesplit />
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANATable.java</path>
+<side>right</side>
+<from>142</from>
+<to>145</to>
+<note>**[Performance]** Potential SQL performance issue.
+
+The query joins `M_CS_TABLES` and `TABLE_PARTITIONS` using `mcs.PART_ID = tp.PART_ID`. In SAP HANA, `M_CS_TABLES` contains one row per partition. If the intention is to fetch partitions for a specific table, joining on `PART_ID` is correct, but ensure that `TABLE_NAME` and `SCHEMA_NAME` are indexed in both tables to avoid a full table scan on `M_CS_TABLES`. Additionally, verify if `TABLE_PARTITIONS` is sufficient on its own, as it usually contains the partition metadata directly.</note>
+<notesplit />

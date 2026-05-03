@@ -1,0 +1,28 @@
+<path>core/src/main/java/io/kestra/core/models/tasks/runners/TaskRunner.java</path>
+<side>right</side>
+<from>134</from>
+<to>141</to>
+<note>**[Maintainability]** The `renderCommands` method performs sequential rendering of interpreter, beforeCommands, and commands. While this is functional, it creates a potential issue if `commands` or `beforeCommands` are null, as `renderCommandsFromList` is called for each. 
+
+While `ScriptService.replaceInternalStorage` handles nulls, the logic here is slightly repetitive. Consider refactoring to a helper that accepts a list of `Property<List<String>>` to reduce code duplication and improve readability.</note>
+<notesplit />
+<path>script/src/main/java/io/kestra/plugin/scripts/exec/scripts/runners/CommandsWrapper.java</path>
+<side>right</side>
+<from>173</from>
+<to>179</to>
+<note>**[Code Defect]** In `CommandsWrapper.run()`, you are rendering the commands and then wrapping the result in `Property.of(finalCommands)`. 
+
+If `finalCommands` contains variables that were intended to be evaluated at a later stage (or if the `Property` system expects the raw expression string rather than the already-rendered list), this might break the dynamic property evaluation chain. Ensure that `Property.of()` is the correct approach here, as it effectively "freezes" the value, potentially bypassing the `Property` system's ability to re-render if the context changes.</note>
+<notesplit />
+<path>script/src/main/java/io/kestra/plugin/scripts/runner/docker/Docker.java</path>
+<side>right</side>
+<from>431</from>
+<to>431</to>
+<note>**[Performance]** The `renderCommands` method is called inside the `run` loop. If this method involves heavy I/O (like `ScriptService.replaceInternalStorage` which might interact with internal storage), ensure that this is not causing unnecessary overhead for every execution. If the commands are static, consider if they can be cached or pre-rendered.</note>
+<notesplit />
+<path>tests/src/main/java/io/kestra/core/utils/TestsUtils.java</path>
+<side>right</side>
+<from>248</from>
+<to>250</to>
+<note>**[Maintainability]** The `propertyFromList` helper uses `JacksonMapper.ofJson().writeValueAsString(list)` to create a `Property`. This is a clever way to simulate dynamic properties in tests, but it relies on the assumption that the `Property` constructor correctly parses this JSON string. Ensure that this test utility remains in sync with how the production `Property` class handles JSON-serialized inputs.</note>
+<notesplit />

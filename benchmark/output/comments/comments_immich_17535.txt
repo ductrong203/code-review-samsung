@@ -1,0 +1,24 @@
+<path>server/src/queries/person.repository.sql</path>
+<side>right</side>
+<from>26</from>
+<to>26</to>
+<note>**[Code Defect]** The SQL syntax change from `in ($1)` to `in $1` is likely incorrect for most PostgreSQL drivers (like `pg` used by Kysely). 
+
+In standard SQL, the `IN` operator expects a parenthesized list of values or a subquery. If `$1` is intended to be an array parameter, it should be used as `IN ANY($1)` or kept as `IN ($1)` if the driver handles array expansion. Please verify that your database driver supports `IN $1` for array types, as this is non-standard and will likely cause a syntax error.</note>
+<notesplit />
+<path>server/src/dtos/asset-response.dto.ts</path>
+<side>right</side>
+<from>74</from>
+<to>75</to>
+<note>**[Performance]** The `TODO: this is inefficient` comment acknowledges a performance bottleneck in `peopleWithFaces`. 
+
+Since this function is likely called during asset mapping, performing operations inside a loop that could be handled via a single SQL query or a pre-computed Map/Dictionary will lead to O(N*M) complexity. If this is a hot path, consider refactoring the data fetching logic to group faces by person ID before calling this function, or use a `Map` to perform O(1) lookups instead of iterating through the array repeatedly.</note>
+<notesplit />
+<path>server/src/repositories/person.repository.ts</path>
+<side>right</side>
+<from>290</from>
+<to>292</to>
+<note>**[Code Defect]** The `getDataForThumbnailGenerationJob` method uses `.where('exif.exifImageWidth', '>', 0)` and `.where('exif.exifImageHeight', '>', 0)` followed by `$narrowType<{ exifImageWidth: NotNull; exifImageHeight: NotNull }>()`.
+
+While this helps with TypeScript type safety, if the database schema allows these columns to be `null`, the query might still return rows where these values are `null` if the `inner join` fails to filter them out (though the `inner join` here should prevent that). However, relying on `$narrowType` to force a non-null type on a potentially nullable database column is risky. Ensure that the database constraints (e.g., `NOT NULL` on the columns) match this assumption to avoid runtime errors if the query logic changes.</note>
+<notesplit />

@@ -1,0 +1,24 @@
+<path>src/cli_common.c</path>
+<side>right</side>
+<from>446</from>
+<to>451</to>
+<note>**[Code Defect]** The `valkeyConnectWrapper` function uses `assert(0)` when `VALKEY_CONN_RDMA` is requested but `USE_RDMA` is not defined. 
+
+In a production CLI tool, `assert` is typically compiled out in release builds (when `NDEBUG` is defined). If a user provides the `--rdma` flag in a build where RDMA support was not compiled in, the program will likely crash or behave unpredictably rather than providing a clean error message. It is better to return `NULL` or handle the error gracefully with a descriptive message.</note>
+<notesplit />
+<path>src/valkey-benchmark.c</path>
+<side>right</side>
+<from>1487</from>
+<to>1490</to>
+<note>**[Maintainability]** The `valkeyInitiateRdma()` call inside `parseOptions` is a side-effect-heavy operation performed during argument parsing. 
+
+If `parseOptions` fails later or if the program exits due to other configuration errors, the RDMA subsystem might have already been initialized. It is generally better to perform initialization in `main()` after all arguments have been successfully parsed and validated.</note>
+<notesplit />
+<path>src/valkey-benchmark.c</path>
+<side>right</side>
+<from>392</from>
+<to>392</to>
+<note>**[Code Defect]** The comment `/* RDMA context always writable, but it can't be invoked by AE_WRITABLE */` suggests that `writeHandler` is being called manually because the event loop cannot handle it. 
+
+If `writeHandler` expects to be called within the context of an `aeEventLoop` callback (e.g., accessing `c->context->fd` or specific event loop state), calling it manually with `0` as the mask might lead to undefined behavior or logic errors if the handler assumes the file descriptor is ready for writing. Ensure that `writeHandler` is safe to call outside of the event loop's dispatch cycle.</note>
+<notesplit />

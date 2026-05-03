@@ -1,0 +1,24 @@
+<path>cmd/wsh/cmd/wshcmd-connserver.go</path>
+<side>right</side>
+<from>245</from>
+<to>245</to>
+<note>**[Code Defect]** Using `fmt.Fscanln(os.Stdin, &line)` to read a JWT token is fragile. 
+
+`Fscanln` stops at whitespace, which might truncate a JWT token if it contains certain characters or if the input stream is malformed. Additionally, it does not handle potential trailing newlines or carriage returns reliably in all terminal environments. It is safer to use `bufio.NewScanner(os.Stdin)` or `bufio.NewReader(os.Stdin).ReadString('\n')` to ensure the entire token line is captured correctly.</note>
+<notesplit />
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>right</side>
+<from>290</from>
+<to>290</to>
+<note>**[Maintainability]** The `makeSwapToken` function sets an expiration of 5 minutes (`time.Now().Add(5 * time.Minute)`). 
+
+If the shell initialization or the connection process takes longer than 5 minutes (e.g., due to network latency, slow startup, or user delay), the token will expire before it can be used. Consider if this duration is sufficient for all supported environments (like WSL or remote SSH connections) and ensure there is clear error handling or a retry mechanism if the token is rejected due to expiration.</note>
+<notesplit />
+<path>pkg/remote/conncontroller/conncontroller.go</path>
+<side>right</side>
+<from>333</from>
+<to>333</to>
+<note>**[Code Defect]** The `ReadLineWithTimeout` call uses a hardcoded 3-second timeout.
+
+While this prevents the connection from hanging indefinitely, 3 seconds might be too aggressive for high-latency remote SSH connections or heavily loaded systems. If the `connserver` takes longer to initialize and print the `HAVE-JWT` or `NEED-JWT` status, this will cause a false-negative failure. Consider making this timeout configurable or increasing it to a more conservative value (e.g., 10-15 seconds).</note>
+<notesplit />

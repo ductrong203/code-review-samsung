@@ -1,0 +1,32 @@
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>39</from>
+<to>39</to>
+<note>**[Code Defect]** The `getNumberOfArguments` method returns `0` but the function is variadic and requires at least 2 arguments. 
+
+While `isVariadic` is set to `true`, it is standard practice in ClickHouse to return the minimum number of arguments (in this case `2`) to allow the function factory to perform basic validation before `getReturnTypeImpl` is called.</note>
+<notesplit />
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>82</from>
+<to>85</to>
+<note>**[Code Defect]** The logic for extracting optional arguments is unsafe. 
+
+If the user provides 3 or 4 arguments, the code will attempt to access `arguments[4]` (or `arguments[3]`), leading to an out-of-bounds access. The `getReturnTypeImpl` method validates that the count is either 2 or 5, but `executeImpl` should explicitly check `arguments.size() == 5` before accessing indices 2, 3, and 4.</note>
+<notesplit />
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>309</from>
+<to>309</to>
+<note>**[Code Defect]** In `executeStringString`, the call to `isOverflowComparison<false>` is hardcoded to `false`. 
+
+While this currently works because `executeStringString` is not templated for `reverse`, it is inconsistent with the other `execute` methods that use the `reverse` template parameter. If this function is intended to support symmetric logic, ensure the template usage is consistent.</note>
+<notesplit />
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>137</from>
+<to>139</to>
+<note>**[Performance]** The `normalComparison` function uses `memcmpSmallLikeZeroPaddedAllowOverflow15`. 
+
+Ensure that the `str1_length` and `str2_length` passed to this function are strictly within the bounds of the underlying buffers. While the function name suggests it handles overflow, relying on this for arbitrary user-provided offsets can lead to undefined behavior if the offsets are not validated against the actual buffer sizes before the pointer arithmetic in the `execute` methods.</note>
+<notesplit />

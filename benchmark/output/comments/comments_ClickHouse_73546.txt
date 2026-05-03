@@ -1,0 +1,32 @@
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueIFileMetadata.cpp</path>
+<side>right</side>
+<from>230</from>
+<to>231</to>
+<note>**[Code Defect]** The logic for checking `file_status->retries` is redundant and potentially misleading. 
+
+In C++, `file_status->retries` (assuming it's an integer type) is truthy if it is non-zero. The condition `file_status->retries && file_status->retries >= max_loading_retries` is logically equivalent to `file_status->retries >= max_loading_retries` (since `max_loading_retries` is typically positive). If `retries` is 0, the second part of the `&&` is false anyway. This adds unnecessary complexity.</note>
+<notesplit />
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueIFileMetadata.cpp</path>
+<side>right</side>
+<from>303</from>
+<to>303</to>
+<note>**[Maintainability]** The use of `chassert(false)` inside a production error-handling block is dangerous. 
+
+If this code path is reachable in a release build, `chassert` is typically compiled out (depending on build configuration), meaning the function will return silently after logging a warning, leaving the system in an inconsistent state. If this is a critical failure, consider throwing an exception or ensuring the state is explicitly handled rather than relying on an assertion that may disappear.</note>
+<notesplit />
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>right</side>
+<from>681</from>
+<to>687</to>
+<note>**[Code Defect]** The logic inside the `commit` method for `FileState::Cancelled` and `FileState::Processing` states throws an exception if `insert_succeeded` is true.
+
+While this enforces a strict state machine, throwing an exception inside a `commit` loop (which is likely called during cleanup or finalization) can mask the original error or cause the entire process to crash during shutdown. Ensure that the caller of `commit` is prepared to handle exceptions here, or consider logging a critical error instead of throwing to allow the system to attempt a graceful shutdown.</note>
+<notesplit />
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>right</side>
+<from>694</from>
+<to>695</to>
+<note>**[Code Defect]** In the `FileState::ErrorOnRead` case, `file_metadata->setFailed` is called with `reduce_retry_count = true`. 
+
+If `exception_during_read` is empty (despite the `chassert`), this could lead to unexpected behavior in the metadata layer. Furthermore, ensure that `setFailed` is idempotent or safe to call if the file was already partially processed, as the previous logic in `generateImpl` suggests that partial processing might have already occurred.</note>
+<notesplit />

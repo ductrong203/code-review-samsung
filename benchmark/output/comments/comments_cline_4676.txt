@@ -1,0 +1,18 @@
+<path>src/core/storage/state.ts</path>
+<side>right</side>
+<from>509</from>
+<to>562</to>
+<note>**[Code Defect]** The `batchedGlobalUpdates` object includes keys that may have `undefined` values (e.g., `awsRegion`, `openAiHeaders`, etc.). 
+
+When `context.globalState.update(key, value)` is called with `value` as `undefined`, VSCode's `globalState` API interprets this as a request to **delete** the key. If the intention of `updateApiConfiguration` is to persist the configuration state, passing `undefined` for optional fields will inadvertently remove them from the global state rather than ignoring them or setting them to a null/empty value.
+
+**Fix:** Filter out `undefined` values from the `batchedGlobalUpdates` object before passing it to `updateGlobalStateBatch`, or ensure that the logic explicitly handles `undefined` by converting them to `null` or an empty string if the storage schema requires it.</note>
+<notesplit />
+<path>src/core/storage/state.ts</path>
+<side>right</side>
+<from>565</from>
+<to>590</to>
+<note>**[Code Defect]** Similar to the global state issue, `updateSecretsBatch` passes values directly to `storeSecret`. If any of these API keys are `undefined` (which is common when switching providers), `storeSecret` will be called with `undefined`. 
+
+Looking at the implementation of `storeSecret` (implied by context), it likely calls `context.secrets.delete(key)` if the value is `undefined`. If the intention is to only update provided keys, you must filter out `undefined` values from the `batchedSecretUpdates` object before calling `updateSecretsBatch`. Otherwise, you risk deleting existing secrets that were not intended to be cleared during a provider switch.</note>
+<notesplit />

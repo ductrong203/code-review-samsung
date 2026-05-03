@@ -1,0 +1,16 @@
+<path>packages/cli/src/services/folder.service.ts</path>
+<side>right</side>
+<from>141</from>
+<to>143</to>
+<note>**[Performance]** The `flattenAndArchive` method performs a sequential `await` inside a `for` loop when archiving workflows. If a folder contains many workflows, this will result in N sequential database/service calls, significantly increasing the latency of the folder deletion operation.
+
+Consider using `Promise.all` to execute these archive operations concurrently.</note>
+<notesplit />
+<path>packages/cli/src/databases/repositories/workflow.repository.ts</path>
+<side>right</side>
+<from>311</from>
+<to>311</to>
+<note>**[Performance]** The `getAllWorkflowIdsInHierarchy` method uses `query.getMany()` to fetch full `WorkflowEntity` objects just to extract their IDs. This is inefficient as it loads unnecessary columns into memory.
+
+Use `query.select('workflow.id').getMany()` or `query.getRawMany()` to fetch only the required ID column, reducing memory usage and database load.</note>
+<notesplit />

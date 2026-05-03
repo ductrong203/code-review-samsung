@@ -1,0 +1,87 @@
+/* =============================================================================
+   Sidebar Component
+   ============================================================================= */
+
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition-base);
+}
+
+.sidebar__header {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--border-muted);
+}
+
+.sidebar__new-chat-btn {
+  width: 100%;
+  padding: 10px var(--space-md);
+  background: var(--bg-elevated);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.sidebar__new-chat-btn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-glow);
+}
+
+.sidebar__conversations {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-sm);
+}
+
+.sidebar__section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: var(--space-sm) var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.sidebar__item {
+  padding: 10px var(--space-sm);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__item:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.sidebar__item--active {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.sidebar__footer {
+  padding: var(--space-md);
+  border-top: 1px solid var(--border-muted);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: center;
+}

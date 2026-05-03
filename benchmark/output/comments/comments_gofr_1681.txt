@@ -1,0 +1,27 @@
+<path>pkg/gofr/http/middleware/logger.go</path>
+<side>right</side>
+<from>148</from>
+<to>152</to>
+<note>**[Maintainability]** The loop inside `isLogProbeDisabled` is redundant. Since `probes.Paths` is a slice of strings, you can simplify this check using a simple loop or a map lookup if the list grows. More importantly, the condition `&& probes.Disabled` inside the loop is redundant because the function already returns `false` at line 143 if `probes.Disabled` is false.
+
+Suggested fix:
+```go
+func isLogProbeDisabled(probes LogProbes, urlPath string) bool {
+	if !probes.Disabled {
+		return false
+	}
+	for _, path := range probes.Paths {
+		if urlPath == path {
+			return true
+		}
+	}
+	return false
+}
+```</note>
+<notesplit />
+<path>pkg/gofr/service/health.go</path>
+<side>right</side>
+<from>25</from>
+<to>25</to>
+<note>**[Code Defect]** The change from `".well-known/alive"` to `strings.TrimPrefix(AlivePath, "/")` introduces a potential bug. `AlivePath` is defined as `"/.well-known/alive"`. `strings.TrimPrefix` will result in `".well-known/alive"`. However, if the intention was to use the constant consistently, ensure that the `getHealthResponseForEndpoint` function expects a path without a leading slash. If it expects a full path, this change might break the health check functionality. Please verify if the downstream `getHealthResponseForEndpoint` logic handles the leading slash correctly.</note>
+<notesplit />

@@ -1,0 +1,16 @@
+<path>internal/ls/diagnostics.go</path>
+<side>right</side>
+<from>14</from>
+<to>25</to>
+<note>**[Performance]** The current implementation of `GetDocumentDiagnostics` performs a sequential execution of multiple diagnostic providers (`GetSemanticDiagnostics`, `GetSuggestionDiagnostics`, `GetDeclarationDiagnostics`). 
+
+In an LSP context, these operations are often I/O or CPU intensive. Since these calls are independent of each other, they should be executed concurrently using `errgroup` or `sync.WaitGroup` to reduce the latency of the diagnostic response, which directly impacts the user's perceived editor performance.</note>
+<notesplit />
+<path>internal/ls/diagnostics.go</path>
+<side>right</side>
+<from>15</from>
+<to>25</to>
+<note>**[Code Defect]** The logic change introduces a potential bug regarding diagnostic precedence. By using an `if-else` block, if `GetSyntacticDiagnostics` returns any results, the code skips `GetSemanticDiagnostics`, `GetSuggestionDiagnostics`, and `GetDeclarationDiagnostics` entirely. 
+
+Typically, syntactic diagnostics (like syntax errors) are prioritized, but semantic and declaration diagnostics should still be reported if they are available, or at least the logic should be explicit about whether these categories are mutually exclusive. If the intention is to only show syntax errors when they exist, this is fine, but if the intention is to aggregate all available diagnostics, the `else` block prevents the user from seeing semantic/declaration errors until the syntax error is resolved.</note>
+<notesplit />

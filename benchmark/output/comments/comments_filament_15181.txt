@@ -1,0 +1,20 @@
+<path>packages/actions/src/Exports/Jobs/PrepareCsvExport.php</path>
+<side>right</side>
+<from>79</from>
+<to>80</to>
+<note>**[Code Defect]** Potential `Undefined offset` error.
+
+In line 79, you access `$originalOrders[0]`. Since `$originalOrders` is a Laravel Collection, using array access on a collection does not guarantee the existence of an index, especially if the collection was filtered or modified. If the collection is empty, this will throw an error. 
+
+**Fix:** Use `$originalOrders->first()` to safely retrieve the first element, or check `isNotEmpty()` before accessing the index.</note>
+<notesplit />
+<path>packages/actions/src/Exports/Jobs/PrepareCsvExport.php</path>
+<side>right</side>
+<from>153</from>
+<to>153</to>
+<note>**[Code Defect]** Potential `Undefined index` or logic error.
+
+Accessing `$query->getQuery()->orders[0]['column']` directly is risky. If the `orders` array is empty, this will trigger an "Undefined offset: 0" notice/error. 
+
+**Fix:** Use `data_get($query->getQuery()->orders, '0.column')` or verify that the `orders` array is not empty before accessing the first element.</note>
+<notesplit />

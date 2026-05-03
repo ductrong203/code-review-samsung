@@ -1,0 +1,18 @@
+<path>crates/uv/tests/it/pip_install.rs</path>
+<side>right</side>
+<from>575</from>
+<to>575</to>
+<note>**[Code Defect]** Logic error in test assertion.
+
+In line 575, you are asserting `context.assert_command("import flask").success()`. However, the previous `uv_snapshot!` call (lines 559-573) just installed `iniconfig`, not `flask`. If the environment is isolated or if `iniconfig` does not provide a `flask` module, this assertion will fail. If you intended to verify that `flask` was removed or is no longer present, you should assert failure or check the environment state.</note>
+<notesplit />
+<path>crates/uv/tests/it/pip_install.rs</path>
+<side>right</side>
+<from>585</from>
+<to>598</to>
+<note>**[Maintainability]** Potential resource leak / test instability.
+
+The `start_requirements_server` function starts a `MockServer` and returns its URI, but the `MockServer` instance is dropped at the end of the function scope. In `wiremock`, the server stops when the `MockServer` instance is dropped. This means the server will likely shut down immediately after the function returns, causing the subsequent `uv_snapshot!` calls (which rely on that URI) to fail with connection errors.
+
+You should return the `MockServer` instance along with the URI (e.g., `(MockServer, String)`) and keep it alive for the duration of the test.</note>
+<notesplit />

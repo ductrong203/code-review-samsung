@@ -1,0 +1,18 @@
+<path>server/src/repositories/album.repository.ts</path>
+<side>right</side>
+<from>141</from>
+<to>142</to>
+<note>**[Performance]** The use of `sql<Date>` inside `eb.fn.min` and `eb.fn.max` with explicit casting `::date` inside the query is correct for data integrity, but ensure that the `localDateTime` column has an appropriate index. Since you are now performing a function call (`AT TIME ZONE`) on the column in the `SELECT` clause, this is fine, but if you were to filter by this expression, it would invalidate index usage. Given this is a `SELECT` aggregate, the performance impact is minimal, but be aware that this forces a full scan of the joined assets for the album.</note>
+<notesplit />
+<path>server/src/services/album.service.ts</path>
+<side>right</side>
+<from>61</from>
+<to>69</to>
+<note>**[Performance]** This is a significant improvement. By moving the `lastModifiedAssetTimestamp` calculation into the `getMetadataForIds` query, you have eliminated an N+1 query problem where `getLastUpdatedAssetForAlbumId` was being called inside a `Promise.all` map for every album in the list. This will drastically reduce database round-trips when fetching album lists.</note>
+<notesplit />
+<path>server/src/services/album.service.ts</path>
+<side>right</side>
+<from>67</from>
+<to>68</to>
+<note>**[Maintainability]** The comment "lastModifiedAssetTimestamp is only used in mobile app, please remove if not need" suggests technical debt. If this field is truly only for the mobile app and not needed by the web frontend or other consumers, consider if it should be part of the shared `AlbumAssetCount` interface or if it should be fetched via a separate, optional endpoint to keep the primary album list response lightweight. If it is required, please remove the "please remove if not need" comment to keep the codebase clean.</note>
+<notesplit />

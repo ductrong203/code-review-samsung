@@ -1,0 +1,16 @@
+<path>comfy/controlnet.py</path>
+<side>right</side>
+<from>824</from>
+<to>824</to>
+<note>**[Code Defect]** Syntax error: The `format` call contains a trailing comma inside the argument list `(i, )`, which will cause a `TypeError` or `IndexError` when the string formatting is attempted because the expected argument for the placeholder is missing.
+
+Fix: Change `prefix_replace["adapter.body.{}.".format(i, )]` to `prefix_replace["adapter.body.{}.".format(i)]`.</note>
+<notesplit />
+<path>notebooks/comfyui_colab.ipynb</path>
+<side>right</side>
+<from>289</from>
+<to>289</to>
+<note>**[Code Defect]** The code block in the notebook now references `time.sleep(0.5)`, but the `import time` statement was removed in the previous hunk (line 291). This will cause a `NameError` when the cell is executed.
+
+Fix: Restore `import time` in the source list for this cell.</note>
+<notesplit />

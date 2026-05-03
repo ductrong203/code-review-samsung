@@ -1,0 +1,24 @@
+<path>packages/core/src/errors/error-reporter.ts</path>
+<side>right</side>
+<from>98</from>
+<to>98</to>
+<note>**[Code Defect]** The assignment `this.report = this.defaultReport` is likely to cause a runtime error. 
+
+In `ErrorReporter`, `report` is typically a method (as implied by the usage of `this.error(error)` in `uncaughtException` and the `eslint-disable` comment). Assigning a method to another method reference is fine, but if `defaultReport` is not defined or if the class structure expects `report` to be a specific implementation, this could lead to `TypeError: this.report is not a function` or similar issues. Ensure `defaultReport` is correctly implemented as a no-op or a safe fallback method.</note>
+<notesplit />
+<path>packages/core/src/errors/error-reporter.ts</path>
+<side>right</side>
+<from>89</from>
+<to>89</to>
+<note>**[Performance]** The `releaseExpiresInMs` calculation uses `Date.now()`. 
+
+While this is correct for the initial check, `setTimeout` in Node.js has a maximum delay of 2,147,483,647 milliseconds (~24.8 days). Since `SIX_WEEKS_IN_MS` is ~36 days, the `setTimeout` will trigger immediately if the calculated delay exceeds the 32-bit integer limit. You should implement a recursive timer or a check that caps the `setTimeout` duration to a safe value (e.g., 21 days) and re-evaluates the expiration.</note>
+<notesplit />
+<path>packages/@n8n/config/src/decorators.ts</path>
+<side>right</side>
+<from>59</from>
+<to>64</to>
+<note>**[Code Defect]** `Date.parse(value)` is notoriously inconsistent across different environments and formats. 
+
+If `N8N_RELEASE_DATE` is provided in a format that `Date.parse` does not strictly support (e.g., certain timezone offsets or non-ISO strings), it may return `NaN` or incorrect dates. Since you are using this for critical expiration logic in `ErrorReporter`, consider using a more robust parsing library or enforcing a strict ISO 8601 format check using a regex before passing it to `new Date()`.</note>
+<notesplit />

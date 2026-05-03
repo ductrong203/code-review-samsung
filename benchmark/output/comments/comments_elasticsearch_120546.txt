@@ -1,0 +1,11 @@
+<path>libs/entitlement/src/main/java/org/elasticsearch/entitlement/runtime/policy/PolicyManager.java</path>
+<side>right</side>
+<from>328</from>
+<to>328</to>
+<note>**[Code Defect]** Potential `NullPointerException`.
+
+The `requestingClass.getPackageName()` method can return `null` if the class is in the default (unnamed) package. Calling `.startsWith()` on a `null` result will throw a `NullPointerException`. 
+
+**Fix:** Add a null check for the package name before calling `startsWith`:
+`if (requestingModule.isNamed() == false && requestingClass.getPackageName() != null && requestingClass.getPackageName().startsWith(agentsPackageName))`</note>
+<notesplit />

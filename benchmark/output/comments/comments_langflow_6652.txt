@@ -1,0 +1,24 @@
+<path>src/backend/base/langflow/components/processing/parser.py</path>
+<side>right</side>
+<from>129</from>
+<to>129</to>
+<note>**[Code Defect]** Potential `KeyError` when using the template.
+
+The code uses `self.template.format(**row.to_dict())`. If the user provides a template with a variable that does not exist as a column in the DataFrame, the component will crash with a `KeyError`. While this is caught in the unit tests, it is better to provide a more user-friendly error message or handle missing keys gracefully (e.g., using `string.Formatter` or providing a default value) to improve the developer experience.</note>
+<notesplit />
+<path>src/backend/base/langflow/components/processing/parser.py</path>
+<side>right</side>
+<from>152</from>
+<to>152</to>
+<note>**[Maintainability]** Use of `hasattr` for dynamic attributes.
+
+In `_safe_convert`, you check `hasattr(self, "clean_data")`. Since `clean_data` is dynamically added to the component instance via `update_build_config`, this is brittle. It is safer to use `getattr(self, "clean_data", False)` to avoid potential attribute errors or unexpected behavior if the component state is not fully initialized.</note>
+<notesplit />
+<path>src/backend/base/langflow/components/processing/parser.py</path>
+<side>right</side>
+<from>156</from>
+<to>158</to>
+<note>**[Performance]** Inefficient regex operations on DataFrames.
+
+Performing `data.replace(..., regex=True)` on the entire DataFrame inside `_safe_convert` can be very slow for large datasets, as it iterates over the entire object. If the intention is to clean the output, consider performing these operations only on the final string representation or using vectorized pandas operations if possible.</note>
+<notesplit />

@@ -1,0 +1,22 @@
+<path>src/Shared/HttpSys/NativeInterop/SocketAddress.cs</path>
+<side>right</side>
+<from>46</from>
+<to>46</to>
+<note>**[Code Defect]** The `IPAddress` constructor used here (`new IPAddress(long)`) interprets the input as a 32-bit integer in host byte order, but `S_addr` is in network byte order. 
+
+Using `new IPAddress(uint)` or `new IPAddress(ReadOnlySpan&lt;byte&gt;)` is preferred to avoid endianness issues. Since `S_un.S_addr` is a `uint` (or `in_addr` struct), you should ensure the bytes are correctly interpreted as network byte order. If `S_addr` is already a `uint` representing the address in network byte order, `new IPAddress(BitConverter.GetBytes(_sockaddr.sin_addr.S_un.S_addr))` or similar is safer.</note>
+<notesplit />
+<path>src/Shared/HttpSys/NativeInterop/SocketAddress.cs</path>
+<side>right</side>
+<from>70</from>
+<to>70</to>
+<note>**[Maintainability]** The `TODO` regarding the scope ID is significant. `SOCKADDR_IN6` contains a `sin6_scope_id` field. When creating an `IPAddress` from an IPv6 address, if the address is a link-local address, the scope ID is required for the `IPAddress` to be functional in many networking scenarios. You should extract `_sockaddr.sin6_scope_id` and pass it to the `IPAddress` constructor: `new IPAddress(..., (long)_sockaddr.sin6_scope_id)`.</note>
+<notesplit />
+<path>src/Shared/HttpSys/RequestProcessing/NativeRequestContext.cs</path>
+<side>right</side>
+<from>661</from>
+<to>661</to>
+<note>**[Code Defect]** The pointer arithmetic `pMemoryBlob + _bufferAlignment - (byte*)_originalBufferAddress + source` looks suspicious. 
+
+In the original code, `source` was likely an offset. By casting the result directly to `SOCKADDR*`, you are assuming that the memory at that calculated address is correctly aligned for a `SOCKADDR` structure. If the calculation does not result in a memory address aligned to the requirements of `SOCKADDR` (which is typically 2-byte aligned), dereferencing this pointer in `CopyOutAddress` will cause an unaligned access exception on architectures that enforce alignment, or undefined behavior. Ensure the pointer arithmetic guarantees proper alignment.</note>
+<notesplit />

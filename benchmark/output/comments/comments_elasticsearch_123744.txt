@@ -1,0 +1,14 @@
+<path>libs/entitlement/src/main/java/org/elasticsearch/entitlement/runtime/policy/PolicyManager.java</path>
+<side>right</side>
+<from>311</from>
+<to>325</to>
+<note>**[Code Defect]** The `isPathOnDefaultFilesystem` method returns `false` when the filesystem is not the default, which causes `checkFileRead` and `checkFileWrite` to return early (effectively bypassing all entitlement checks). 
+
+If a path is on a non-default filesystem (e.g., a custom `FileSystem` implementation or a virtual filesystem), it should likely be subjected to stricter scrutiny or handled explicitly rather than being "trivially allowed" by returning early. Bypassing security checks for non-default filesystems creates a potential security vulnerability where unauthorized access to sensitive resources could occur if they are accessed via a non-default `FileSystem` provider.</note>
+<notesplit />
+<path>libs/entitlement/src/main/java/org/elasticsearch/entitlement/runtime/policy/PolicyManager.java</path>
+<side>right</side>
+<from>312</from>
+<to>313</to>
+<note>**[Performance]** The code calls `path.getFileSystem().getClass()` twice in the `isPathOnDefaultFilesystem` method. While `getFileSystem()` is generally fast, it is better practice to store the result in a local variable (which you have already done in line 312) and use that variable for the comparison in line 313 to avoid redundant method calls.</note>
+<notesplit />

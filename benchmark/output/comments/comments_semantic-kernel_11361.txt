@@ -1,0 +1,10 @@
+<path>dotnet/samples/Demos/ModelContextProtocolPlugin/Program.cs</path>
+<side>right</side>
+<from>85</from>
+<to>85</to>
+<note>**[Code Defect]** Potential `InvalidOperationException` or missing data.
+
+The code uses `.FirstAsync()` on the result of `agent.InvokeAsync(...)`. `InvokeAsync` returns an `IAsyncEnumerable<ChatMessageContent>`. If the agent's response is empty or if the stream does not yield any items, `FirstAsync()` will throw an `InvalidOperationException`. 
+
+Additionally, if the agent produces multiple messages (e.g., tool calls followed by a final response), `FirstAsync()` will only capture the first message in the stream, which might be an intermediate tool-use message rather than the final answer. Consider using `await foreach` to process the stream or `ToListAsync()` if you expect a complete response.</note>
+<notesplit />

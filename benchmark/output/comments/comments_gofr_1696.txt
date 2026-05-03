@@ -1,0 +1,24 @@
+<path>pkg/gofr/logging/logger.go</path>
+<side>right</side>
+<from>255</from>
+<to>261</to>
+<note>**[Maintainability]** The `extractTraceIDAndFilterArgs` function relies on a magic string key `"__trace_id__"` which is coupled to the implementation of `ContextLogger`. 
+
+If the key name changes in `ContextLogger`, this function will silently fail to extract the trace ID. Consider defining a constant for this key in a shared location (e.g., `pkg/gofr/logging/constants.go` or within the `logging` package) to ensure consistency and maintainability.</note>
+<notesplit />
+<path>pkg/gofr/logging/logger.go</path>
+<side>right</side>
+<from>256</from>
+<to>256</to>
+<note>**[Code Defect]** The logic `if tid, exists := m["__trace_id__"].(string); exists && traceID == ""` assumes that the trace ID map is always a `map[string]any`. 
+
+If a user logs a map that happens to contain the key `"__trace_id__"` but with a different type (e.g., `map[string]int`), the type assertion will fail, and the trace ID will not be extracted. While this is a niche edge case, it is safer to perform a type-safe check or document that this key is reserved for internal use to avoid collisions with user-provided log data.</note>
+<notesplit />
+<path>pkg/gofr/handler.go</path>
+<side>right</side>
+<from>71</from>
+<to>71</to>
+<note>**[Performance]** The assignment `c.ContextLogger = *reqLogger` performs a shallow copy of the `ContextLogger` struct. 
+
+While this is currently safe because `ContextLogger` contains only a pointer (`base`) and a string (`traceID`), it is generally better practice to store the pointer to the logger in the `Context` struct to avoid unnecessary struct copying and to ensure that any future additions to the struct (like mutexes or other stateful fields) do not cause subtle bugs.</note>
+<notesplit />

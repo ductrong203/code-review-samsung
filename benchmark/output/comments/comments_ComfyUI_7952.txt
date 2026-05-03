@@ -1,0 +1,30 @@
+<path>comfy_extras/nodes_string.py</path>
+<side>right</side>
+<from>38</from>
+<to>38</to>
+<note>**[Code Defect]** The `StringSubstring` node does not handle index out-of-bounds or negative indices gracefully. While Python's slicing handles these, it may lead to unexpected behavior for users expecting standard substring logic (e.g., `string[0:100]` on a 5-character string returns the whole string). Consider adding validation or clamping logic to ensure `start` and `end` are within reasonable bounds if that is the intended behavior for the node.</note>
+<notesplit />
+<path>comfy_extras/nodes_string.py</path>
+<side>right</side>
+<from>278</from>
+<to>278</to>
+<note>**[Code Defect]** In `RegexExtract`, `match.group(group_index)` will raise an `IndexError` if `group_index` is greater than the number of capturing groups in the regex, even if the check `len(match.groups()) >= group_index` is performed. `match.groups()` returns the number of *capturing* groups, but `group(0)` is the entire match. If `group_index` is 1, and there are no capturing groups, `len(match.groups())` is 0, which is safe, but if the user provides a high index, it may still fail. Additionally, `group_index` should be validated against the specific match object's `re.groups` attribute.</note>
+<notesplit />
+<path>comfy_extras/nodes_string.py</path>
+<side>right</side>
+<from>287</from>
+<to>287</to>
+<note>**[Code Defect]** Similar to the previous comment, `match.group(group_index)` inside the `All Groups` loop is prone to `IndexError`. Furthermore, `match.groups()` returns a tuple of all captured subgroups. If `group_index` is 0, it returns the whole match, but the logic here assumes `group_index` refers to a specific capture group. Ensure the `group_index` is within the valid range of the match object's groups.</note>
+<notesplit />
+<path>comfy_extras/nodes_string.py</path>
+<side>right</side>
+<from>183</from>
+<to>189</to>
+<note>**[Maintainability]** The `StringCompare` node logic is slightly fragile. If a user selects a mode that isn't "Equal", "Starts With", or "Ends With" (e.g., if the UI is bypassed or updated), the function returns `None` (implicitly). It is better to raise a `ValueError` or return a default value to ensure the node output is always consistent with the `RETURN_TYPES`.</note>
+<notesplit />
+<path>comfy_extras/nodes_string.py</path>
+<side>right</side>
+<from>218</from>
+<to>223</to>
+<note>**[Performance/Maintainability]** The `RegexMatch` and `RegexExtract` nodes compile the regex pattern on every execution. For performance-critical workflows, consider using `re.compile` with a cache (e.g., `functools.lru_cache`) to avoid re-parsing the regex pattern string repeatedly.</note>
+<notesplit />

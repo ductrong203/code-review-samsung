@@ -1,0 +1,24 @@
+<path>api/apps/api_app.py</path>
+<side>right</side>
+<from>659</from>
+<to>659</to>
+<note>**[Performance]** Redundant database query inside a loop.
+
+You are calling `DocumentService.get_tenant_id(doc_id)` inside the loop. Since you have already fetched the `doc` objects in bulk at line 649, you should access the `tenant_id` directly from the `doc` object (e.g., `doc.tenant_id`) instead of performing an additional database query for every document in the list. This will significantly improve performance when removing multiple documents.</note>
+<notesplit />
+<path>api/db/services/document_service.py</path>
+<side>right</side>
+<from>370</from>
+<to>370</to>
+<note>**[Code Defect]** Potential security/logic issue with `in_` clause.
+
+The `cls.model.name.in_(doc_names)` query does not account for the `tenant_id` or `user_id` context. If `doc_names` are provided by a user, this query will return IDs for documents across the entire database, potentially allowing a user to delete documents belonging to other tenants if they guess the document names. Ensure that the query is scoped to the current user's `tenant_id`.</note>
+<notesplit />
+<path>api/db/services/common_service.py</path>
+<side>right</side>
+<from>276</from>
+<to>276</to>
+<note>**[Code Defect]** Potential SQL error with empty list.
+
+If `pids` is an empty list, `cls.model.id.in_([])` may generate invalid SQL depending on the underlying database driver (e.g., `IN ()` is invalid syntax in many SQL dialects). You should add a check at the beginning of `delete_by_ids` to return early if `pids` is empty or falsy.</note>
+<notesplit />

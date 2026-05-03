@@ -1,0 +1,18 @@
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>326</from>
+<to>342</to>
+<note>**[Maintainability]** The `formatDefaultValue` function uses `fmt.Sprintf("%v", defaultValue)` as a fallback. While functional, this can lead to inconsistent output formats for complex types or pointers. Given that this is used for CLI help output, consider if a more explicit string conversion or a type-switch is needed to ensure the output matches the expected user-facing format (e.g., handling `[]string` or other collections more gracefully than the default `fmt` representation).</note>
+<notesplit />
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>376</from>
+<to>379</to>
+<note>**[Code Defect]** The use of `panic("no value candidate for list or element")` in production code is generally discouraged, especially in a CLI tool. If this state is reachable due to invalid configuration or unexpected input, it will crash the compiler. Consider returning an error or a safe default value instead of panicking.</note>
+<notesplit />
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>412</from>
+<to>412</to>
+<note>**[Performance]** `collections.NewOrderedMapWithSizeHint` is initialized with `enumMap.Size()`. If `enumMap` contains many entries, but many are filtered out by the `deprecatedKeys` check in the loop (lines 416-418), the map might be over-allocated. While not a critical performance issue, it is worth noting that the hint is an upper bound and the actual usage might be significantly smaller.</note>
+<notesplit />

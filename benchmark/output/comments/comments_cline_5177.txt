@@ -1,0 +1,28 @@
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1322</from>
+<to>1334</to>
+<note>**[Code Defect]** Unhandled promise rejection in background operation.
+
+The `this.checkpointTracker.commit()` promise is now detached from the main execution flow. If the `commit()` operation fails (e.g., due to git lock files, disk space, or permission issues), the error will be unhandled, potentially leading to a process crash or silent failure without any logging.
+
+**Fix:** Add a `.catch()` block to the promise chain to log the error appropriately.
+
+```typescript
+this.checkpointTracker.commit().then(async (commitHash) => {
+    // ... existing logic
+}).catch((error) => {
+    console.error("Failed to create background checkpoint:", error);
+});
+```</note>
+<notesplit />
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1322</from>
+<to>1334</to>
+<note>**[Maintainability]** Potential race condition on `messageStateHandler`.
+
+By moving the `commit()` operation to the background, you introduce a race condition. If the user triggers another action that modifies `this.messageStateHandler.getClineMessages()` while the `commit()` is still running, the `lastCheckpointMessageIndex` found inside the `.then()` block might point to the wrong message or become invalid if the message list is mutated or cleared.
+
+**Fix:** If the order of messages is critical, consider passing the specific message ID or a reference to the message object into the closure, rather than re-searching the entire message list after the asynchronous operation completes.</note>
+<notesplit />

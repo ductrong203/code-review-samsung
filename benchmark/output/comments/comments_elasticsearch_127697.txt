@@ -1,0 +1,26 @@
+<path>server/src/main/java/org/elasticsearch/cluster/ClusterChangedEvent.java</path>
+<side>right</side>
+<from>352</from>
+<to>358</to>
+<note>**[Maintainability]** The logic for determining `ProjectsDelta.EMPTY` is fragile and potentially incorrect. 
+
+Checking `previousMetadata.projects().size() == 1 && previousMetadata.hasProject(ProjectId.DEFAULT)` assumes that the default project is the only one present. If a cluster state contains the default project plus other projects, this condition fails, potentially leading to unnecessary delta calculations or incorrect state transitions. 
+
+Consider simplifying this to check if the project maps are equal using `previousMetadata.projects().equals(currentMetadata.projects())` instead of manually checking sizes and the existence of the default project.</note>
+<notesplit />
+<path>server/src/main/java/org/elasticsearch/cluster/ClusterChangedEvent.java</path>
+<side>right</side>
+<from>372</from>
+<to>378</to>
+<note>**[Maintainability]** The `ProjectsDelta` record is defined as a private static inner class inside `ClusterChangedEvent`. 
+
+If this delta information is intended to be consumed by other components (which is implied by the addition of the `projectDelta()` accessor), it should likely be a top-level class or a static nested class in a more appropriate location (e.g., `org.elasticsearch.cluster.metadata`) to improve visibility and reusability.</note>
+<notesplit />
+<path>x-pack/plugin/security/src/test/java/org/elasticsearch/xpack/security/support/QueryableBuiltInRolesSynchronizerTests.java</path>
+<side>right</side>
+<from>333</from>
+<to>334</to>
+<note>**[Performance]** The test verification change from `times(1)` to `times(2)` indicates that `metadata()` is now being called twice on the cluster state objects during the `clusterChanged` event processing. 
+
+Since `metadata()` can be an expensive operation (depending on the implementation of `ClusterState`), ensure that this extra call is necessary. If the `ClusterChangedEvent` constructor is calling `metadata()` multiple times, consider caching the result in a local variable within the constructor to avoid redundant calls.</note>
+<notesplit />

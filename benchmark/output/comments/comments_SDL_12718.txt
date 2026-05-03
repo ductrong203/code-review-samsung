@@ -1,0 +1,20 @@
+<path>src/gpu/vulkan/SDL_gpu_vulkan.c</path>
+<side>right</side>
+<from>10449</from>
+<to>10449</to>
+<note>**[Code Defect]** The function `VULKAN_INTERNAL_DefragmentMemory` is now called with `vulkanCommandBuffer` as an argument, but the function no longer performs a `VULKAN_Submit` internally (it returns `true` at line 10773). 
+
+However, `VULKAN_INTERNAL_DefragmentMemory` records commands into the provided `commandBuffer`. If this function fails (e.g., due to an allocation error), the `commandBuffer` might be left in an inconsistent or partially recorded state. Since the caller `VULKAN_Submit` proceeds to call `VULKAN_INTERNAL_EndCommandBuffer` (line 10455) regardless of the return value of `VULKAN_INTERNAL_DefragmentMemory`, this could lead to invalid command buffer states or GPU hangs. You should ensure that if defragmentation fails, the command buffer is either reset or the submission is aborted.</note>
+<notesplit />
+<path>src/gpu/vulkan/SDL_gpu_vulkan.c</path>
+<side>right</side>
+<from>10632</from>
+<to>10632</to>
+<note>**[Maintainability]** The error message at line 10632 says "Failed to allocate defrag buffer!", but this block is inside the `VULKAN_INTERNAL_DefragmentMemory` function which handles both buffers and textures. If this fails during a texture allocation (which it does, as seen in the logic flow), the error message is misleading. Consider making the error message generic or context-aware.</note>
+<notesplit />
+<path>src/gpu/vulkan/SDL_gpu_vulkan.c</path>
+<side>right</side>
+<from>10698</from>
+<to>10698</to>
+<note>**[Maintainability]** Similar to the previous comment, the error message at line 10698 says "Failed to allocate defrag buffer!" while inside the texture allocation logic. This should be updated to "Failed to allocate defrag texture!" to aid in debugging.</note>
+<notesplit />

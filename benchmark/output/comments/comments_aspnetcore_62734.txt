@@ -1,0 +1,10 @@
+<path>src/Identity/Extensions.Core/src/PasswordHasher.cs</path>
+<side>right</side>
+<from>267</from>
+<to>267</to>
+<note>**[Code Defect]** Potential `ArgumentOutOfRangeException` or `IndexOutOfRangeException`.
+
+By switching from `Buffer.BlockCopy` to `AsSpan(...).ToArray()`, you are now performing a slice operation that does not verify if `13 + saltLength` exceeds the bounds of the `hashedPassword` array. If a malicious or malformed hash is provided where the length is insufficient, `AsSpan` will throw an exception, potentially leading to a Denial of Service (DoS) if this is not caught by the caller. 
+
+You should validate that `hashedPassword.Length >= 13 + saltLength` before attempting to slice the span.</note>
+<notesplit />

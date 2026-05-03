@@ -1,0 +1,30 @@
+<path>src/config.c</path>
+<side>right</side>
+<from>545</from>
+<to>548</to>
+<note>**[Code Defect]** Potential memory leak or double-free risk.
+
+In `loadServerConfigFromString`, the logic `if (cmd->current_name != cmd->fullname)` is used to determine if `current_name` should be freed. However, `cmd->fullname` is initialized via `sdsnew` in `populateCommandTable` (src/server.c:3216) and `cmd->current_name` is initialized to point to the same address (src/server.c:3217). 
+
+If a command is renamed multiple times, `cmd->current_name` will point to a heap-allocated SDS string. If the logic ever resets or if `cmd->fullname` is modified elsewhere, this pointer comparison might become unreliable. Furthermore, if `cmd->current_name` was previously allocated, it must be freed before being overwritten by `sdsdup(argv[2])`. Ensure that `cmd->current_name` is always initialized to `NULL` or a valid SDS string to avoid dangling pointers or memory leaks during subsequent renames.</note>
+<notesplit />
+<path>src/server.c</path>
+<side>right</side>
+<from>3216</from>
+<to>3217</to>
+<note>**[Maintainability]** Inconsistent initialization of `current_name`.
+
+In `populateCommandTable`, `c->current_name` is set to `c->fullname`. Since `c->fullname` is an `sds` string allocated via `sdsnew`, both pointers now point to the same memory. If `c->current_name` is later freed (as seen in `src/config.c`), `c->fullname` will become a dangling pointer. 
+
+It is safer to either:
+1. Use `sdsdup` during initialization so they own distinct memory buffers.
+2. Explicitly manage the lifecycle such that `fullname` is treated as the "original" immutable name and `current_name` is the "mutable" alias, ensuring that `current_name` is only freed if it is not equal to `fullname`.</note>
+<notesplit />
+<path>src/server.h</path>
+<side>right</side>
+<from>2467</from>
+<to>2468</to>
+<note>**[Maintainability]** Documentation ambiguity regarding `fullname` vs `current_name`.
+
+The comment for `fullname` states: "Unchanged if command is renamed." However, the implementation in `src/config.c` and `src/server.c` suggests that `fullname` remains the original name while `current_name` tracks the runtime alias. If `fullname` is used for ACL lookups or command identification, ensure that all parts of the codebase (especially ACL logic) are updated to use `current_name` for runtime checks and `fullname` only for static/original identification. The current dual-pointer approach is prone to bugs if developers accidentally use the wrong field.</note>
+<notesplit />

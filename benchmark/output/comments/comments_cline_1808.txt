@@ -1,0 +1,10 @@
+<path>src/api/providers/openai.ts</path>
+<side>right</side>
+<from>19</from>
+<to>23</to>
+<note>**[Code Defect]** The logic for initializing the `AzureOpenAI` client is now fragile. 
+
+By explicitly excluding `deepseek` from the Azure client initialization, you are forcing DeepSeek models to use the standard `OpenAI` client even when the user is pointing to an Azure endpoint. If the Azure DeepSeek deployment requires the specific `AzureOpenAI` client configuration (e.g., specific header requirements or API versioning patterns), this change will cause runtime errors for users attempting to use Azure-hosted DeepSeek.
+
+If DeepSeek on Azure is intended to be used via the standard OpenAI client, ensure that the `baseURL` and `apiKey` are compatible with the standard client's expectations for Azure endpoints. If it requires the `AzureOpenAI` client, this logic should be refactored to allow `AzureOpenAI` initialization while perhaps adjusting the `apiVersion` or other parameters specifically for DeepSeek, rather than bypassing the Azure client entirely.</note>
+<notesplit />

@@ -1,0 +1,24 @@
+<path>cmd/cmd.go</path>
+<side>right</side>
+<from>126</from>
+<to>138</to>
+<note>**[Maintainability]** The use of `filepath.Base(f)` as a key in the `files` map is prone to collisions if multiple files with the same name exist in different subdirectories. 
+
+While the code includes a `TODO` acknowledging this, relying on `filepath.Base` for model file mapping is a significant architectural risk. If two files have the same name, one will silently overwrite the other in the map, leading to a corrupted model definition. Consider using the relative path from the model root as the key instead.</note>
+<notesplit />
+<path>parser/parser.go</path>
+<side>right</side>
+<from>148</from>
+<to>151</to>
+<note>**[Code Defect]** `filepath.EvalSymlinks(f)` resolves the absolute path of the file. If the model directory contains symlinks pointing outside the intended model directory, this could lead to unexpected behavior or security issues. 
+
+Additionally, if `f` is a symlink, `filepath.Rel(path, f)` will calculate the relative path based on the *resolved* target, not the original path. Ensure that the symlink resolution is intended and that the resulting path is still contained within the expected base directory.</note>
+<notesplit />
+<path>progress/progress.go</path>
+<side>right</side>
+<from>118</from>
+<to>123</to>
+<note>**[Code Defect]** The logic `maxHeight := min(len(p.states), termHeight)` combined with the loop `for i := len(p.states) - maxHeight; i < len(p.states); i++` is potentially dangerous if `termHeight` is very small (e.g., 0 or 1). 
+
+If `termHeight` is 0, `maxHeight` becomes 0, and the loop range `len(p.states) - 0` to `len(p.states)` is valid, but if `termHeight` is negative (though unlikely from `term.GetSize`), it could cause a panic. Ensure `termHeight` is clamped to at least 1 to avoid unexpected behavior.</note>
+<notesplit />

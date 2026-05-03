@@ -1,0 +1,18 @@
+<path>src/networking.c</path>
+<side>right</side>
+<from>2767</from>
+<to>2784</to>
+<note>**[Code Defect]** Logic error in buffer sanitization.
+
+When `server.hide_user_data_from_log` is true, the code sets `buf` to `"*redacted*"`. However, the subsequent loop that sanitizes non-printable characters (lines 2779-2783) is now nested inside the `else` block (lines 2769-2784). If `hide_user_data_from_log` is true, the `buf` is never sanitized. While `"*redacted*"` is currently safe, if the redaction string were ever changed to include non-printable characters or if the logic is extended, this inconsistency could lead to log injection or malformed log entries.
+
+Additionally, the indentation of the sanitization loop is now inconsistent with the `if/else` structure. It should be moved outside the `if/else` block to ensure all paths are sanitized, or the logic should be explicitly handled for both cases.</note>
+<notesplit />
+<path>src/networking.c</path>
+<side>right</side>
+<from>2768</from>
+<to>2768</to>
+<note>**[Maintainability]** Potential buffer overflow/truncation risk.
+
+While `snprintf` is used, `"*redacted*"` is a hardcoded string. If the requirement for the redacted message changes in the future to include dynamic content (e.g., a client ID or error code), the current `buf[256]` might be insufficient. It is safer to use `strlcpy` or ensure the buffer is handled consistently with the non-redacted path.</note>
+<notesplit />

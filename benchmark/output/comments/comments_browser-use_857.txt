@@ -1,0 +1,18 @@
+<path>browser_use/browser/context.py</path>
+<side>right</side>
+<from>490</from>
+<to>501</to>
+<note>**[Code Defect]** The `add_init_script` call is syntactically invalid. 
+
+You have opened a multi-line string with `"""` but included a closing `"""` inside the block after the `originalQuery` logic, leaving the remaining `"""` dangling or causing a syntax error in the injected JavaScript. Additionally, the `add_init_script` call is missing the closing parenthesis `)` for the function call.
+
+Fix: Ensure the JavaScript string is properly terminated and the `add_init_script` method call is closed.</note>
+<notesplit />
+<path>pyproject.toml</path>
+<side>right</side>
+<from>19</from>
+<to>20</to>
+<note>**[Maintainability]** You are now including both `patchright` and `playwright` as dependencies. 
+
+Since `patchright` is a drop-in replacement for `playwright` (as stated in your PR description), keeping both packages installed can lead to dependency conflicts, confusion, and increased package size. Unless there is a specific requirement to support both, you should remove `playwright` from the dependencies list.</note>
+<notesplit />

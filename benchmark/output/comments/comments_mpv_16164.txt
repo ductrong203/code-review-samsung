@@ -1,0 +1,28 @@
+<path>misc/random.c</path>
+<side>right</side>
+<from>53</from>
+<to>55</to>
+<note>**[Code Defect]** The `mp_rand_seed` function returns an uninitialized `mp_rand_state` if `av_random_bytes` fails to fill the entire buffer.
+
+`av_random_bytes` returns the number of bytes read or a negative value on error. If it returns a value greater than 0 but less than `sizeof(ret.v)`, the `ret.v` array will contain partially uninitialized data, leading to non-deterministic PRNG behavior. You should check if the return value equals `sizeof(ret.v)`.</note>
+<notesplit />
+<path>misc/random.c</path>
+<side>right</side>
+<from>57</from>
+<to>58</to>
+<note>**[Security Vulnerability]** Using stack addresses and function pointers as entropy sources for PRNG seeding is generally discouraged.
+
+While these provide some variance, they are predictable in many environments due to ASLR implementation details or lack thereof. If this PRNG is intended for security-sensitive operations (like generating temporary filenames in `mp_mkostemps`), this entropy is insufficient. If it is only for non-security tasks (like shuffling), it is acceptable, but the comment "ASLR, hopefully" acknowledges the weakness. Ensure this is not used for cryptographic purposes.</note>
+<notesplit />
+<path>misc/io_utils.c</path>
+<side>right</side>
+<from>44</from>
+<to>44</to>
+<note>**[Maintainability]** The loop variable name `fuckshit` is unprofessional and violates standard coding conventions. Please rename this to something descriptive like `attempt` or `i`.</note>
+<notesplit />
+<path>misc/io_utils.c</path>
+<side>right</side>
+<from>46</from>
+<to>46</to>
+<note>**[Maintainability]** The variable name `fuckmess` is unprofessional. Please rename this to something descriptive like `random_val`.</note>
+<notesplit />

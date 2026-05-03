@@ -1,0 +1,24 @@
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>62</from>
+<to>64</to>
+<note>**[Code Defect]** The `catch` block in `immichAsset` returns `Response.error()`, which is a generic network error. This will cause the browser to treat the request as a failed network operation, potentially breaking UI components that expect a valid response or a specific fallback. 
+
+If the fetch fails (e.g., due to an abort or network issue), it is often better to return a 404 or a custom error response, or at least log the error for debugging purposes. Additionally, returning `Response.error()` when the `AbortController` triggers might be misleading as it wasn't a true network failure.</note>
+<notesplit />
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>76</from>
+<to>76</to>
+<note>**[Code Defect]** Using `new URL(urlstring, event.origin)` is potentially dangerous. `event.origin` is the origin of the sender (the window), but the `urlstring` passed from the main thread might be an absolute URL or a relative path. If the `urlstring` is already an absolute URL, the second argument is ignored, but if it is a path, it relies on `event.origin`. 
+
+More importantly, there is no validation that the `urlstring` belongs to the expected API domain. A malicious or compromised script could potentially trigger fetches to arbitrary domains if the `BroadcastChannel` is intercepted or misused. You should validate that the URL matches the expected base URL for your assets.</note>
+<notesplit />
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>49</from>
+<to>53</to>
+<note>**[Performance]** The `pendingLoads` map stores `AbortController` instances. If a request is initiated but never completes (e.g., the user navigates away or the tab is closed), and the `cancel` message is never received, these entries will persist in the `Map` indefinitely, leading to a memory leak. 
+
+Consider using a `WeakRef` or ensuring that the `pendingLoads` are cleaned up via a timeout or by listening to the `unload` event if possible, though `ServiceWorker` lifecycle management makes this tricky. At a minimum, ensure that the `finally` block is robust enough to handle all exit paths.</note>
+<notesplit />

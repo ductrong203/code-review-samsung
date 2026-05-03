@@ -1,0 +1,10 @@
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>224</from>
+<to>234</to>
+<note>**[Code Defect]** Potential buffer truncation and lack of null-termination handling.
+
+While `snprintf` is safer than `sprintf_s` (which is non-standard/MSVC-specific), `snprintf` does not guarantee that the resulting string is null-terminated if the output exceeds the buffer size. In `samples/opengl/opengl_interop.cpp`, the code uses `strlen(buf)` immediately after the `snprintf` call. If the buffer is truncated, `strlen` will read until it finds a null terminator elsewhere in memory, potentially leading to an out-of-bounds read or incorrect string length calculation.
+
+**Fix:** Ensure the buffer is large enough for the expected input or verify the return value of `snprintf` to ensure it is less than `sizeof(buf)`. Alternatively, use `std::string` or `cv::format` to avoid manual buffer management entirely.</note>
+<notesplit />

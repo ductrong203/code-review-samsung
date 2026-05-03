@@ -1,0 +1,26 @@
+<path>crates/uv-cache-key/src/canonical_url.rs</path>
+<side>right</side>
+<from>76</from>
+<to>90</to>
+<note>**[Performance]** The current implementation performs multiple allocations per URL path segment. 
+
+`url.path_segments().unwrap()` returns an iterator, and for each segment, you are calling `urlencoding::decode`, `into_owned()`, and then `collect::<Vec<_>>()`. This creates a new `String` for every segment and a `Vec` to hold them, even if no percent-encoding was present in the original path.
+
+Since you already check for the presence of `%` using `memchr`, you should only perform the decoding logic if necessary. Furthermore, consider using a `String` buffer and `write!` or `push_str` to reconstruct the path in a single allocation rather than collecting into a `Vec` and then extending the `path_segments_mut`.</note>
+<notesplit />
+<path>crates/uv-distribution-types/src/any.rs</path>
+<side>right</side>
+<from>18</from>
+<to>20</to>
+<note>**[Maintainability]** The `LocalDist` enum now holds `CanonicalVersion` in both variants. This change forces every call site that constructs `LocalDist` to perform a conversion from `InstalledVersion` to `CanonicalVersion` (which involves cloning the `Version` and potentially re-parsing/canonicalizing the URL).
+
+If `LocalDist` is frequently constructed from `CachedDist` or `InstalledDist` in hot loops, this will introduce significant overhead. Consider if `CanonicalVersion` can be computed lazily or cached within the `CachedDist`/`InstalledDist` structs themselves to avoid redundant work during `LocalDist` instantiation.</note>
+<notesplit />
+<path>crates/uv-distribution-types/src/any.rs</path>
+<side>right</side>
+<from>83</from>
+<to>92</to>
+<note>**[Code Defect]** The `From<InstalledVersion<'_>> for CanonicalVersion` implementation clones the `Version` object. 
+
+`uv_pep440::Version` can be non-trivial to clone depending on its internal representation. Since `CanonicalVersion` is intended to be used as a key (implied by the `Hash` and `Eq` derivations), ensure that the `Version` cloning is necessary. If `InstalledVersion` is short-lived, consider if `CanonicalVersion` could hold a reference or if the `Version` should be wrapped in an `Arc` to avoid deep copies during frequent comparisons.</note>
+<notesplit />

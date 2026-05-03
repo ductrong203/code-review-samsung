@@ -1,0 +1,22 @@
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileEmptyFunction.java</path>
+<side>right</side>
+<from>72</from>
+<to>75</to>
+<note>**[Performance]** The `readAndCheckEmptyFileFromInternalStorage` method opens an `InputStream` to check if a file is empty. While this is functional, it may be inefficient for large files or certain storage backends (e.g., S3/GCS) where fetching the stream incurs latency. 
+
+If the `StorageInterface` supports a `getMetadata` or `size` operation, it would be significantly more performant to check the file size via metadata rather than downloading the first byte of the file.</note>
+<notesplit />
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileEmptyFunction.java</path>
+<side>right</side>
+<from>64</from>
+<to>65</to>
+<note>**[Code Defect]** The code performs an unchecked cast `(Map<String, String>) context.getVariable(...)`. If the Pebble context variables `flow` or `execution` are missing or contain unexpected types (e.g., `null` or non-map objects), this will throw a `ClassCastException` or `NullPointerException` at runtime.
+
+Consider adding null checks or using `context.getVariable` with a safe cast/default value to prevent the Pebble template evaluation from crashing the entire execution.</note>
+<notesplit />
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileExistsFunction.java</path>
+<side>right</side>
+<from>63</from>
+<to>64</to>
+<note>**[Code Defect]** Similar to `FileEmptyFunction`, the unchecked cast of `context.getVariable("flow")` and `context.getVariable("execution")` is risky. If these variables are not present in the context, the function will throw a `NullPointerException` when calling `.get(NAMESPACE)` or `.get(ID)`. Ensure these variables are validated before access.</note>
+<notesplit />

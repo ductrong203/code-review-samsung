@@ -1,0 +1,18 @@
+<path>vllm/multimodal/profiling.py</path>
+<side>right</side>
+<from>262</from>
+<to>264</to>
+<note>**[Code Defect]** Potential `KeyError` or incorrect calculation logic.
+
+In line 262, you are accessing `mm_counts[k]`. However, `mm_counts` is an `Optional[Mapping[str, int]]`. While the `if mm_counts is None` check at line 259 handles the null case, the set intersection `max_tokens_per_item.keys() & mm_counts.keys()` at line 264 implies that `mm_counts` might not contain all keys present in `max_tokens_per_item`. If `max_tokens_per_item` contains a key that is NOT in `mm_counts`, the loop at line 262 will skip it, but the logic assumes `total_mm_tokens` is the sum of all multimodal tokens. 
+
+If a modality is present in `max_tokens_per_item` but missing from `mm_counts`, it is effectively treated as having a count of 0. If this is intended, it is fine, but if `mm_counts` is expected to be a complete mapping of all modalities, this logic is fragile. Additionally, ensure that `mm_counts` is not `None` before performing the intersection at line 264.</note>
+<notesplit />
+<path>vllm/multimodal/profiling.py</path>
+<side>right</side>
+<from>268</from>
+<to>268</to>
+<note>**[Maintainability]** Typo in log message.
+
+The word "wosrt-case" should be corrected to "worst-case".</note>
+<notesplit />

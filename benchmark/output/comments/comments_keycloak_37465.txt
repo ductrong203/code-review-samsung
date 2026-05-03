@@ -1,0 +1,16 @@
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/integration/resteasy/QuarkusHttpRequest.java</path>
+<side>right</side>
+<from>171</from>
+<to>175</to>
+<note>**[Security Vulnerability]** The `isProxyTrusted()` implementation relies on a custom header `X-Forwarded-Trusted-Proxy` to override the trust decision. 
+
+If this header is not stripped by the edge proxy, a malicious client can inject `X-Forwarded-Trusted-Proxy: true` to bypass the `proxy-trusted-addresses` check. Unless the underlying infrastructure (e.g., Quarkus/Netty) is explicitly configured to strip this header from incoming requests, this introduces a significant security risk where an untrusted client can spoof a trusted proxy status.</note>
+<notesplit />
+<path>services/src/main/java/org/keycloak/services/x509/AbstractClientCertificateFromHttpHeadersLookup.java</path>
+<side>right</side>
+<from>120</from>
+<to>123</to>
+<note>**[Maintainability]** The `getCertificateChain` method now returns `null` if the proxy is not trusted. 
+
+While this effectively blocks the lookup, ensure that all callers of `getCertificateChain` are prepared to handle a `null` return value. If callers expect an empty array instead of `null`, this could lead to `NullPointerException` in downstream authentication logic.</note>
+<notesplit />

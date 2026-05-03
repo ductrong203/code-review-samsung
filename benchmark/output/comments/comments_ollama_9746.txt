@@ -1,0 +1,30 @@
+<path>server/internal/cache/blob/chunked.go</path>
+<side>right</side>
+<from>32</from>
+<to>32</to>
+<note>**[Code Defect]** The file is opened with `os.O_CREATE|os.O_WRONLY` but without `os.O_EXCL` or checking if the file already exists. If `os.Stat` fails (e.g., file doesn't exist), the code proceeds to create it. However, if the file exists but has a different size, it is opened for writing without truncation (`os.O_TRUNC`). This could lead to corrupted blobs if the new data is smaller than the existing file, leaving stale data at the end of the file. Consider adding `os.O_TRUNC` or handling the existing file state more explicitly.</note>
+<notesplit />
+<path>server/internal/cache/blob/chunked.go</path>
+<side>right</side>
+<from>65</from>
+<to>65</to>
+<note>**[Maintainability]** The `Chunker` struct holds an `*os.File` which is closed in `Close()`. However, there is no check to see if `Close()` has already been called, and `Put` does not check if the file is already closed. It is recommended to add a `closed` boolean or check if `c.f == nil` to prevent potential panics or double-close errors.</note>
+<notesplit />
+<path>server/internal/client/ollama/registry.go</path>
+<side>right</side>
+<from>482</from>
+<to>482</to>
+<note>**[Code Defect]** The `chunked` object is created via `c.Chunked` and then `defer chunked.Close()` is called. However, `chunked` is created inside the loop over `layers`. If `layers` is large, this will defer many `Close()` calls until the `Pull` function returns, potentially hitting file descriptor limits. It would be better to close the chunker immediately after the inner loop finishes or use a closure to ensure it is closed promptly.</note>
+<notesplit />
+<path></path>
+<side>right</side>
+<from>774</from>
+<to>774</to>
+<note>**[Performance]** `bufio.NewScanner` with `bufio.ScanWords` is used to parse the chunksums response. While functional, if the response body is large, this approach is fine, but ensure that the `res.Body` is fully consumed or closed properly in all error paths. The current implementation correctly defers `res.Body.Close()`, which is good.</note>
+<notesplit />
+<path>server/internal/client/ollama/registry.go</path>
+<side>right</side>
+<from>525</from>
+<to>525</to>
+<note>**[Maintainability]** The `trackingReader` uses an `atomic.Int64` pointer. While this is thread-safe, the `Registry.Pull` logic relies on this shared state to track progress across multiple concurrent goroutines. Ensure that the `progress` variable is correctly initialized and that the `trackingReader` is not used in a way that causes race conditions on the `atomic` operations (though `Add` is atomic, the logic flow should be verified).</note>
+<notesplit />

@@ -1,0 +1,40 @@
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>right</side>
+<from>1</from>
+<to>1</to>
+<note>**[Maintainability]** Unused import `match` from `assert`. 
+
+The `match` function is imported but never used in the file. Unused imports clutter the codebase and should be removed.</note>
+<notesplit />
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>right</side>
+<from>312</from>
+<to>313</to>
+<note>**[Code Defect]** Redundant assignment to `dockerResponse.status`.
+
+Line 312 sets `dockerResponse.status = 404;` and line 313 immediately overwrites it with `dockerResponse.status = false;`. Given the logic, it appears the intention was to set the HTTP code to 404, but the property name is incorrect. It should likely be `dockerResponse.code = 404;`.</note>
+<notesplit />
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>right</side>
+<from>156</from>
+<to>169</to>
+<note>**[Code Defect]** Incomplete HTTP response handling.
+
+When `expectedValue` is provided, the code performs a check but fails to populate the `httpResponse` object with the `responseTime` or the `payload` in the success case. Furthermore, if the check fails, it returns a 500 error without providing the actual `payload` or `responseTime` in the response object, which might be needed for debugging or UI display. Ensure `httpResponse` is fully populated before returning.</note>
+<notesplit />
+<path>server/src/db/mongo/migration/0001_migrateStatusWindowThreshold.js</path>
+<side>right</side>
+<from>4</from>
+<to>4</to>
+<note>**[Performance]** Potential memory issue with large datasets.
+
+The migration fetches all monitors matching the criteria into memory (`Monitor.find(...)`). If the number of monitors is very large, this could cause high memory usage. Consider using a cursor (`Monitor.find(...).cursor()`) or batching the updates if the collection is expected to grow significantly.</note>
+<notesplit />
+<path>server/src/service/infrastructure/SuperSimpleQueue/SuperSimpleQueue.js</path>
+<side>right</side>
+<from>91</from>
+<to>91</to>
+<note>**[Performance]** Unnecessary `toObject()` call.
+
+Calling `monitor.toObject()` inside `updateJob` creates a new plain JavaScript object on every update. If `monitor` is a Mongoose document, this can be expensive if called frequently. Verify if the scheduler actually requires the full object or if specific fields would suffice to reduce memory overhead.</note>
+<notesplit />

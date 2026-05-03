@@ -1,0 +1,27 @@
+<path>vllm/v1/core/kv_cache_manager.py</path>
+<side>right</side>
+<from>156</from>
+<to>158</to>
+<note>**[Code Defect]** The calculation of `num_new_blocks` is potentially incorrect when `num_required_blocks` is less than the sum of existing blocks and new computed blocks.
+
+In the current logic:
+`num_new_blocks = (num_required_blocks - len(req_blocks) - len(new_computed_blocks))`
+
+If `len(req_blocks) + len(new_computed_blocks)` exceeds `num_required_blocks`, `num_new_blocks` becomes negative. While the code handles `if num_new_blocks <= 0` later, it is safer to use `max(0, ...)` to ensure the variable represents a valid count of blocks to allocate, or explicitly document that `num_new_blocks` can be negative.</note>
+<notesplit />
+<path>vllm/v1/core/kv_cache_manager.py</path>
+<side>right</side>
+<from>183</from>
+<to>185</to>
+<note>**[Maintainability]** The logic for handling `num_new_blocks <= 0` is slightly inconsistent with the previous implementation. 
+
+Previously, `allocate_slots` (now merged) had logic to handle pre-allocation. The new implementation removes the `min(..., self.max_num_blocks_per_req - len(computed_blocks))` constraint that was present in the old `allocate_slots`. If `max_num_blocks_per_req` is a hard limit for the block table size, this constraint should be preserved to prevent potential out-of-bounds errors or memory issues in the block table management.</note>
+<notesplit />
+<path>vllm/v1/core/kv_cache_manager.py</path>
+<side>right</side>
+<from>177</from>
+<to>179</to>
+<note>**[Code Defect]** The `req_blocks.extend(new_computed_blocks)` call modifies the `req_to_blocks` list in-place before verifying if the total allocation is successful. 
+
+If the subsequent `_get_new_blocks(num_new_blocks)` fails or if the function returns `None` later, the `req_blocks` list has already been mutated. This violates the atomicity of the allocation process. You should perform all necessary checks and calculations before modifying the state of `req_to_blocks`.</note>
+<notesplit />
