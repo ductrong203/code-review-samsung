@@ -41,7 +41,7 @@ class ReviewOrchestrator:
         self,
         llm: BaseChatModel,
         github: GitHubService,
-        parallel: bool = True,
+        parallel: bool = False,  # CHANGED: Default to sequential (was True)
         confidence_threshold: float = 0.3,
         max_file_chars: int = 10000,
         progress_callback: Optional[Callable[[str, float], None]] = None,

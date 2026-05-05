@@ -189,26 +189,35 @@ class ReviewAgent(ABC):
             return []
 
     def _build_prompt_vars(self, context: ReviewContext) -> Dict[str, str]:
-        """Build prompt template variables from context."""
-        # Compose file context (diff + full content when available)
+        """Build prompt template variables from context with optimized token usage."""
+        # OPTIMIZED: Truncate aggressively to stay under quota
+        # Diff: limit to 2000 chars (enough for most hunks)
+        truncated_diff = context.formatted_diff[:2000]
+        
+        # Compose file context with reduced size
         file_context_parts = []
         for fc in context.files:
-            part = f"\n### File: {fc.path}"
+            part = f"\n### {fc.path}"
             if fc.language:
                 part += f" ({fc.language})"
-            part += f"\n#### Diff:\n```\n{fc.diff_content}\n```"
+            # Only include diff, truncate heavily
+            part += f"\n```\n{fc.diff_content[:1500]}\n```"
+            # Only include file content for critical sections (truncate to 2000)
             if fc.full_content:
-                # Include relevant portions of full file for deeper analysis
-                part += f"\n#### Full File Content:\n```\n{fc.full_content[:8000]}\n```"
+                part += f"\n```\n{fc.full_content[:2000]}\n```"
             file_context_parts.append(part)
 
-        file_context = "\n".join(file_context_parts) if file_context_parts else context.formatted_diff
+        file_context = "\n".join(file_context_parts) if file_context_parts else truncated_diff
+
+        # Limit repo structure to top 20 dirs (was 50)
+        repo_structure = "\n".join(context.repo_structure[:20]) if context.repo_structure else "No structure."
 
         return {
             "title": context.title or "No title",
-            "description": context.description or "No description provided",
-            "diff_content": context.formatted_diff,
+            "description": context.description or "No description",
+            "diff_content": truncated_diff,
             "file_context": file_context,
+            "repo_structure": repo_structure,
             "language": context.language or "unknown",
         }
 

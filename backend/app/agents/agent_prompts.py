@@ -112,6 +112,9 @@ DEFECT_REVIEW_PROMPT = """Analyze the following code changes for **CODE DEFECTS 
 
 ## Primary Language: {language}
 
+## Repo Architecture (Files Changed):
+{repo_structure}
+
 ## Code Changes:
 {file_context}
 
@@ -208,6 +211,9 @@ SECURITY_REVIEW_PROMPT = """Analyze the following code changes for **SECURITY VU
 
 ## Primary Language: {language}
 
+## Repo Architecture (Files Changed):
+{repo_structure}
+
 ## Code Changes:
 {file_context}
 
@@ -280,6 +286,9 @@ PERFORMANCE_REVIEW_PROMPT = """Analyze the following code changes for **PERFORMA
 {description}
 
 ## Primary Language: {language}
+
+## Repo Architecture (Files Changed):
+{repo_structure}
 
 ## Code Changes:
 {file_context}
@@ -363,6 +372,9 @@ MAINTAINABILITY_REVIEW_PROMPT = """Analyze the following code changes for **MAIN
 {description}
 
 ## Primary Language: {language}
+
+## Repo Architecture (Files Changed):
+{repo_structure}
 
 ## Code Changes:
 {file_context}
