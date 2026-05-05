@@ -24,10 +24,18 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy build artifacts from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Add a custom nginx configuration to handle React Router (SPA fallback)
+# Add a custom nginx configuration to handle React Router and API proxying
 RUN echo 'server { \
     listen 80; \
     server_name localhost; \
+    \
+    location /api/ { \
+        proxy_pass http://backend:8000/api/; \
+        proxy_set_header Host $host; \
+        proxy_set_header X-Real-IP $remote_addr; \
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
+    } \
+    \
     location / { \
         root /usr/share/nginx/html; \
         index index.html index.htm; \
