@@ -37,13 +37,15 @@ Field requirements:
 - "from_line" / "to_line": Line numbers from the NEW version (right side, lines with + prefix)
 - "severity": One of: "critical", "high", "medium", "low", "info"
 - "confidence": Float 0.0-1.0 indicating how confident you are this is a real issue
-- "context_level": "diff" (visible in diff alone), "file" (needs full file), "repo" (needs cross-file)
-- "note": Clear, actionable description explaining WHY it's an issue
+- "context_level": Minimum reasoning scope to recognize the issue. Values: "diff" = the problem is evident from added/changed lines alone; "file" = you need other lines in the same file (callers, helpers, imports); "repo" = you need multiple files or contracts. Pick the smallest scope that truthfully applies. In DIFF-ONLY BASELINE MODE, only output issues with "context_level": "diff".
+- "note": Clear, actionable description explaining WHY it's an issue. IMPORTANT: If context_level is "file" or "repo", you MUST explicitly mention the affected function name and file name in this note.
 - "suggested_fix": Specific code fix or clear instruction
 
 Rules:
 - Only report REAL issues, not style preferences
 - Each issue MUST have precise line numbers from the diff
+- You may use file/repo graph context to recognize an issue, but the reported location must still be anchored to a changed line from the diff.
+- Do NOT default to "diff" context_level when richer context is available. Use "file" when same-file context was necessary and "repo" when callers, callees, tests, flows, or cross-file contracts from graph context were necessary. In DIFF-ONLY BASELINE MODE, do not report file/repo-context issues at all.
 - If you find NO issues, output an empty array: []
 - Do NOT hallucinate issues — only report what you can verify in the code
 - Set confidence lower (0.3-0.5) for uncertain findings, higher (0.8-1.0) for clear bugs
@@ -115,12 +117,19 @@ DEFECT_REVIEW_PROMPT = """Analyze the following code changes for **CODE DEFECTS 
 ## Repo Architecture (Files Changed):
 {repo_structure}
 
-## Code Changes:
+## Code Changes (Review this FIRST):
 {file_context}
+
+## Graph Context (Use this to inspect related callers/callees/tests/flows without reading the whole repo):
+{graph_context}
 
 ---
 
-Find all code defects in the changed code. Focus on lines with `+` prefix (additions). Report ONLY actual bugs, not style issues."""
+Find all code defects in the changed code. Focus on lines with `+` prefix (additions).
+Workflow:
+1. Identify potential issues in the `Code Changes` diff first.
+2. Use the `Graph Context` to verify if your findings are real bugs or false positives, and to find file/repo-scope issues caused by changed lines.
+Report ONLY actual bugs, not style issues."""
 
 
 # ─── Security Agent ─────────────────────────────────────────────────────────
@@ -214,12 +223,19 @@ SECURITY_REVIEW_PROMPT = """Analyze the following code changes for **SECURITY VU
 ## Repo Architecture (Files Changed):
 {repo_structure}
 
-## Code Changes:
+## Code Changes (Review this FIRST):
 {file_context}
+
+## Graph Context (Use this to inspect related callers/callees/tests/flows without reading the whole repo):
+{graph_context}
 
 ---
 
-Find all security vulnerabilities in the changed code. Think like an attacker — what could be exploited? Report ONLY security issues."""
+Find all security vulnerabilities in the changed code. Focus on lines with `+` prefix (additions). Think like an attacker — what could be exploited?
+Workflow:
+1. Identify potential vulnerabilities in the `Code Changes` diff first.
+2. Use the `Graph Context` to verify blast radius, callers/callees, and cross-file data flows.
+Report ONLY security issues."""
 
 
 # ─── Performance Agent ──────────────────────────────────────────────────────
@@ -290,12 +306,19 @@ PERFORMANCE_REVIEW_PROMPT = """Analyze the following code changes for **PERFORMA
 ## Repo Architecture (Files Changed):
 {repo_structure}
 
-## Code Changes:
+## Code Changes (Review this FIRST):
 {file_context}
+
+## Graph Context (Use this to inspect related callers/callees/tests/flows without reading the whole repo):
+{graph_context}
 
 ---
 
-Find all performance issues in the changed code. Focus on algorithmic complexity, resource management, and scalability concerns. Report ONLY performance issues."""
+Find all performance issues in the changed code. Focus on lines with `+` prefix (additions). 
+Workflow:
+1. Identify algorithmic complexity and performance bottlenecks in the `Code Changes` diff first.
+2. Use the `Graph Context` to verify if these bottlenecks affect critical flows, are called frequently, or sit in caller/callee chains.
+Report ONLY performance issues."""
 
 
 # ─── Maintainability Agent ──────────────────────────────────────────────────
@@ -376,9 +399,16 @@ MAINTAINABILITY_REVIEW_PROMPT = """Analyze the following code changes for **MAIN
 ## Repo Architecture (Files Changed):
 {repo_structure}
 
-## Code Changes:
+## Code Changes (Review this FIRST):
 {file_context}
+
+## Graph Context (Use this to inspect related callers/callees/tests/flows without reading the whole repo):
+{graph_context}
 
 ---
 
-Find all maintainability and readability issues in the changed code. Focus on code structure, clarity, error handling, and design principles. Report ONLY meaningful quality issues, NOT trivial style preferences."""
+Find all maintainability and readability issues in the changed code. Focus on lines with `+` prefix (additions).
+Workflow:
+1. Identify code structure, clarity, error handling, and design issues in the `Code Changes` diff first.
+2. Use the `Graph Context` to verify dependencies, tests, caller/callee impact, and architectural scope.
+Report ONLY meaningful quality issues, NOT trivial style preferences."""

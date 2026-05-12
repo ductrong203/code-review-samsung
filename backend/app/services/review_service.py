@@ -21,6 +21,25 @@ from app.agents.agent_base import Finding, ReviewReport
 logger = logging.getLogger(__name__)
 
 
+LEGACY_ICON_RE = re.compile(
+    "["
+    "\U0001F300-\U0001FAFF"
+    "\u2600-\u27BF"
+    "]+"
+)
+
+
+def strip_legacy_icons(text: str) -> str:
+    """Remove emoji-style icons from backend display markdown."""
+    text = LEGACY_ICON_RE.sub("", text or "")
+    return (
+        text.replace("—", "-")
+        .replace("  ", " ")
+        .replace("- ", "- ")
+        .strip()
+    )
+
+
 def format_findings_for_display(report: ReviewReport) -> str:
     """
     Format review report into a human-readable string for chat display.
@@ -32,78 +51,23 @@ def format_findings_for_display(report: ReviewReport) -> str:
     - Actionable summary
     """
     if not report.findings:
-        return "✅ **No issues found.** The code changes look good!"
+        return "**No issues found.** The code changes look good."
 
     lines = []
 
-    # ── Header ──────────────────────────────────────────────
-    risk_emoji = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}
-    risk_icon = risk_emoji.get(report.risk_level, "⚪")
-
-    lines.append(f"## 🔍 Code Review — {len(report.findings)} issue(s) found\n")
-    lines.append(f"**Overall Risk:** {risk_icon} **{report.risk_level.upper()}**")
+    lines.append(f"## Code Review - {len(report.findings)} issue(s) found\n")
+    lines.append(f"**Overall Risk:** **{report.risk_level.upper()}**")
 
     if report.blast_radius_files > 0:
         lines.append(f"**Blast Radius:** {report.blast_radius_files} file(s) affected")
 
     lines.append("")
 
-    # ── Category Stats ──────────────────────────────────────
     if report.total_by_category:
-        cat_emojis = {
-            "Code Defect": "🐛",
-            "Security Vulnerability": "🔒",
-            "Performance": "⚡",
-            "Maintainability and Readability": "📖",
-        }
         lines.append("### Issue Breakdown")
         for cat, count in sorted(report.total_by_category.items()):
-            emoji = cat_emojis.get(cat, "📋")
-            lines.append(f"- {emoji} **{cat}**: {count}")
+            lines.append(f"- **{cat}**: {count}")
         lines.append("")
-
-    # ── File-by-File Findings ───────────────────────────────
-    severity_badge = {
-        "critical": "🔴 CRITICAL",
-        "high": "🟠 HIGH",
-        "medium": "🟡 MEDIUM",
-        "low": "🔵 LOW",
-        "info": "⚪ INFO",
-    }
-
-    # Group findings by file
-    by_file: Dict[str, List[Finding]] = {}
-    for f in report.findings:
-        path = f.path or "unknown"
-        by_file.setdefault(path, []).append(f)
-
-    for path, findings in by_file.items():
-        lines.append(f"### 📄 `{path}`\n")
-
-        for i, finding in enumerate(findings, 1):
-            badge = severity_badge.get(finding.severity.value, "⚪ INFO")
-            cat_short = {
-                "Code Defect": "🐛 Defect",
-                "Security Vulnerability": "🔒 Security",
-                "Performance": "⚡ Perf",
-                "Maintainability and Readability": "📖 Maintain",
-            }.get(finding.category.value, finding.category.value)
-
-            line_info = ""
-            if finding.from_line and finding.to_line:
-                line_info = f" (lines {finding.from_line}–{finding.to_line})"
-            elif finding.from_line:
-                line_info = f" (line {finding.from_line})"
-
-            lines.append(f"**{badge}** | {cat_short}{line_info}")
-            lines.append(f"{finding.note}")
-
-            if finding.suggested_fix:
-                lines.append(f"\n💡 **Fix:** {finding.suggested_fix}")
-
-            lines.append("")
-
-        lines.append("---\n")
 
     # ── Agent Metadata ──────────────────────────────────────
     meta = report.agent_metadata
@@ -129,6 +93,7 @@ def findings_to_comment_dicts(findings: List[Finding]) -> List[Dict[str, Any]]:
             "context_level": f.context_level.value,
             "suggested_fix": f.suggested_fix,
             "agent_name": f.agent_name,
+            "code_snippet": f.code_snippet,
         }
         for f in findings
     ]
@@ -202,12 +167,14 @@ class ReviewService:
             max_file_chars=settings.MAX_FILE_CONTEXT_CHARS,
         )
 
-    def review_pr(self, pr_url: str) -> Dict[str, Any]:
+    def review_pr(self, pr_url: str,
+                  graph_context: Optional[Dict] = None) -> Dict[str, Any]:
         """
         Run full multi-agent code review pipeline on a PR.
 
         Args:
             pr_url: GitHub PR URL
+            graph_context: Optional graph analysis context from extension
 
         Returns:
             Dict with:
@@ -220,10 +187,10 @@ class ReviewService:
         logger.info(f"Starting multi-agent review for: {pr_url}")
 
         # Run the multi-agent pipeline
-        report = self.orchestrator.review(pr_url)
+        report = self.orchestrator.review(pr_url, graph_context=graph_context)
 
         # Format for display
-        display_message = format_findings_for_display(report)
+        display_message = strip_legacy_icons(format_findings_for_display(report))
 
         # Convert findings to comment dicts
         comments = findings_to_comment_dicts(report.findings)

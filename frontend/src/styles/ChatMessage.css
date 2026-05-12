@@ -18,27 +18,24 @@
 .chat-message__avatar {
   width: 34px;
   height: 34px;
-  border-radius: 10px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
   flex-shrink: 0;
   font-weight: 600;
 }
 
 .chat-message__avatar--bot {
-  background: linear-gradient(140deg, #0b5cff 0%, #2d7dff 100%);
-  box-shadow: var(--accent-glow);
-  color: #ffffff;
-  font-size: 9px;
-  letter-spacing: 0.35px;
-  line-height: 1;
+  background: #ffffff;
+  border: 1px solid rgba(11, 92, 255, 0.28);
+  box-shadow: 0 8px 18px rgba(10, 55, 140, 0.1);
+  color: #0b5cff;
 }
 
 .chat-message__avatar--user {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
+  background: #f8fbff;
+  border: 1px solid rgba(11, 92, 255, 0.16);
   color: var(--text-secondary);
 }
 
@@ -49,7 +46,7 @@
 
 .chat-message__content {
   padding: 14px 16px;
-  border-radius: 16px;
+  border-radius: 8px;
   font-size: 14px;
   line-height: 1.68;
   word-wrap: break-word;
@@ -58,17 +55,17 @@
 .chat-message--bot .chat-message__content {
   background: #ffffff;
   border: 1px solid var(--border-muted);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 8px 24px rgba(10, 55, 140, 0.08);
 }
 
 .chat-message--user .chat-message__content {
-  background: linear-gradient(145deg, rgba(11, 92, 255, 0.13) 0%, rgba(45, 125, 255, 0.18) 100%);
+  background: linear-gradient(145deg, rgba(11, 92, 255, 0.1) 0%, rgba(45, 125, 255, 0.16) 100%);
   border: 1px solid rgba(11, 92, 255, 0.26);
 }
 
 .chat-message--error .chat-message__content {
-  border-color: rgba(248, 81, 73, 0.3);
-  background: rgba(248, 81, 73, 0.05);
+  border-color: #ffd6d2;
+  background: #fff7f6;
 }
 
 .chat-message__content h2 {
@@ -143,9 +140,14 @@
   padding: 6px 12px;
   background: rgba(11, 92, 255, 0.06);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-full);
+  border-radius: 8px;
   font-size: 12px;
   color: var(--text-secondary);
+}
+
+.chat-message__pr-badge svg {
+  color: #0b5cff;
+  flex: 0 0 auto;
 }
 
 .chat-message__pr-badge a {

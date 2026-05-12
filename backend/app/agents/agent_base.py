@@ -65,6 +65,7 @@ class Finding:
     side: str = "right"
     suggested_fix: str = ""
     agent_name: str = ""
+    code_snippet: str = ""
     # Used by consensus engine
     consensus_score: float = 0.0
     duplicate_of: Optional[int] = None
@@ -94,6 +95,7 @@ class ReviewContext:
     repo_structure: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
     language: str = ""  # Primary language detected
+    graph_context: Optional[Dict[str, Any]] = None  # Graph context from extension
 
 
 @dataclass
@@ -212,6 +214,57 @@ class ReviewAgent(ABC):
         # Limit repo structure to top 20 dirs (was 50)
         repo_structure = "\n".join(context.repo_structure[:20]) if context.repo_structure else "No structure."
 
+        # ── S3: Build graph context section (empty string when not available) ──
+        graph_section = ""
+        if context.graph_context:
+            gc = context.graph_context
+            parts = ["### Graph Analysis"]
+            for fn in gc.get("changed_functions", [])[:8]:
+                callers = self._format_graph_nodes(fn.get("callers", []), limit=3)
+                callees = self._format_graph_nodes(fn.get("callees", []), limit=3)
+                tests = self._format_graph_nodes(fn.get("tests", []), limit=3)
+                parts.append(
+                    f"- Changed `{fn.get('name', '')}` [{fn.get('file', '')}:"
+                    f"{fn.get('line_start', '?')}-{fn.get('line_end', '?')}] "
+                    f"risk={fn.get('risk_score', 0):.2f} "
+                    f"untested={fn.get('is_untested', False)}"
+                )
+                if callers:
+                    parts.append(f"  callers: {callers}")
+                if callees:
+                    parts.append(f"  callees: {callees}")
+                if tests:
+                    parts.append(f"  tests: {tests}")
+            if gc.get("affected_flows"):
+                flow_names = [f.get("name", "") for f in gc["affected_flows"][:5]]
+                parts.append(f"Affected flows: {flow_names}")
+            if gc.get("test_gaps"):
+                gaps = [
+                    f"{g.get('name', '')} [{g.get('file', '')}:{g.get('line_start', '?')}]"
+                    for g in gc["test_gaps"][:5]
+                ]
+                parts.append(f"Untested changed functions: {gaps}")
+            if gc.get("related_context"):
+                related = self._format_graph_nodes(gc["related_context"], limit=10)
+                parts.append(f"Related repo context: {related}")
+            if gc.get("overall_risk") is not None:
+                parts.append(f"Overall risk score: {gc['overall_risk']:.2f}")
+            if gc.get("review_priorities"):
+                priorities = [
+                    f"{p.get('name', '')} [{p.get('file', '')}:{p.get('line_start', '?')}]"
+                    for p in gc["review_priorities"][:5]
+                ]
+                parts.append(f"Review priorities: {priorities}")
+            graph_section = "\n".join(parts)
+        else:
+            graph_section = (
+                "DIFF-ONLY BASELINE MODE. No graph, full-file, caller, callee, "
+                "test, or repo context is available. Report only issues that are "
+                "directly visible from added/changed diff lines. Set "
+                'context_level to "diff" for every reported issue. If an issue '
+                "would require file or repo context to verify, do not report it."
+            )
+
         return {
             "title": context.title or "No title",
             "description": context.description or "No description",
@@ -219,7 +272,24 @@ class ReviewAgent(ABC):
             "file_context": file_context,
             "repo_structure": repo_structure,
             "language": context.language or "unknown",
+            "graph_context": graph_section,
         }
+
+    def _format_graph_nodes(self, nodes: List[Any], limit: int = 5) -> List[str]:
+        """Format graph node summaries compactly for prompt context."""
+        formatted = []
+        for node in nodes[:limit]:
+            if isinstance(node, dict):
+                name = node.get("name") or node.get("qualified_name") or ""
+                file_path = node.get("file") or node.get("file_path") or ""
+                line = node.get("line_start")
+                relation = node.get("relation")
+                prefix = f"{relation} " if relation else ""
+                location = f" [{file_path}:{line}]" if file_path or line else ""
+                formatted.append(f"{prefix}{name}{location}")
+            else:
+                formatted.append(str(node))
+        return formatted
 
     def _parse_findings(self, raw_output: str, context: ReviewContext) -> List[Finding]:
         """

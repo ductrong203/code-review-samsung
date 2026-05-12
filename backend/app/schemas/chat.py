@@ -5,7 +5,7 @@ Extended with multi-agent review output: category, severity, confidence,
 risk assessment, and structured review summary.
 """
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 
 class ChatRequest(BaseModel):
@@ -13,6 +13,9 @@ class ChatRequest(BaseModel):
     message: str = Field(..., description="User message (may contain a PR URL)")
     conversation_id: Optional[str] = Field(
         default=None, description="Conversation ID for context tracking"
+    )
+    graph_context: Optional[Dict[str, Any]] = Field(
+        default=None, description="Graph context from extension (optional)"
     )
 
 
@@ -34,13 +37,17 @@ class ReviewComment(BaseModel):
         default=0.7, description="Confidence score (0.0-1.0)", ge=0.0, le=1.0
     )
     context_level: str = Field(
-        default="diff", description="Context scope: diff, file, repo"
+        default="diff",
+        description='Minimum detection scope (not file location): "diff" | "file" | "repo"',
     )
     suggested_fix: str = Field(
         default="", description="Suggested code fix"
     )
     agent_name: str = Field(
         default="", description="Name of the agent(s) that found this issue"
+    )
+    code_snippet: str = Field(
+        default="", description="Code snippet with error lines highlighted (prefix '> ')"
     )
 
 

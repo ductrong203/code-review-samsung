@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build:
@@ -10,6 +8,38 @@ services:
       - "8000:8000"
     env_file:
       - ./backend/.env
+    extra_hosts:
+      # Lets the backend container call Ollama running on the VPS host via
+      # OLLAMA_BASE_URL=http://host.docker.internal:11434.
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    networks:
+      - codereview-network
+
+  extension:
+    build:
+      context: .
+      dockerfile: extension/Dockerfile
+    container_name: codereview-extension
+    ports:
+      - "8100:8100"
+    environment:
+      REVIEW_SERVER_URL: http://backend:8000
+      CRG_GRAPH_BASE: /data/graphs
+      CRG_CLEANUP_AFTER_REVIEW: ${CRG_CLEANUP_AFTER_REVIEW:-true}
+      CRG_KEEP_PR_GRAPH: ${CRG_KEEP_PR_GRAPH:-false}
+      CRG_KEEP_FAILED_PR_GRAPH: ${CRG_KEEP_FAILED_PR_GRAPH:-false}
+      CRG_MAX_CACHE_SIZE_GB: ${CRG_MAX_CACHE_SIZE_GB:-10}
+      CRG_MAX_PR_GRAPH_AGE_HOURS: ${CRG_MAX_PR_GRAPH_AGE_HOURS:-24}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      POLL_INTERVAL: ${POLL_INTERVAL:-120}
+    volumes:
+      # Persist graph DBs, registry.json, and temporary PR worktrees.
+      - graph-data:/data/graphs
+      # Put/cloned repositories on the VPS under ./repos and register paths as /repos/<repo>.
+      - ./repos:/repos
+    depends_on:
+      - backend
     restart: unless-stopped
     networks:
       - codereview-network
@@ -23,9 +53,13 @@ services:
       - "80:80"
     depends_on:
       - backend
+      - extension
     restart: unless-stopped
     networks:
       - codereview-network
+
+volumes:
+  graph-data:
 
 networks:
   codereview-network:

@@ -1,6 +1,6 @@
 /* =============================================================================
    CodeReview Bot — Design System
-   Premium dark theme with glassmorphism
+   Samsung white/blue interface system
    ============================================================================= */
 
 :root {
@@ -9,7 +9,7 @@
   --bg-tertiary: #eef5ff;
   --bg-elevated: #e6f0ff;
   --bg-glass: rgba(255, 255, 255, 0.9);
-  --bg-canvas: linear-gradient(180deg, #f8fbff 0%, #eef5ff 52%, #e8f1ff 100%);
+  --bg-canvas: linear-gradient(180deg, #ffffff 0%, #f5f9ff 46%, #eef5ff 100%);
 
   --accent-primary: #0b5cff;
   --accent-secondary: #2d7dff;
@@ -56,9 +56,9 @@
 
   /* Border radius */
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-full: 9999px;
 
   /* Shadows */

@@ -17,7 +17,14 @@ from typing import List, Optional, Callable
 
 from langchain_core.language_models.chat_models import BaseChatModel
 
-from app.agents.agent_base import ReviewAgent, Finding, ReviewContext, ReviewReport
+from app.agents.agent_base import (
+    ReviewAgent,
+    Finding,
+    FileContext,
+    ContextLevel,
+    ReviewContext,
+    ReviewReport,
+)
 from app.agents.defect_agent import DefectAgent
 from app.agents.security_agent import SecurityAgent
 from app.agents.performance_agent import PerformanceAgent
@@ -27,6 +34,30 @@ from app.services.context_builder import ContextBuilder
 from app.services.github_service import GitHubService
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_repo_path(p: str) -> str:
+    """Normalize path for comparison (GitHub / agent output may differ slightly)."""
+    if not p:
+        return ""
+    s = p.replace("\\", "/").strip()
+    if s.startswith("./"):
+        s = s[2:]
+    return s
+
+
+def _file_context_for_path(
+    context: ReviewContext, path: str
+) -> Optional[FileContext]:
+    """Resolve FileContext for a finding path."""
+    want = _normalize_repo_path(path)
+    if not want:
+        return None
+    for fc in context.files:
+        fc_path = _normalize_repo_path(fc.path)
+        if fc_path == want or want.endswith(fc_path) or fc_path.endswith(want):
+            return fc
+    return None
 
 
 class ReviewOrchestrator:
@@ -77,12 +108,14 @@ class ReviewOrchestrator:
                 pass
         logger.info(f"Progress: [{progress:.0%}] {stage}")
 
-    def review(self, pr_url: str) -> ReviewReport:
+    def review(self, pr_url: str,
+               graph_context: Optional[dict] = None) -> ReviewReport:
         """
         Run the complete multi-agent review pipeline.
 
         Args:
             pr_url: GitHub PR URL
+            graph_context: Optional graph analysis context from extension
 
         Returns:
             ReviewReport with all verified findings
@@ -92,11 +125,13 @@ class ReviewOrchestrator:
         logger.info(f"Starting multi-agent review: {pr_url}")
         logger.info(f"Agents: {[a.name for a in self.agents]}")
         logger.info(f"Mode: {'parallel' if self.parallel else 'sequential'}")
+        if graph_context:
+            logger.info(f"Graph context: provided (risk={graph_context.get('overall_risk', 'N/A')})")
         logger.info(f"{'='*60}")
 
         # ── Phase 1: Context Gathering ──────────────────────────────
         self._report_progress("📥 Fetching PR data and building context...", 0.1)
-        context = self.context_builder.build_context(pr_url)
+        context = self.context_builder.build_context(pr_url, graph_context=graph_context)
 
         if not context.formatted_diff.strip():
             return ReviewReport(
@@ -112,9 +147,58 @@ class ReviewOrchestrator:
         else:
             all_findings = self._run_agents_sequential(context)
 
+        if graph_context is None:
+            before = len(all_findings)
+            all_findings = [
+                finding for finding in all_findings
+                if finding.context_level == ContextLevel.DIFF
+            ]
+            removed = before - len(all_findings)
+            if removed:
+                logger.info(
+                    "Diff-only baseline: filtered %s file/repo-context findings",
+                    removed,
+                )
+
         # ── Phase 3: Consensus & Verification ───────────────────────
         self._report_progress("🔄 Verifying and consolidating findings...", 0.8)
         report = self.consensus.process(all_findings)
+
+        # Inject code snippets from diff context
+        for finding in report.findings:
+            if not finding.code_snippet and finding.path and finding.from_line:
+                fc = _file_context_for_path(context, finding.path)
+                if fc and fc.diff_content:
+                    snippet = []
+                    lines = fc.diff_content.split('\n')
+                    # Very simple diff parser to grab lines around from_line
+                    # In a real diff, lines with '+' are additions. We just try to extract
+                    # +/- 3 lines around the target line number. 
+                    # For a robust implementation, we map diff line numbers, but here
+                    # we do a simple substring extraction or format the raw diff.
+                    current_new_line = 0
+                    for line in lines:
+                        if line.startswith('@@'):
+                            try:
+                                # @@ -a,b +c,d @@
+                                parts = line.split(' ')
+                                if len(parts) >= 3:
+                                    plus_part = parts[2]
+                                    current_new_line = int(plus_part.split(',')[0].replace('+', ''))
+                            except:
+                                pass
+                        elif line.startswith('+'):
+                            if current_new_line >= finding.from_line - 2 and current_new_line <= (finding.to_line or finding.from_line) + 2:
+                                snippet.append(f">{line[1:]}" if current_new_line >= finding.from_line and current_new_line <= (finding.to_line or finding.from_line) else f" {line[1:]}")
+                            current_new_line += 1
+                        elif line.startswith(' '):
+                            if current_new_line >= finding.from_line - 2 and current_new_line <= (finding.to_line or finding.from_line) + 2:
+                                snippet.append(f" {line[1:]}")
+                            current_new_line += 1
+                        elif line.startswith('-'):
+                            pass
+                    if snippet:
+                        finding.code_snippet = '\n'.join(snippet)
 
         # ── Phase 4: Finalize ───────────────────────────────────────
         elapsed = time.time() - start_time
@@ -123,6 +207,7 @@ class ReviewOrchestrator:
         report.agent_metadata["parallel"] = self.parallel
         report.agent_metadata["files_analyzed"] = len(context.files)
         report.agent_metadata["language"] = context.language
+        report.agent_metadata["graph_context_used"] = graph_context is not None
 
         self._report_progress("✅ Review complete!", 1.0)
 

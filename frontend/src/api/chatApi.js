@@ -15,7 +15,9 @@ export async function sendChatMessage(message) {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ message }),
+    // Frontend is the diff-only baseline path. Graph context is only supplied
+    // by the extension service so results can be compared side by side.
+    body: JSON.stringify({ message, graph_context: null }),
   });
 
   if (!response.ok) {

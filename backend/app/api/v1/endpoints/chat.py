@@ -75,7 +75,7 @@ async def chat(request: ChatRequest):
     # Run multi-agent review pipeline
     try:
         service = _get_review_service()
-        result = service.review_pr(pr_url)
+        result = service.review_pr(pr_url, graph_context=request.graph_context)
 
         # Convert to response model
         comments = [
@@ -91,6 +91,7 @@ async def chat(request: ChatRequest):
                 context_level=c.get("context_level", "diff"),
                 suggested_fix=c.get("suggested_fix", ""),
                 agent_name=c.get("agent_name", ""),
+                code_snippet=c.get("code_snippet", ""),
             )
             for c in result.get("comments", [])
         ]

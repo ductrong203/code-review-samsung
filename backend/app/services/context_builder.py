@@ -14,7 +14,12 @@ from pathlib import PurePosixPath
 
 from app.agents.agent_base import FileContext, ReviewContext
 from app.services.github_service import GitHubService, parse_pr_url
-from app.services.diff_parser import parse_diff, format_diff_for_llm, DiffFile
+from app.services.diff_parser import (
+    parse_diff,
+    format_diff_for_llm,
+    DiffFile,
+    LineType,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -64,18 +69,27 @@ class ContextBuilder:
         self.github = github
         self.max_file_chars = max_file_chars
 
-    def build_context(self, pr_url: str) -> ReviewContext:
+    def build_context(self, pr_url: str,
+                      graph_context: Optional[Dict] = None) -> ReviewContext:
         """
-        Build complete ReviewContext from a PR URL.
+        Build SIMPLIFIED ReviewContext from a PR URL.
 
-        Steps:
-        1. Fetch and parse diff
-        2. Fetch PR metadata
-        3. Build file contexts with full content
-        4. Detect languages
-        5. Assemble ReviewContext
+        SIMPLIFIED APPROACH:
+        1. Fetch and parse diff only
+        2. Build FileContext objects with diff_content (for code snippets)
+        3. Fetch PR metadata
+        4. (NO full file content - diff is sufficient)
+        5. Assemble ReviewContext with diff + graph_context
+
+        Args:
+            pr_url: GitHub PR URL
+            graph_context: Graph analysis context from extension.
+                           Contains: changed_functions, affected_flows, 
+                                    test_gaps, overall_risk
         """
         logger.info(f"Building context for: {pr_url}")
+        if graph_context:
+            logger.info(f"Graph context provided: {len(graph_context.get('changed_functions', []))} functions")
 
         # 1. Fetch raw diff
         raw_diff = self.github.fetch_pr_diff(pr_url)
@@ -83,18 +97,17 @@ class ContextBuilder:
         # 2. Parse diff
         diff_files = parse_diff(raw_diff)
         formatted_diff = format_diff_for_llm(diff_files)
+        
+        # Store diff_files paths for later context_level calculation
+        diff_file_paths = {df.new_path or df.old_path for df in diff_files}
 
         # 3. Fetch metadata
         metadata = self.github.fetch_pr_metadata(pr_url)
 
-        # 4. Build file contexts
-        file_contexts = self._build_file_contexts(pr_url, diff_files)
+        # 4. Detect primary language from diff
+        primary_language = self._detect_language_from_diff(diff_files)
 
-        # 5. Detect primary language
-        primary_language = detect_primary_language(file_contexts)
-
-        # 6. Build repo structure hints from file paths
-        repo_structure = self._extract_structure(diff_files)
+        file_contexts = self._build_file_contexts_from_diff(diff_files)
 
         context = ReviewContext(
             pr_url=pr_url,
@@ -103,108 +116,96 @@ class ContextBuilder:
             raw_diff=raw_diff,
             formatted_diff=formatted_diff,
             files=file_contexts,
-            repo_structure=repo_structure,
             metadata=metadata,
             language=primary_language,
+            graph_context=graph_context or {},
         )
+        
+        # Store diff_file_paths for context_level determination later
+        context.metadata['diff_file_paths'] = diff_file_paths
 
         logger.info(
-            f"Context built: {len(file_contexts)} files, "
+            f"Context built: {len(diff_file_paths)} files changed, "
             f"language={primary_language}, "
-            f"diff_chars={len(formatted_diff)}"
+            f"diff_chars={len(formatted_diff)}, "
+            f"graph_functions={len(graph_context.get('changed_functions', []) if graph_context else [])}"
         )
 
         return context
 
+    def _detect_language_from_diff(self, diff_files: List[DiffFile]) -> str:
+        """Detect primary language from changed files."""
+        lang_counts: Dict[str, int] = {}
+        for df in diff_files:
+            lang = detect_language(df.new_path)
+            if lang:
+                lang_counts[lang] = lang_counts.get(lang, 0) + 1
+        
+        if not lang_counts:
+            return "unknown"
+        
+        return max(lang_counts, key=lang_counts.get)
+
     def _build_file_contexts(
         self, pr_url: str, diff_files: List[DiffFile]
     ) -> List[FileContext]:
-        """Build FileContext for each changed file."""
+        """
+        DEPRECATED: No longer used.
+        
+        We don't fetch full file content anymore - diff is sufficient.
+        Graphs provide impact analysis instead.
+        """
+        return []
+
+    def _build_file_contexts_from_diff(self, diff_files: List[DiffFile]) -> List[FileContext]:
+        """
+        Build FileContext objects from parsed diff files.
+        
+        Populates:
+        - path: File path
+        - diff_content: Raw diff for this file
+        - language: Detected language from extension
+        - is_new: Whether file is newly created
+        - is_deleted: Whether file is deleted
+        
+        NOTE: full_content and old_content are NOT populated (simplified approach).
+        They can be extracted from diff if needed by agents.
+        """
         file_contexts = []
-
-        owner, repo, pr_number = parse_pr_url(pr_url)
-
-        for diff_file in diff_files:
-            path = diff_file.new_path
-            language = detect_language(path)
-
-            # Build diff content for this file
-            diff_content = self._format_single_file_diff(diff_file)
-
-            # Try to fetch full file content (public raw content, no token needed)
-            full_content = ""
-            if not diff_file.is_deleted:
-                full_content = self._fetch_file_content_public(
-                    owner, repo, path, pr_number
+        
+        for df in diff_files:
+            # Reconstruct diff content for this file
+            # Format: file header + hunks
+            diff_lines = []
+            
+            # Add file header
+            diff_lines.append(f"--- a/{df.old_path or df.new_path}")
+            diff_lines.append(f"+++ b/{df.new_path or df.old_path}")
+            
+            # Add hunks (unified diff: lines must start with +, -, or space)
+            for hunk in df.hunks:
+                diff_lines.append(
+                    f"@@ -{hunk.old_start},{hunk.old_count} +{hunk.new_start},{hunk.new_count} @@"
                 )
+                for line in hunk.lines:
+                    if line.line_type == LineType.ADD:
+                        diff_lines.append("+" + line.content)
+                    elif line.line_type == LineType.REMOVE:
+                        diff_lines.append("-" + line.content)
+                    else:
+                        diff_lines.append(" " + line.content)
 
+            diff_content = "\n".join(diff_lines)
+            
             fc = FileContext(
-                path=path,
+                path=df.new_path or df.old_path,
                 diff_content=diff_content,
-                full_content=full_content[:self.max_file_chars] if full_content else "",
-                language=language,
-                is_new=diff_file.is_new,
-                is_deleted=diff_file.is_deleted,
+                full_content="",  # Not populated in simplified approach
+                old_content="",   # Not populated in simplified approach
+                language=detect_language(df.new_path or df.old_path),
+                is_new=df.is_new,
+                is_deleted=df.is_deleted,
             )
             file_contexts.append(fc)
 
         return file_contexts
-
-    def _fetch_file_content_public(
-        self, owner: str, repo: str, path: str, pr_number: str
-    ) -> str:
-        """
-        Fetch file content via GitHub's public raw content URL.
-        No token needed for public repos.
-        """
-        # Try the PR's head ref via raw.githubusercontent.com
-        # This works for public repos without authentication
-        raw_url = f"https://raw.githubusercontent.com/{owner}/{repo}/refs/pull/{pr_number}/head/{path}"
-
-        try:
-            response = self.github.session.get(raw_url, timeout=10)
-            if response.status_code == 200:
-                return response.text
-        except Exception as e:
-            logger.debug(f"Failed to fetch {path} from PR ref: {e}")
-
-        # Fallback: try main branch
-        for branch in ["main", "master"]:
-            raw_url = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}"
-            try:
-                response = self.github.session.get(raw_url, timeout=10)
-                if response.status_code == 200:
-                    return response.text
-            except Exception:
-                continue
-
-        logger.debug(f"Could not fetch full content for {path}")
-        return ""
-
-    def _format_single_file_diff(self, diff_file: DiffFile) -> str:
-        """Format a single file's diff for agent consumption."""
-        parts = []
-        for hunk in diff_file.hunks:
-            parts.append(
-                f"@@ -{hunk.old_start},{hunk.old_count} "
-                f"+{hunk.new_start},{hunk.new_count} @@ {hunk.header}"
-            )
-            for line in hunk.lines:
-                if line.line_type.value == "add":
-                    parts.append(f"+{line.content}")
-                elif line.line_type.value == "remove":
-                    parts.append(f"-{line.content}")
-                else:
-                    parts.append(f" {line.content}")
-
-        return "\n".join(parts)
-
-    def _extract_structure(self, diff_files: List[DiffFile]) -> List[str]:
-        """Extract directory structure from changed files."""
-        dirs = set()
-        for f in diff_files:
-            parts = PurePosixPath(f.new_path).parts
-            for i in range(1, len(parts)):
-                dirs.add("/".join(parts[:i]))
-
-        return sorted(dirs)
