@@ -1327,6 +1327,10 @@
                     .replace(/^## (.+)$/gm, '<h3 style="margin:12px 0 6px">$1</h3>')
                     .replace(/\n/g, "<br>");
                 }
+                if (liveFindings) {
+                  liveFindings.innerHTML = "";
+                  renderedFindings.clear();
+                }
                 (review.comments || []).forEach((c) => {
                   const key = findingKey(c);
                   if (liveFindings && !renderedFindings.has(key)) {
