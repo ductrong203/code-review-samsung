@@ -756,8 +756,8 @@
             ><input id="regName" placeholder="e.g. react" />
           </div>
           <div class="form-group">
-            <label>Local Path</label
-            ><input id="regPath" placeholder="C:\path\to\repo" />
+            <label>Git URL or Server Path</label
+            ><input id="regSource" placeholder="https://github.com/owner/repo" />
           </div>
           <button
             id="registerBuildBtn"
@@ -821,8 +821,9 @@
               <strong>Welcome to SSCR-BOT.</strong><br /><br />
               I'm a graph-powered code review assistant. Here's how to get
               started:<br /><br />
-              <strong>1.</strong> Register a repo in the sidebar (owner + name +
-              local path)<br />
+              <strong>1.</strong> Register a repo in the sidebar. On Docker
+              deploys, use a GitHub URL so the server clones into its /repos
+              volume.<br />
               <strong>2.</strong> Wait for the main graph to build (~1-2s for
               small repos)<br />
               <strong>3.</strong> Paste a GitHub PR URL here to review with
@@ -942,6 +943,9 @@
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;");
       }
+      function isGitSource(value) {
+        return /^(https?:\/\/|git@|ssh:\/\/)/i.test(value || "");
+      }
       function formatReviewNote(note) {
         const text = stripLegacyIcons(note || "").trim();
         if (!text) return "";
@@ -997,9 +1001,9 @@
       async function registerRepo() {
         const owner = $("regOwner").value.trim();
         const name = $("regName").value.trim();
-        const path = $("regPath").value.trim();
-        if (!owner || !name || !path) {
-          toast("Fill all fields", "err");
+        const source = $("regSource").value.trim();
+        if (!owner || !name) {
+          toast("Fill owner and repo name", "err");
           return;
         }
 
@@ -1012,7 +1016,15 @@
           let r = await fetch(`${API}/api/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ owner, name, local_path: path }),
+            body: JSON.stringify({
+              owner,
+              name,
+              ...(source
+                ? isGitSource(source)
+                  ? { repo_url: source }
+                  : { local_path: source }
+                : {}),
+            }),
           });
           if (!r.ok) {
             const e = await r.json();
@@ -1035,7 +1047,7 @@
             toast(doneMsg, "ok");
             $("regOwner").value = "";
             $("regName").value = "";
-            $("regPath").value = "";
+            $("regSource").value = "";
           } else {
             setBuildStatus(data.detail || "Build failed", "err");
             toast(data.detail || "Build failed", "err");

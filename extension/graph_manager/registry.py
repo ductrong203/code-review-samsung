@@ -43,14 +43,21 @@ class RepoRegistry:
             encoding="utf-8",
         )
 
-    def register(self, owner: str, name: str, local_path: str) -> Dict[str, Any]:
+    def register(
+        self,
+        owner: str,
+        name: str,
+        local_path: str,
+        repo_url: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """
         Register a repo for graph tracking.
 
         Args:
             owner: GitHub owner (e.g. 'facebook')
             name: Repo name (e.g. 'react')
-            local_path: Absolute path to the locally cloned repo
+            local_path: Path to the cloned repo as seen by the extension process
+            repo_url: Optional Git clone URL used to create/manage the checkout
 
         Returns:
             The registered repo entry
@@ -62,6 +69,8 @@ class RepoRegistry:
             if f"{repo['owner']}/{repo['name']}" == key:
                 # Update local_path if changed
                 repo["local_path"] = local_path
+                if repo_url:
+                    repo["repo_url"] = repo_url
                 self._save()
                 logger.info(f"Updated repo: {key} -> {local_path}")
                 return repo
@@ -71,6 +80,8 @@ class RepoRegistry:
             "name": name,
             "local_path": local_path,
         }
+        if repo_url:
+            entry["repo_url"] = repo_url
         self._repos.append(entry)
         self._save()
         logger.info(f"Registered repo: {key} -> {local_path}")

@@ -26,6 +26,7 @@ services:
     environment:
       REVIEW_SERVER_URL: http://backend:8000
       CRG_GRAPH_BASE: /data/graphs
+      CRG_REPOS_BASE: /repos
       CRG_CLEANUP_AFTER_REVIEW: ${CRG_CLEANUP_AFTER_REVIEW:-true}
       CRG_KEEP_PR_GRAPH: ${CRG_KEEP_PR_GRAPH:-false}
       CRG_KEEP_FAILED_PR_GRAPH: ${CRG_KEEP_FAILED_PR_GRAPH:-false}
@@ -36,7 +37,7 @@ services:
     volumes:
       # Persist graph DBs, registry.json, and temporary PR worktrees.
       - graph-data:/data/graphs
-      # Put/cloned repositories on the VPS under ./repos and register paths as /repos/<repo>.
+      # Persist source checkouts cloned by the extension on the VPS.
       - ./repos:/repos
     depends_on:
       - backend

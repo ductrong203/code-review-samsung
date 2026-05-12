@@ -93,7 +93,14 @@ CRG_KEEP_FAILED_PR_GRAPH = env_bool("CRG_KEEP_FAILED_PR_GRAPH", False)
 class RegisterRequest(BaseModel):
     owner: str = Field(..., description="GitHub owner (e.g. 'facebook')")
     name: str = Field(..., description="Repo name (e.g. 'react')")
-    local_path: str = Field(..., description="Absolute path to locally cloned repo")
+    local_path: Optional[str] = Field(
+        default=None,
+        description="Path visible to this extension process/container",
+    )
+    repo_url: Optional[str] = Field(
+        default=None,
+        description="Git clone URL. Defaults to https://github.com/{owner}/{name}.git",
+    )
 
 
 class BuildMainRequest(BaseModel):
@@ -160,6 +167,47 @@ def _safe_path_part(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]", "_", value)
 
 
+def get_managed_repo_path(owner: str, repo: str) -> Path:
+    repos_base = Path(os.environ.get("CRG_REPOS_BASE", "/repos"))
+    return repos_base / _safe_path_part(owner) / _safe_path_part(repo)
+
+
+def _run_git(args: List[str], cwd: Optional[Path] = None, timeout: int = 300) -> None:
+    logger.info("git %s", " ".join(args))
+    subprocess.run(
+        ["git", *args],
+        cwd=str(cwd) if cwd else None,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+    )
+
+
+def ensure_repo_checkout(owner: str, repo: str, repo_url: Optional[str]) -> Path:
+    """
+    Ensure a server/container-local checkout exists and return its path.
+
+    In Docker deploys this keeps source repos under the mounted /repos volume so
+    graph builds never depend on workstation-only paths such as E:\\...
+    """
+    checkout = get_managed_repo_path(owner, repo)
+    url = repo_url or f"https://github.com/{owner}/{repo}.git"
+
+    if (checkout / ".git").exists():
+        _run_git(["fetch", "origin", "--prune"], cwd=checkout)
+        return checkout
+
+    if checkout.exists() and any(checkout.iterdir()):
+        raise ValueError(
+            f"Managed repo path exists but is not a git checkout: {checkout}"
+        )
+
+    checkout.parent.mkdir(parents=True, exist_ok=True)
+    _run_git(["clone", "--filter=blob:none", url, str(checkout)], timeout=900)
+    return checkout
+
+
 def get_pr_worktree_path(owner: str, repo: str, pr_number: int) -> Path:
     return (
         GraphLifecycleManager.BASE
@@ -190,17 +238,6 @@ def prepare_pr_worktree(
     worktree_root = get_pr_worktree_path(owner, repo, pr_number)
     ref = f"refs/codereviewbot/pr-{pr_number}"
 
-    def run_git(args: List[str]) -> None:
-        logger.info("git %s", " ".join(args))
-        subprocess.run(
-            ["git", *args],
-            cwd=str(repo_root),
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
-
     try:
         if worktree_root.exists():
             subprocess.run(
@@ -213,8 +250,16 @@ def prepare_pr_worktree(
             if worktree_root.exists():
                 shutil.rmtree(worktree_root, ignore_errors=True)
 
-        run_git(["fetch", "origin", f"pull/{pr_number}/head:{ref}", "--force"])
-        run_git(["worktree", "add", "--detach", str(worktree_root), ref])
+        _run_git(
+            ["fetch", "origin", f"pull/{pr_number}/head:{ref}", "--force"],
+            cwd=repo_root,
+            timeout=120,
+        )
+        _run_git(
+            ["worktree", "add", "--detach", str(worktree_root), ref],
+            cwd=repo_root,
+            timeout=120,
+        )
         return worktree_root
     except Exception as e:
         logger.warning(
@@ -276,14 +321,34 @@ def cleanup_review_artifacts(
 @app.post("/api/register", tags=["repos"])
 async def register_repo(request: RegisterRequest):
     """Register a repository for graph tracking."""
-    local = Path(request.local_path)
-    if not local.exists():
-        raise HTTPException(
-            status_code=400,
-            detail=f"Local path does not exist: {request.local_path}",
-        )
+    try:
+        if request.local_path:
+            local = Path(request.local_path)
+            if not local.exists():
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Local path does not exist from the extension container: "
+                        f"{request.local_path}. In Docker, either mount that repo "
+                        "under /repos or register by repo_url so the server clones it."
+                    ),
+                )
+        else:
+            local = ensure_repo_checkout(
+                request.owner, request.name, request.repo_url,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Repo checkout failed: {e}", exc_info=True)
+        raise HTTPException(status_code=400, detail=str(e))
 
-    entry = registry.register(request.owner, request.name, request.local_path)
+    entry = registry.register(
+        request.owner,
+        request.name,
+        str(local),
+        repo_url=request.repo_url,
+    )
     return {
         "status": "registered",
         "repo": entry,
