@@ -1001,6 +1001,79 @@
           .join("");
       }
 
+      function findingKey(comment) {
+        const path = comment.path || "";
+        const fromLine = comment.from_line || "";
+        const toLine = comment.to_line || "";
+        const category = comment.category || "";
+        if (path || fromLine || toLine) {
+          return [path, fromLine, toLine, category].join("|");
+        }
+        return [
+          comment.severity || "",
+          stripLegacyIcons(comment.note || "").slice(0, 180),
+        ].join("|");
+      }
+
+      function renderCodeSnippet(comment) {
+        if (!comment.code_snippet) return "";
+
+        const snippetLines = String(comment.code_snippet).split("\n");
+        const firstErrorIndex = snippetLines.findIndex((line) =>
+          /^\s*>/.test(line),
+        );
+        const snippetStartLine =
+          comment.from_line && firstErrorIndex >= 0
+            ? comment.from_line - firstErrorIndex
+            : comment.from_line || 1;
+        const lines = snippetLines
+          .map((line, idx) => {
+            const isErr = /^\s*>/.test(line);
+            const raw = isErr ? line.replace(/^\s*> ?/, "") : line;
+            const actualLine = snippetStartLine + idx;
+            return `<span class="code-line${isErr ? " code-line--error" : ""}">
+              <span class="code-line__no">${actualLine}</span>
+              <span>${escapeHtml(raw)}</span>
+            </span>`;
+          })
+          .join("");
+
+        return `<div class="code-panel">
+          <div class="code-panel__label">Affected code</div>
+          <div class="code-panel__body">${lines}</div>
+        </div>`;
+      }
+
+      function renderFinding(comment, { includeScope = true } = {}) {
+        const c = comment || {};
+        const sev = c.severity || "medium";
+        const scopeLabels = {
+          diff: "Issue visible from changed lines only",
+          file: "Needs full-file context to judge",
+          repo: "Needs cross-file / repo context",
+        };
+        const scopeKey = (c.context_level || "").toLowerCase().trim();
+        const scopeText =
+          scopeLabels[scopeKey] ||
+          (c.context_level ? "Detection scope: " + c.context_level : "");
+        const scopeHtml =
+          includeScope && scopeText
+            ? `<span class="scope-pill" title="Minimum scope to recognize this issue (not the file path)">${icon("target")} ${escapeHtml(scopeText)}</span>`
+            : "";
+
+        return `<div class="finding-item sev-${sev}" data-finding-key="${escapeHtml(findingKey(c))}">
+          <div class="finding-header">
+            <span>${icon(sev === "low" ? "check" : "alert")} ${sev.toUpperCase()}</span> ·
+            <span>${escapeHtml(c.category || "")}</span>
+            ${scopeHtml}
+          </div>
+          <div class="finding-path">${escapeHtml(c.path || "")}${c.from_line ? " L" + c.from_line : ""}</div>
+          <div class="finding-note">${formatReviewNote(c.note || "")}</div>
+          ${c.suggested_fix ? `<div style="margin-top:8px;font-size:12px;color:var(--text2);">${icon("lightbulb")} <strong>Fix:</strong> ${escapeHtml(c.suggested_fix)}</div>` : ""}
+          ${renderCodeSnippet(c)}
+        </div>`;
+      }
+
       function addMsg(text, isUser = false) {
         const el = document.createElement("div");
         el.className = `msg ${isUser ? "msg-user" : "msg-bot"}`;
@@ -1167,6 +1240,7 @@
               <div id="liveStage" style="font-size:13px;color:var(--text2)">Starting...</div>
               <div class="progress-track"><div id="liveProgress" class="progress-fill" style="width:2%"></div></div>
               <div id="liveGraph" class="graph-chip-row"></div>
+              <div id="liveSummary" style="font-size:13px;line-height:1.7;margin-top:10px"></div>
               <div id="liveFindings" style="margin-top:8px"></div>
             </div>`,
           );
@@ -1184,10 +1258,12 @@
           const reader = r.body.getReader();
           const decoder = new TextDecoder();
           let buffer = "";
-          const liveStage = document.getElementById("liveStage");
-          const liveProgress = document.getElementById("liveProgress");
-          const liveGraph = document.getElementById("liveGraph");
-          const liveFindings = document.getElementById("liveFindings");
+          const liveStage = liveMsg.querySelector("#liveStage");
+          const liveProgress = liveMsg.querySelector("#liveProgress");
+          const liveGraph = liveMsg.querySelector("#liveGraph");
+          const liveSummary = liveMsg.querySelector("#liveSummary");
+          const liveFindings = liveMsg.querySelector("#liveFindings");
+          const renderedFindings = new Set();
 
           function parseEvent(block) {
             let event = "message";
@@ -1228,18 +1304,36 @@
               }
               if (parsed.event === "finding" && liveFindings) {
                 const c = parsed.data.comment || {};
-                const sev = c.severity || "medium";
-                liveFindings.insertAdjacentHTML(
-                  "beforeend",
-                  `<div class="finding-item sev-${sev}">
-                    <div class="finding-header"><span>${sev.toUpperCase()}</span> · <span>${escapeHtml(c.category || "")}</span></div>
-                    <div class="finding-path">${escapeHtml(c.path || "")}${c.from_line ? " L" + c.from_line : ""}</div>
-                    <div class="finding-note">${formatReviewNote(c.note || "")}</div>
-                  </div>`,
-                );
+                const key = findingKey(c);
+                if (!renderedFindings.has(key)) {
+                  renderedFindings.add(key);
+                  liveFindings.insertAdjacentHTML(
+                    "beforeend",
+                    renderFinding(c),
+                  );
+                }
               }
               if (parsed.event === "final") {
                 data.review = parsed.data;
+                const review = data.review || {};
+                if (liveProgress) liveProgress.style.width = "100%";
+                if (liveStage) liveStage.textContent = "Review complete";
+                if (liveSummary && review.message) {
+                  const msg = stripLegacyIcons(review.message || "");
+                  liveSummary.innerHTML = msg
+                    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                    .replace(/`([^`]+)`/g, "<code>$1</code>")
+                    .replace(/^### (.+)$/gm, '<h4 style="margin:12px 0 4px">$1</h4>')
+                    .replace(/^## (.+)$/gm, '<h3 style="margin:12px 0 6px">$1</h3>')
+                    .replace(/\n/g, "<br>");
+                }
+                (review.comments || []).forEach((c) => {
+                  const key = findingKey(c);
+                  if (liveFindings && !renderedFindings.has(key)) {
+                    renderedFindings.add(key);
+                    liveFindings.insertAdjacentHTML("beforeend", renderFinding(c));
+                  }
+                });
               }
               if (parsed.event === "error") {
                 throw new Error(parsed.data.error || "Review failed");
@@ -1248,88 +1342,9 @@
           }
           removeLoading();
 
-          // Build result HTML
-          let html = "";
-
-          // (Graph Context rendering removed as requested)
-
-          // Review findings
-          const review = data.review;
-          if (review) {
-            const msg = stripLegacyIcons(review.message || "");
-            // Convert markdown-ish to HTML
-            const formatted = msg
-              .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-              .replace(/`([^`]+)`/g, "<code>$1</code>")
-              .replace(/^### (.+)$/gm, '<h4 style="margin:12px 0 4px">$1</h4>')
-              .replace(/^## (.+)$/gm, '<h3 style="margin:12px 0 6px">$1</h3>')
-              .replace(/\n/g, "<br>");
-            html += `<div class="review-card" style="margin-top:8px"><h4>${icon("search")} Review Results</h4><div style="font-size:13px;line-height:1.7">${formatted}</div></div>`;
-
-            // Individual findings
-            const comments = review.comments || [];
-            if (comments.length) {
-              html += '<div style="margin-top:8px">';
-              const scopeLabels = {
-                diff: "Issue visible from changed lines only",
-                file: "Needs full-file context to judge",
-                repo: "Needs cross-file / repo context",
-              };
-              comments.forEach((c) => {
-                const sev = c.severity || "medium";
-                const scopeKey = (c.context_level || "").toLowerCase().trim();
-                const scopeText =
-                  scopeLabels[scopeKey] ||
-                  (c.context_level
-                    ? "Detection scope: " + c.context_level
-                    : "");
-                let codeHtml = "";
-                if (c.code_snippet) {
-                  const snippetLines = c.code_snippet.split("\n");
-                  const firstErrorIndex = snippetLines.findIndex((line) =>
-                    /^\s*>/.test(line),
-                  );
-                  const snippetStartLine =
-                    c.from_line && firstErrorIndex >= 0
-                      ? c.from_line - firstErrorIndex
-                      : c.from_line || 1;
-                  const lines = snippetLines
-                    .map((l, idx) => {
-                      const isErr = /^\s*>/.test(l);
-                      const raw = isErr ? l.replace(/^\s*> ?/, "") : l;
-                      const actualLine = snippetStartLine + idx;
-                      let safeL = raw
-                        .replace(/&/g, "&amp;")
-                        .replace(/</g, "&lt;")
-                        .replace(/>/g, "&gt;");
-                      if (isErr) {
-                        return `<span class="code-line code-line--error"><span class="code-line__no">${actualLine}</span><span>${safeL}</span></span>`;
-                      }
-                      return `<span class="code-line"><span class="code-line__no">${actualLine}</span><span>${safeL}</span></span>`;
-                    })
-                    .join("");
-                  codeHtml = `<div class="code-panel"><div class="code-panel__label">Affected code</div><div class="code-panel__body">${lines}</div></div>`;
-                }
-
-                html += `<div class="finding-item sev-${sev}">
-            <div class="finding-header">
-              <span>${icon(sev === "low" ? "check" : "alert")} ${sev.toUpperCase()}</span> · 
-              <span>${escapeHtml(c.category || "")}</span>
-              ${scopeText ? `<span class="scope-pill" title="Minimum scope to recognize this issue (not the file path)">${icon("target")} ${escapeHtml(scopeText)}</span>` : ""}
-            </div>
-            <div class="finding-path">${escapeHtml(c.path || "")}${c.from_line ? " L" + c.from_line : ""}</div>
-            <div class="finding-note">${formatReviewNote(c.note)}</div>
-            ${c.suggested_fix ? `<div style="margin-top:8px;font-size:12px;color:var(--text2);">${icon("lightbulb")} <strong>Fix:</strong> ${escapeHtml(c.suggested_fix)}</div>` : ""}
-            ${codeHtml}
-          </div>`;
-              });
-              html += "</div>";
-            }
+          if (!data.review && liveStage) {
+            liveStage.textContent = "Review completed but no structured data returned.";
           }
-
-          if (!html)
-            html = `${icon("check")} Review completed but no structured data returned.`;
-          addMsg(html);
         } catch (e) {
           removeLoading();
           addMsg(
