@@ -40,8 +40,8 @@ function parseSseBlock(block) {
 }
 
 /**
- * Stream a chat review request. The backend emits progress, graph, finding,
- * final, error, and done events.
+ * Stream a chat review request. The diff-only frontend uses progress, final,
+ * error, and done events.
  */
 export async function streamChatMessage(message, handlers = {}) {
   const response = await fetch(`${API_BASE}/chat/stream`, {
@@ -76,8 +76,6 @@ export async function streamChatMessage(message, handlers = {}) {
       if (!parsed) continue;
 
       if (parsed.event === "progress") handlers.onProgress?.(parsed.data);
-      if (parsed.event === "graph") handlers.onGraph?.(parsed.data);
-      if (parsed.event === "finding") handlers.onFinding?.(parsed.data.comment);
       if (parsed.event === "final") {
         finalData = parsed.data;
         handlers.onFinal?.(parsed.data);

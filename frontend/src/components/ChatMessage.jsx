@@ -96,7 +96,7 @@ export default function ChatMessage({ message }) {
     isStreaming,
     progress,
     streamStage,
-    graphSummary,
+    progressLog,
   } = message;
   const isUser = role === "user";
 
@@ -126,26 +126,25 @@ export default function ChatMessage({ message }) {
           />
         )}
 
-        {(isStreaming || graphSummary) && (
+        {isStreaming && (
           <div className="chat-message__stream-panel">
-            {isStreaming && (
-              <div className="stream-progress">
-                <div className="stream-progress__header">
-                  <span>{stripLegacyIcons(streamStage || content || "Reviewing...")}</span>
-                  <span>{Math.round((progress || 0) * 100)}%</span>
-                </div>
-                <div className="stream-progress__track">
-                  <div className="stream-progress__fill" style={{ width: `${Math.round((progress || 0) * 100)}%` }} />
-                </div>
+            <div className="stream-progress">
+              <div className="stream-progress__header">
+                <span>{stripLegacyIcons(streamStage || content || "Reviewing...")}</span>
+                <span>{Math.round((progress || 0) * 100)}%</span>
               </div>
-            )}
-            {graphSummary && (
-              <div className="graph-summary">
-                <span>{graphSummary.changed_functions || 0} changed functions</span>
-                <span>{graphSummary.affected_flows || 0} flows</span>
-                <span>{graphSummary.test_gaps || 0} test gaps</span>
-                <span>{graphSummary.review_priorities || 0} priority nodes</span>
-                <span>risk {Number(graphSummary.overall_risk || 0).toFixed(2)}</span>
+              <div className="stream-progress__track">
+                <div className="stream-progress__fill" style={{ width: `${Math.round((progress || 0) * 100)}%` }} />
+              </div>
+            </div>
+            {progressLog?.length > 0 && (
+              <div className="stream-log">
+                {progressLog.map((item) => (
+                  <div className="stream-log__item" key={item}>
+                    <span className="stream-log__dot" />
+                    <span>{stripLegacyIcons(item)}</span>
+                  </div>
+                ))}
               </div>
             )}
           </div>

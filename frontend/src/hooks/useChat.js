@@ -3,7 +3,7 @@ import { sendChatMessage, streamChatMessage } from "../api/chatApi";
 
 const WELCOME_MESSAGE =
   "Welcome to **SSCR-BOT** - AI Code Review Agent.\n\n" +
-  "This frontend runs the **diff-only baseline**. The extension UI streams graph context.\n\n" +
+  "This frontend runs the **diff-only baseline**.\n\n" +
   "I use **4 specialized agents** to analyze your PR:\n" +
   "- **Defect Agent** - bugs and logic errors\n" +
   "- **Security Agent** - vulnerabilities and OWASP Top 10\n" +
@@ -50,7 +50,7 @@ export function useChat() {
         isStreaming: true,
         progress: 0.02,
         streamStage: "Starting review...",
-        graphSummary: null,
+        progressLog: ["Starting review..."],
         timestamp: new Date(),
       },
     ]);
@@ -60,42 +60,19 @@ export function useChat() {
       try {
         response = await streamChatMessage(text.trim(), {
           onProgress: ({ stage, progress }) => {
+            const nextStage = stage || "";
             setMessages((prev) =>
               prev.map((msg) =>
                 msg.id === streamId
                   ? {
                       ...msg,
-                      content: stage || msg.content,
-                      streamStage: stage || msg.streamStage,
+                      content: nextStage || msg.content,
+                      streamStage: nextStage || msg.streamStage,
                       progress: typeof progress === "number" ? progress : msg.progress,
-                    }
-                  : msg,
-              ),
-            );
-          },
-          onGraph: (summary) => {
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === streamId
-                  ? {
-                      ...msg,
-                      graphSummary: summary,
-                      content: summary.changed_functions
-                        ? `Graph context ready: ${summary.changed_functions} changed function(s).`
-                        : msg.content,
-                    }
-                  : msg,
-              ),
-            );
-          },
-          onFinding: (comment) => {
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === streamId
-                  ? {
-                      ...msg,
-                      content: `Found ${msg.comments.length + 1} provisional issue(s). Still reviewing...`,
-                      comments: [...msg.comments, comment],
+                      progressLog:
+                        nextStage && !(msg.progressLog || []).includes(nextStage)
+                          ? [...(msg.progressLog || []), nextStage]
+                          : msg.progressLog || [],
                     }
                   : msg,
               ),
@@ -120,7 +97,6 @@ export function useChat() {
         categoryStats: response.category_stats || null,
         agentMetadata: response.agent_metadata || null,
         reviewSummary: response.review_summary || "",
-        graphSummary: response.graph_summary || null,
         isStreaming: false,
         progress: 1,
         timestamp: new Date(),
@@ -128,9 +104,7 @@ export function useChat() {
 
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === streamId
-            ? { ...botMessage, graphSummary: botMessage.graphSummary || msg.graphSummary }
-            : msg,
+          msg.id === streamId ? botMessage : msg,
         ),
       );
     } catch (error) {

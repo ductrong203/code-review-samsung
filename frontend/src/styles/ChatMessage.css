@@ -158,20 +158,32 @@
   transition: width 0.25s ease;
 }
 
-.graph-summary {
+.stream-log {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
   margin-top: 10px;
 }
 
-.graph-summary span {
+.stream-log__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
   background: #f8fbff;
-  border: 1px solid rgba(11, 92, 255, 0.16);
-  border-radius: 999px;
+  border: 1px solid rgba(11, 92, 255, 0.11);
+  border-radius: 8px;
   color: var(--text-secondary);
   font-size: 12px;
-  padding: 4px 8px;
+  padding: 7px 9px;
+}
+
+.stream-log__dot {
+  width: 7px;
+  height: 7px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: #0b5cff;
+  flex: 0 0 auto;
 }
 
 .chat-message--user .chat-message__timestamp {

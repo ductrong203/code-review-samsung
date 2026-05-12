@@ -18,7 +18,7 @@ from app.schemas.chat import (
     RiskAssessment,
 )
 from app.services.github_service import extract_pr_url
-from app.services.review_service import ReviewService, findings_to_comment_dicts
+from app.services.review_service import ReviewService
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +154,7 @@ async def chat(request: ChatRequest):
 
 @router.post("/chat/stream", tags=["chat"])
 async def chat_stream(request: ChatRequest):
-    """Stream progress, graph stats, raw findings, and final review response."""
+    """Stream progress, graph stats, and the final review response."""
     message = request.message.strip()
     if not message:
         raise HTTPException(status_code=400, detail="Message cannot be empty")
@@ -172,11 +172,6 @@ async def chat_stream(request: ChatRequest):
     def progress_callback(stage: str, progress: float):
         event_queue.put(("progress", {"stage": stage, "progress": progress}))
 
-    def finding_callback(finding):
-        comments = findings_to_comment_dicts([finding])
-        if comments:
-            event_queue.put(("finding", {"comment": comments[0]}))
-
     def graph_callback(summary: dict):
         event_queue.put(("graph", summary))
 
@@ -185,7 +180,7 @@ async def chat_stream(request: ChatRequest):
             service = ReviewService(
                 get_settings(),
                 progress_callback=progress_callback,
-                finding_callback=finding_callback,
+                finding_callback=None,
                 graph_callback=graph_callback,
             )
             result = service.review_pr(pr_url, graph_context=request.graph_context)
