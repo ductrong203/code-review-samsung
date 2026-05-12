@@ -12,7 +12,7 @@ Supports both parallel execution (asyncio) and sequential fallback.
 import time
 import logging
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional, Callable
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -76,11 +76,15 @@ class ReviewOrchestrator:
         confidence_threshold: float = 0.3,
         max_file_chars: int = 10000,
         progress_callback: Optional[Callable[[str, float], None]] = None,
+        finding_callback: Optional[Callable[[Finding], None]] = None,
+        graph_callback: Optional[Callable[[dict], None]] = None,
     ):
         self.llm = llm
         self.github = github
         self.parallel = parallel
         self.progress_callback = progress_callback
+        self.finding_callback = finding_callback
+        self.graph_callback = graph_callback
 
         # Build agents
         self.agents: List[ReviewAgent] = [
@@ -108,6 +112,35 @@ class ReviewOrchestrator:
                 pass
         logger.info(f"Progress: [{progress:.0%}] {stage}")
 
+    def _report_graph_context(self, graph_context: Optional[dict]):
+        """Report compact graph stats to streaming clients."""
+        if not self.graph_callback:
+            return
+        graph_context = graph_context or {}
+        summary = {
+            "changed_functions": len(graph_context.get("changed_functions", []) or []),
+            "affected_flows": len(graph_context.get("affected_flows", []) or []),
+            "test_gaps": len(graph_context.get("test_gaps", []) or []),
+            "review_priorities": len(graph_context.get("review_priorities", []) or []),
+            "related_context": len(graph_context.get("related_context", []) or []),
+            "overall_risk": graph_context.get("overall_risk", 0.0),
+            "error": graph_context.get("_error"),
+        }
+        try:
+            self.graph_callback(summary)
+        except Exception:
+            pass
+
+    def _report_findings(self, findings: List[Finding]):
+        """Report findings as soon as an agent has produced them."""
+        if not self.finding_callback:
+            return
+        for finding in findings:
+            try:
+                self.finding_callback(finding)
+            except Exception:
+                pass
+
     def review(self, pr_url: str,
                graph_context: Optional[dict] = None) -> ReviewReport:
         """
@@ -132,6 +165,7 @@ class ReviewOrchestrator:
         # ── Phase 1: Context Gathering ──────────────────────────────
         self._report_progress("📥 Fetching PR data and building context...", 0.1)
         context = self.context_builder.build_context(pr_url, graph_context=graph_context)
+        self._report_graph_context(context.graph_context)
 
         if not context.formatted_diff.strip():
             return ReviewReport(
@@ -164,41 +198,7 @@ class ReviewOrchestrator:
         self._report_progress("🔄 Verifying and consolidating findings...", 0.8)
         report = self.consensus.process(all_findings)
 
-        # Inject code snippets from diff context
-        for finding in report.findings:
-            if not finding.code_snippet and finding.path and finding.from_line:
-                fc = _file_context_for_path(context, finding.path)
-                if fc and fc.diff_content:
-                    snippet = []
-                    lines = fc.diff_content.split('\n')
-                    # Very simple diff parser to grab lines around from_line
-                    # In a real diff, lines with '+' are additions. We just try to extract
-                    # +/- 3 lines around the target line number. 
-                    # For a robust implementation, we map diff line numbers, but here
-                    # we do a simple substring extraction or format the raw diff.
-                    current_new_line = 0
-                    for line in lines:
-                        if line.startswith('@@'):
-                            try:
-                                # @@ -a,b +c,d @@
-                                parts = line.split(' ')
-                                if len(parts) >= 3:
-                                    plus_part = parts[2]
-                                    current_new_line = int(plus_part.split(',')[0].replace('+', ''))
-                            except:
-                                pass
-                        elif line.startswith('+'):
-                            if current_new_line >= finding.from_line - 2 and current_new_line <= (finding.to_line or finding.from_line) + 2:
-                                snippet.append(f">{line[1:]}" if current_new_line >= finding.from_line and current_new_line <= (finding.to_line or finding.from_line) else f" {line[1:]}")
-                            current_new_line += 1
-                        elif line.startswith(' '):
-                            if current_new_line >= finding.from_line - 2 and current_new_line <= (finding.to_line or finding.from_line) + 2:
-                                snippet.append(f" {line[1:]}")
-                            current_new_line += 1
-                        elif line.startswith('-'):
-                            pass
-                    if snippet:
-                        finding.code_snippet = '\n'.join(snippet)
+        self._inject_code_snippets(report.findings, context)
 
         # ── Phase 4: Finalize ───────────────────────────────────────
         elapsed = time.time() - start_time
@@ -218,6 +218,52 @@ class ReviewOrchestrator:
         logger.info(f"{'='*60}")
 
         return report
+
+    def _inject_code_snippets(
+        self,
+        findings: List[Finding],
+        context: ReviewContext,
+    ) -> None:
+        """Attach a small changed-code snippet around each finding."""
+        for finding in findings:
+            if finding.code_snippet or not finding.path or not finding.from_line:
+                continue
+
+            fc = _file_context_for_path(context, finding.path)
+            if not fc or not fc.diff_content:
+                continue
+
+            snippet = []
+            current_new_line = 0
+            target_to = finding.to_line or finding.from_line
+
+            for line in fc.diff_content.split('\n'):
+                if line.startswith('@@'):
+                    try:
+                        parts = line.split(' ')
+                        if len(parts) >= 3:
+                            plus_part = parts[2]
+                            current_new_line = int(
+                                plus_part.split(',')[0].replace('+', '')
+                            )
+                    except Exception:
+                        pass
+                    continue
+
+                in_window = finding.from_line - 2 <= current_new_line <= target_to + 2
+                in_target = finding.from_line <= current_new_line <= target_to
+
+                if line.startswith('+'):
+                    if in_window:
+                        snippet.append(f">{line[1:]}" if in_target else f" {line[1:]}")
+                    current_new_line += 1
+                elif line.startswith(' '):
+                    if in_window:
+                        snippet.append(f" {line[1:]}")
+                    current_new_line += 1
+
+            if snippet:
+                finding.code_snippet = '\n'.join(snippet)
 
     def _run_agents_parallel(self, context: ReviewContext) -> List[Finding]:
         """Run all agents in parallel using ThreadPoolExecutor."""
@@ -239,11 +285,13 @@ class ReviewOrchestrator:
             completed = 0
             total = len(self.agents)
 
-            for future in futures:
+            for future in as_completed(futures):
                 agent = futures[future]
                 try:
                     findings = future.result(timeout=120)  # 2min timeout per agent
+                    self._inject_code_snippets(findings, context)
                     all_findings.extend(findings)
+                    self._report_findings(findings)
                     completed += 1
                     progress = 0.3 + (0.5 * completed / total)
                     self._report_progress(
@@ -266,7 +314,9 @@ class ReviewOrchestrator:
 
             try:
                 findings = agent.analyze(context)
+                self._inject_code_snippets(findings, context)
                 all_findings.extend(findings)
+                self._report_findings(findings)
                 logger.info(f"{agent.name}: {len(findings)} findings")
             except Exception as e:
                 logger.error(f"{agent.name} failed: {e}")

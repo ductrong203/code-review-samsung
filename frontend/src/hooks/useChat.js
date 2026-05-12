@@ -1,9 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { sendChatMessage } from "../api/chatApi";
+import { sendChatMessage, streamChatMessage } from "../api/chatApi";
 
 const WELCOME_MESSAGE =
   "Welcome to **SSCR-BOT** - AI Code Review Agent.\n\n" +
-  "This frontend runs the **diff-only baseline**. It does not send graph context to the agents.\n\n" +
+  "This frontend runs the **diff-only baseline**. The extension UI streams graph context.\n\n" +
   "I use **4 specialized agents** to analyze your PR:\n" +
   "- **Defect Agent** - bugs and logic errors\n" +
   "- **Security Agent** - vulnerabilities and OWASP Top 10\n" +
@@ -39,12 +39,78 @@ export function useChat() {
 
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
+    const streamId = `stream-${Date.now()}`;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: streamId,
+        role: "bot",
+        content: "Starting review...",
+        comments: [],
+        isStreaming: true,
+        progress: 0.02,
+        streamStage: "Starting review...",
+        graphSummary: null,
+        timestamp: new Date(),
+      },
+    ]);
 
     try {
-      const response = await sendChatMessage(text.trim());
+      let response = null;
+      try {
+        response = await streamChatMessage(text.trim(), {
+          onProgress: ({ stage, progress }) => {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === streamId
+                  ? {
+                      ...msg,
+                      content: stage || msg.content,
+                      streamStage: stage || msg.streamStage,
+                      progress: typeof progress === "number" ? progress : msg.progress,
+                    }
+                  : msg,
+              ),
+            );
+          },
+          onGraph: (summary) => {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === streamId
+                  ? {
+                      ...msg,
+                      graphSummary: summary,
+                      content: summary.changed_functions
+                        ? `Graph context ready: ${summary.changed_functions} changed function(s).`
+                        : msg.content,
+                    }
+                  : msg,
+              ),
+            );
+          },
+          onFinding: (comment) => {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === streamId
+                  ? {
+                      ...msg,
+                      content: `Found ${msg.comments.length + 1} provisional issue(s). Still reviewing...`,
+                      comments: [...msg.comments, comment],
+                    }
+                  : msg,
+              ),
+            );
+          },
+          onFinal: (data) => {
+            response = data;
+          },
+        });
+      } catch (streamError) {
+        response = await sendChatMessage(text.trim());
+      }
 
       const botMessage = {
-        id: `bot-${Date.now()}`,
+        id: streamId,
         role: "bot",
         content: response.message || "No response received.",
         comments: response.comments || [],
@@ -54,19 +120,28 @@ export function useChat() {
         categoryStats: response.category_stats || null,
         agentMetadata: response.agent_metadata || null,
         reviewSummary: response.review_summary || "",
+        graphSummary: response.graph_summary || null,
+        isStreaming: false,
+        progress: 1,
         timestamp: new Date(),
       };
 
-      setMessages((prev) => [...prev, botMessage]);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === streamId
+            ? { ...botMessage, graphSummary: botMessage.graphSummary || msg.graphSummary }
+            : msg,
+        ),
+      );
     } catch (error) {
       const errorMessage = {
-        id: `error-${Date.now()}`,
+        id: streamId,
         role: "bot",
         content: `**Error:** ${error.message}\n\nPlease check that the backend is running and try again.`,
         isError: true,
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => prev.map((msg) => (msg.id === streamId ? errorMessage : msg)));
     } finally {
       setIsLoading(false);
     }

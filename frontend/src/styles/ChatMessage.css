@@ -127,6 +127,53 @@
   padding: 0 8px;
 }
 
+.chat-message__stream-panel {
+  background: #ffffff;
+  border: 1px solid var(--border-muted);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(10, 55, 140, 0.06);
+  margin-bottom: 8px;
+  padding: 12px;
+}
+
+.stream-progress__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.stream-progress__track {
+  background: #edf2f7;
+  border-radius: 999px;
+  height: 7px;
+  overflow: hidden;
+}
+
+.stream-progress__fill {
+  background: #0b5cff;
+  height: 100%;
+  transition: width 0.25s ease;
+}
+
+.graph-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.graph-summary span {
+  background: #f8fbff;
+  border: 1px solid rgba(11, 92, 255, 0.16);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
 .chat-message--user .chat-message__timestamp {
   text-align: right;
 }

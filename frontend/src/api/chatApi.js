@@ -28,6 +28,69 @@ export async function sendChatMessage(message) {
   return response.json();
 }
 
+function parseSseBlock(block) {
+  let event = "message";
+  const dataLines = [];
+  block.split("\n").forEach((line) => {
+    if (line.startsWith("event:")) event = line.slice(6).trim();
+    if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
+  });
+  if (!dataLines.length) return null;
+  return { event, data: JSON.parse(dataLines.join("\n")) };
+}
+
+/**
+ * Stream a chat review request. The backend emits progress, graph, finding,
+ * final, error, and done events.
+ */
+export async function streamChatMessage(message, handlers = {}) {
+  const response = await fetch(`${API_BASE}/chat/stream`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
+    },
+    body: JSON.stringify({ message, graph_context: null }),
+  });
+
+  if (!response.ok || !response.body) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail || `Request failed: ${response.status}`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let finalData = null;
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    const blocks = buffer.split("\n\n");
+    buffer = blocks.pop() || "";
+
+    for (const block of blocks) {
+      const parsed = parseSseBlock(block.trim());
+      if (!parsed) continue;
+
+      if (parsed.event === "progress") handlers.onProgress?.(parsed.data);
+      if (parsed.event === "graph") handlers.onGraph?.(parsed.data);
+      if (parsed.event === "finding") handlers.onFinding?.(parsed.data.comment);
+      if (parsed.event === "final") {
+        finalData = parsed.data;
+        handlers.onFinal?.(parsed.data);
+      }
+      if (parsed.event === "error") {
+        throw new Error(parsed.data.error || "Streaming review failed");
+      }
+    }
+  }
+
+  return finalData;
+}
+
 /**
  * Check backend health.
  * @returns {Promise<Object>} Health status

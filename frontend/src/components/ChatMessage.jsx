@@ -93,6 +93,10 @@ export default function ChatMessage({ message }) {
     riskAssessment,
     categoryStats,
     agentMetadata,
+    isStreaming,
+    progress,
+    streamStage,
+    graphSummary,
   } = message;
   const isUser = role === "user";
 
@@ -120,6 +124,31 @@ export default function ChatMessage({ message }) {
             categoryStats={categoryStats}
             agentMetadata={agentMetadata}
           />
+        )}
+
+        {(isStreaming || graphSummary) && (
+          <div className="chat-message__stream-panel">
+            {isStreaming && (
+              <div className="stream-progress">
+                <div className="stream-progress__header">
+                  <span>{stripLegacyIcons(streamStage || content || "Reviewing...")}</span>
+                  <span>{Math.round((progress || 0) * 100)}%</span>
+                </div>
+                <div className="stream-progress__track">
+                  <div className="stream-progress__fill" style={{ width: `${Math.round((progress || 0) * 100)}%` }} />
+                </div>
+              </div>
+            )}
+            {graphSummary && (
+              <div className="graph-summary">
+                <span>{graphSummary.changed_functions || 0} changed functions</span>
+                <span>{graphSummary.affected_flows || 0} flows</span>
+                <span>{graphSummary.test_gaps || 0} test gaps</span>
+                <span>{graphSummary.review_priorities || 0} priority nodes</span>
+                <span>risk {Number(graphSummary.overall_risk || 0).toFixed(2)}</span>
+              </div>
+            )}
+          </div>
         )}
 
         <div className="chat-message__content">{renderMarkdown(stripLegacyIcons(content))}</div>

@@ -404,6 +404,32 @@
         align-items: center;
         gap: 8px;
       }
+      .progress-track {
+        background: #e8eef7;
+        border-radius: 999px;
+        height: 7px;
+        margin-top: 10px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        background: var(--accent);
+        height: 100%;
+        transition: width 0.25s ease;
+      }
+      .graph-chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+      .graph-chip-row span {
+        background: rgba(11, 92, 255, 0.07);
+        border: 1px solid rgba(11, 92, 255, 0.15);
+        border-radius: 999px;
+        color: var(--text2);
+        font-size: 12px;
+        padding: 4px 8px;
+      }
       .risk-badge {
         display: inline-flex;
         align-items: center;
@@ -1133,20 +1159,94 @@
         addLoading();
 
         try {
-          const r = await fetch(`${API}/api/review`, {
+          removeLoading();
+          let data = { review: null, graph_context: null };
+          let liveMsg = addMsg(
+            `<div class="review-card">
+              <h4>${icon("search")} Reviewing PR</h4>
+              <div id="liveStage" style="font-size:13px;color:var(--text2)">Starting...</div>
+              <div class="progress-track"><div id="liveProgress" class="progress-fill" style="width:2%"></div></div>
+              <div id="liveGraph" class="graph-chip-row"></div>
+              <div id="liveFindings" style="margin-top:8px"></div>
+            </div>`,
+          );
+
+          const r = await fetch(`${API}/api/review/stream`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ pr_url: url }),
           });
-          removeLoading();
-          const data = await r.json();
-
-          if (!r.ok) {
-            addMsg(
-              `${icon("alert")} <strong>Error:</strong> ${data.detail || "Review failed"}`,
-            );
-            return;
+          if (!r.ok || !r.body) {
+            const err = await r.json().catch(() => ({}));
+            throw new Error(err.detail || `Review failed: ${r.status}`);
           }
+
+          const reader = r.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          const liveStage = document.getElementById("liveStage");
+          const liveProgress = document.getElementById("liveProgress");
+          const liveGraph = document.getElementById("liveGraph");
+          const liveFindings = document.getElementById("liveFindings");
+
+          function parseEvent(block) {
+            let event = "message";
+            const lines = [];
+            block.split("\n").forEach((line) => {
+              if (line.startsWith("event:")) event = line.slice(6).trim();
+              if (line.startsWith("data:")) lines.push(line.slice(5).trim());
+            });
+            if (!lines.length) return null;
+            return { event, data: JSON.parse(lines.join("\n")) };
+          }
+
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const blocks = buffer.split("\n\n");
+            buffer = blocks.pop() || "";
+
+            for (const block of blocks) {
+              const parsed = parseEvent(block.trim());
+              if (!parsed) continue;
+              if (parsed.event === "progress") {
+                const pct = Math.max(2, Math.round((parsed.data.progress || 0) * 100));
+                if (liveStage) liveStage.textContent = stripLegacyIcons(parsed.data.stage || "Reviewing...");
+                if (liveProgress) liveProgress.style.width = `${pct}%`;
+              }
+              if (parsed.event === "graph") {
+                data.graph_context = parsed.data;
+                if (liveGraph) {
+                  liveGraph.innerHTML = `
+                    <span>${parsed.data.changed_functions || 0} changed functions</span>
+                    <span>${parsed.data.affected_flows || 0} flows</span>
+                    <span>${parsed.data.test_gaps || 0} test gaps</span>
+                    <span>${parsed.data.review_priorities || 0} priority nodes</span>
+                    <span>risk ${(parsed.data.overall_risk || 0).toFixed(2)}</span>`;
+                }
+              }
+              if (parsed.event === "finding" && liveFindings) {
+                const c = parsed.data.comment || {};
+                const sev = c.severity || "medium";
+                liveFindings.insertAdjacentHTML(
+                  "beforeend",
+                  `<div class="finding-item sev-${sev}">
+                    <div class="finding-header"><span>${sev.toUpperCase()}</span> · <span>${escapeHtml(c.category || "")}</span></div>
+                    <div class="finding-path">${escapeHtml(c.path || "")}${c.from_line ? " L" + c.from_line : ""}</div>
+                    <div class="finding-note">${formatReviewNote(c.note || "")}</div>
+                  </div>`,
+                );
+              }
+              if (parsed.event === "final") {
+                data.review = parsed.data;
+              }
+              if (parsed.event === "error") {
+                throw new Error(parsed.data.error || "Review failed");
+              }
+            }
+          }
+          removeLoading();
 
           // Build result HTML
           let html = "";

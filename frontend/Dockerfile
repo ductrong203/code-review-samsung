@@ -38,6 +38,8 @@ RUN echo 'server { \
         proxy_send_timeout 300s; \
         proxy_read_timeout 300s; \
         send_timeout 300s; \
+        proxy_buffering off; \
+        proxy_cache off; \
     } \
     \
     location / { \

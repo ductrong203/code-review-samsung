@@ -15,6 +15,7 @@ Endpoints:
   GET  /                   — Chatbot UI
 """
 import logging
+import json
 import os
 import re
 import subprocess
@@ -32,7 +33,7 @@ if str(_backend_path) not in sys.path:
 import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -633,6 +634,110 @@ async def review_pr(request: ReviewRequest):
                 CRG_KEEP_PR_GRAPH,
                 CRG_KEEP_FAILED_PR_GRAPH,
             )
+
+
+def _sse(event: str, data: dict) -> str:
+    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+@app.post("/api/review/stream", tags=["review"])
+async def review_pr_stream(request: ReviewRequest):
+    """Graph-powered review with SSE proxy to backend streaming endpoint."""
+    def generate():
+        review_success = False
+        repo_root_for_cleanup: Optional[Path] = None
+        owner = repo = ""
+        pr_number = 0
+
+        try:
+            yield _sse("progress", {"stage": "Parsing PR URL...", "progress": 0.03})
+            owner, repo, pr_number = parse_pr_url(request.pr_url)
+            reg = registry.get(owner, repo)
+            if reg:
+                repo_root_for_cleanup = Path(reg["local_path"])
+
+            yield _sse("progress", {"stage": "Fetching PR diff...", "progress": 0.08})
+            from app.services.github_service import GitHubService
+            from app.services.diff_parser import parse_diff
+            gh = GitHubService()
+            raw_diff = gh.fetch_pr_diff(request.pr_url)
+            diff_files = parse_diff(raw_diff)
+
+            yield _sse("progress", {"stage": "Checking PR graph...", "progress": 0.16})
+            if not lifecycle.pr_graph_ready(owner, repo, pr_number):
+                if lifecycle.main_graph_ready(owner, repo) and reg:
+                    changed_files = fetch_pr_changed_files(owner, repo, pr_number)
+                    repo_root = Path(reg["local_path"])
+                    pr_worktree = prepare_pr_worktree(owner, repo, repo_root, pr_number)
+                    try:
+                        yield _sse("progress", {"stage": "Building PR graph...", "progress": 0.24})
+                        lifecycle.build_pr_graph(
+                            owner,
+                            repo,
+                            pr_worktree or repo_root,
+                            pr_number,
+                            changed_files,
+                        )
+                    finally:
+                        cleanup_pr_worktree(repo_root, pr_worktree)
+
+            if not lifecycle.pr_graph_ready(owner, repo, pr_number):
+                raise RuntimeError(
+                    f"Graph not ready for PR #{pr_number}. Build it via /api/build-pr first."
+                )
+
+            yield _sse("progress", {"stage": "Extracting graph context...", "progress": 0.32})
+            pr_db = lifecycle.get_pr_db_path(owner, repo, pr_number)
+            with GraphContextEnricher(str(pr_db)) as enricher:
+                graph_context = enricher.get_context_from_diff(diff_files)
+
+            graph_summary = {
+                "changed_functions": len(graph_context.get("changed_functions", []) or []),
+                "affected_flows": len(graph_context.get("affected_flows", []) or []),
+                "test_gaps": len(graph_context.get("test_gaps", []) or []),
+                "review_priorities": len(graph_context.get("review_priorities", []) or []),
+                "related_context": len(graph_context.get("related_context", []) or []),
+                "overall_risk": graph_context.get("overall_risk", 0.0),
+            }
+            yield _sse("graph", graph_summary)
+
+            server_url = request.server_url or REVIEW_SERVER_URL
+            payload = {"message": request.pr_url, "graph_context": graph_context}
+            yield _sse("progress", {"stage": "Streaming backend review...", "progress": 0.4})
+            with requests.post(
+                f"{server_url}/api/v1/chat/stream",
+                json=payload,
+                timeout=300,
+                stream=True,
+            ) as resp:
+                if not resp.ok:
+                    raise RuntimeError(
+                        f"Review server returned {resp.status_code}: {resp.text[:500]}"
+                    )
+                for line in resp.iter_lines(decode_unicode=True):
+                    if line is None:
+                        continue
+                    yield line + "\n"
+            review_success = True
+        except Exception as e:
+            logger.error(f"Streaming review failed: {e}", exc_info=True)
+            yield _sse("error", {"error": str(e)})
+        finally:
+            if owner and repo and pr_number:
+                if should_cleanup_review_artifacts(review_success):
+                    cleanup_review_artifacts(
+                        owner,
+                        repo,
+                        pr_number,
+                        repo_root_for_cleanup,
+                    )
+            yield _sse("done", {"ok": review_success})
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.get("/api/repos", tags=["repos"])

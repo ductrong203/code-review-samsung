@@ -155,7 +155,13 @@ class ReviewService:
     that specializes in the 4 AACR-Bench categories.
     """
 
-    def __init__(self, settings: Settings):
+    def __init__(
+        self,
+        settings: Settings,
+        progress_callback=None,
+        finding_callback=None,
+        graph_callback=None,
+    ):
         self.settings = settings
         self.github = GitHubService(github_token=settings.GITHUB_TOKEN)
         self.llm = get_llm(settings)
@@ -165,6 +171,9 @@ class ReviewService:
             parallel=settings.AGENT_PARALLEL,
             confidence_threshold=settings.AGENT_CONFIDENCE_THRESHOLD,
             max_file_chars=settings.MAX_FILE_CONTEXT_CHARS,
+            progress_callback=progress_callback,
+            finding_callback=finding_callback,
+            graph_callback=graph_callback,
         )
 
     def review_pr(self, pr_url: str,
