@@ -60,6 +60,30 @@ def _file_context_for_path(
     return None
 
 
+def _clean_code_lines(code: str) -> List[str]:
+    """Normalize LLM-provided code snippets for matching against diff lines."""
+    text = (code or "").strip()
+    if not text:
+        return []
+    if text.startswith("```"):
+        parts = text.split("\n")
+        if len(parts) >= 3 and parts[-1].strip() == "```":
+            text = "\n".join(parts[1:-1])
+
+    lines = []
+    for line in text.splitlines():
+        cleaned = line.rstrip()
+        if cleaned.startswith(("+", ">")):
+            cleaned = cleaned[1:].lstrip(" ")
+        lines.append(cleaned.rstrip())
+
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    return lines
+
+
 class ReviewOrchestrator:
     """
     Orchestrates the complete multi-agent code review pipeline.
@@ -73,7 +97,7 @@ class ReviewOrchestrator:
         llm: BaseChatModel,
         github: GitHubService,
         parallel: bool = False,  # CHANGED: Default to sequential (was True)
-        confidence_threshold: float = 0.3,
+        confidence_threshold: Optional[float] = None,
         max_file_chars: int = 10000,
         progress_callback: Optional[Callable[[str, float], None]] = None,
         finding_callback: Optional[Callable[[Finding], None]] = None,
@@ -226,44 +250,112 @@ class ReviewOrchestrator:
     ) -> None:
         """Attach a small changed-code snippet around each finding."""
         for finding in findings:
-            if finding.code_snippet or not finding.path or not finding.from_line:
+            if finding.code_snippet or not finding.path:
                 continue
 
             fc = _file_context_for_path(context, finding.path)
             if not fc or not fc.diff_content:
                 continue
 
-            snippet = []
-            current_new_line = 0
+            target_lines = None
+            if finding.affected_code:
+                target_lines = self._find_affected_lines(fc, finding.affected_code)
+                if target_lines:
+                    finding.from_line = min(target_lines)
+                    finding.to_line = max(target_lines)
+
+            if not finding.from_line:
+                continue
+
             target_to = finding.to_line or finding.from_line
+            if target_lines is None:
+                target_lines = set(range(finding.from_line, target_to + 1))
 
-            for line in fc.diff_content.split('\n'):
-                if line.startswith('@@'):
-                    try:
-                        parts = line.split(' ')
-                        if len(parts) >= 3:
-                            plus_part = parts[2]
-                            current_new_line = int(
-                                plus_part.split(',')[0].replace('+', '')
-                            )
-                    except Exception:
-                        pass
-                    continue
-
-                in_window = finding.from_line - 2 <= current_new_line <= target_to + 2
-                in_target = finding.from_line <= current_new_line <= target_to
-
-                if line.startswith('+'):
-                    if in_window:
-                        snippet.append(f">{line[1:]}" if in_target else f" {line[1:]}")
-                    current_new_line += 1
-                elif line.startswith(' '):
-                    if in_window:
-                        snippet.append(f" {line[1:]}")
-                    current_new_line += 1
-
+            snippet = self._build_code_snippet(fc, finding.from_line, target_to, target_lines)
             if snippet:
-                finding.code_snippet = '\n'.join(snippet)
+                finding.code_snippet = snippet
+
+    def _find_affected_lines(
+        self,
+        fc: FileContext,
+        affected_code: str,
+    ) -> Optional[set[int]]:
+        """Find the exact new-file lines that match an affected_code snippet."""
+        wanted = _clean_code_lines(affected_code)
+        if not wanted:
+            return None
+
+        new_lines = []
+        current_new_line = 0
+        for raw_line in fc.diff_content.split("\n"):
+            if raw_line.startswith("@@"):
+                try:
+                    parts = raw_line.split(" ")
+                    if len(parts) >= 3:
+                        plus_part = parts[2]
+                        current_new_line = int(plus_part.split(",")[0].replace("+", ""))
+                except Exception:
+                    current_new_line = 0
+                continue
+
+            if raw_line.startswith(("+", " ")):
+                line_kind = raw_line[0]
+                new_lines.append((current_new_line, line_kind, raw_line[1:].rstrip()))
+                current_new_line += 1
+            elif raw_line.startswith("-"):
+                continue
+
+        span_len = len(wanted)
+        for idx in range(0, len(new_lines) - span_len + 1):
+            candidate = new_lines[idx:idx + span_len]
+            candidate_text = [line[2] for line in candidate]
+            candidate_stripped = [line.strip() for line in candidate_text]
+            wanted_stripped = [line.strip() for line in wanted]
+            if candidate_text != wanted and candidate_stripped != wanted_stripped:
+                continue
+            if not any(line_kind == "+" for _, line_kind, _ in candidate):
+                continue
+            return {line_no for line_no, _, _ in candidate if line_no}
+
+        return None
+
+    def _build_code_snippet(
+        self,
+        fc: FileContext,
+        target_from: int,
+        target_to: int,
+        target_lines: set[int],
+    ) -> str:
+        """Build a display snippet with target lines prefixed by '>'."""
+        snippet = []
+        current_new_line = 0
+
+        for line in fc.diff_content.split('\n'):
+            if line.startswith('@@'):
+                try:
+                    parts = line.split(' ')
+                    if len(parts) >= 3:
+                        plus_part = parts[2]
+                        current_new_line = int(
+                            plus_part.split(',')[0].replace('+', '')
+                        )
+                except Exception:
+                    pass
+                continue
+
+            in_window = target_from - 2 <= current_new_line <= target_to + 2
+            in_target = current_new_line in target_lines
+
+            if line.startswith('+'):
+                if in_window:
+                    snippet.append(f">{line[1:]}" if in_target else f" {line[1:]}")
+                current_new_line += 1
+            elif line.startswith(' '):
+                if in_window:
+                    snippet.append(f">{line[1:]}" if in_target else f" {line[1:]}")
+                current_new_line += 1
+
+        return '\n'.join(snippet)
 
     def _run_agents_parallel(self, context: ReviewContext) -> List[Finding]:
         """Run all agents in parallel using ThreadPoolExecutor."""

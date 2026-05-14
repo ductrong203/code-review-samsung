@@ -63,6 +63,7 @@ class Finding:
     note: str
     context_level: ContextLevel = ContextLevel.DIFF
     side: str = "right"
+    affected_code: str = ""
     suggested_fix: str = ""
     agent_name: str = ""
     code_snippet: str = ""
@@ -167,22 +168,7 @@ class ReviewAgent(ABC):
         logger.info(f"[{self.name}] Starting analysis...")
 
         try:
-            # Build input variables for the prompt
-            prompt_vars = self._build_prompt_vars(context)
-
-            # Invoke LLM
-            raw_output = self.chain.invoke(prompt_vars)
-
-            # Debug: log raw output to diagnose parsing issues
-            logger.info(f"[{self.name}] Raw LLM output length: {len(raw_output)} chars")
-            logger.debug(f"[{self.name}] Raw output (first 1000 chars):\n{raw_output[:1000]}")
-
-            # Parse findings from output
-            findings = self._parse_findings(raw_output, context)
-
-            if not findings:
-                logger.warning(f"[{self.name}] Parser returned 0 findings. Raw output preview: {raw_output[:500]}")
-
+            findings = self._invoke_and_parse(context)
             logger.info(f"[{self.name}] Found {len(findings)} issues")
             return findings
 
@@ -190,11 +176,43 @@ class ReviewAgent(ABC):
             logger.error(f"[{self.name}] Analysis failed: {e}", exc_info=True)
             return []
 
+    def _invoke_and_parse(
+        self,
+        context: ReviewContext,
+        label: str = "",
+    ) -> List[Finding]:
+        """Invoke the LLM once and parse its findings."""
+        prompt_vars = self._build_prompt_vars(context)
+        raw_output = self.chain.invoke(prompt_vars)
+        label_text = f" ({label})" if label else ""
+
+        logger.info(
+            f"[{self.name}]{label_text} Raw LLM output length: "
+            f"{len(raw_output)} chars"
+        )
+        logger.debug(
+            f"[{self.name}]{label_text} Raw output (first 1000 chars):\n"
+            f"{raw_output[:1000]}"
+        )
+
+        findings = self._parse_findings(raw_output, context)
+        if not findings:
+            logger.warning(
+                f"[{self.name}]{label_text} Parser returned 0 findings. "
+                f"Raw output preview: {raw_output[:500]}"
+            )
+        return findings
+
     def _build_prompt_vars(self, context: ReviewContext) -> Dict[str, str]:
         """Build prompt template variables from context with optimized token usage."""
-        # OPTIMIZED: Truncate aggressively to stay under quota
-        # Diff: limit to 2000 chars (enough for most hunks)
-        truncated_diff = context.formatted_diff[:2000]
+        # Keep enough diff for multi-hunk PRs. Many benchmark issues sit in
+        # later hunks, so overly aggressive truncation directly hurts recall.
+        max_total_diff_chars = 30000
+        max_file_diff_chars = max(
+            6000,
+            min(16000, max_total_diff_chars // max(1, len(context.files))),
+        )
+        truncated_diff = context.formatted_diff[:max_total_diff_chars]
         
         # Compose file context with reduced size
         file_context_parts = []
@@ -202,11 +220,10 @@ class ReviewAgent(ABC):
             part = f"\n### {fc.path}"
             if fc.language:
                 part += f" ({fc.language})"
-            # Only include diff, truncate heavily
-            part += f"\n```\n{fc.diff_content[:1500]}\n```"
-            # Only include file content for critical sections (truncate to 2000)
+            part += f"\n```diff\n{fc.diff_content[:max_file_diff_chars]}\n```"
+            # Full file content is optional and secondary to complete changed hunks.
             if fc.full_content:
-                part += f"\n```\n{fc.full_content[:2000]}\n```"
+                part += f"\n```\n{fc.full_content[:4000]}\n```"
             file_context_parts.append(part)
 
         file_context = "\n".join(file_context_parts) if file_context_parts else truncated_diff
@@ -328,6 +345,13 @@ class ReviewAgent(ABC):
             logger.info(f"[{self.name}] Parsed {len(xml_findings)} findings via XML")
             return xml_findings
 
+        if self._looks_like_structured_json(raw_output):
+            logger.warning(
+                f"[{self.name}] Output looked like JSON but could not be parsed; "
+                "skipping freetext fallback to avoid exposing raw model output."
+            )
+            return findings
+
         # Fallback to markdown/freetext parsing
         text_findings = self._parse_freetext_output(raw_output, context)
         if text_findings:
@@ -341,52 +365,300 @@ class ReviewAgent(ABC):
         """Parse JSON array format output."""
         findings = []
 
-        # Extract JSON array from output
-        json_match = re.search(r'\[[\s\S]*\]', raw_output)
-        if not json_match:
-            return findings
+        json_text = self._extract_json_array(raw_output)
+        if not json_text:
+            json_text = self._extract_json_candidate(raw_output)
+            if not json_text:
+                return findings
 
+        items = None
         try:
-            items = json.loads(json_match.group())
-            for item in items:
-                if not isinstance(item, dict):
-                    continue
-
-                severity_str = item.get("severity", "medium").lower()
-                try:
-                    severity = Severity(severity_str)
-                except ValueError:
-                    severity = Severity.MEDIUM
-
-                confidence = float(item.get("confidence", 0.7))
-                confidence = max(0.0, min(1.0, confidence))
-
-                context_str = item.get("context_level", "diff").lower()
-                try:
-                    ctx_level = ContextLevel(context_str)
-                except ValueError:
-                    ctx_level = ContextLevel.DIFF
-
-                finding = Finding(
-                    path=item.get("path", ""),
-                    from_line=self._safe_int(item.get("from_line")),
-                    to_line=self._safe_int(item.get("to_line")),
-                    category=self.category,
-                    severity=severity,
-                    confidence=confidence,
-                    note=item.get("note", ""),
-                    context_level=ctx_level,
-                    side=item.get("side", "right"),
-                    suggested_fix=item.get("suggested_fix", ""),
-                    agent_name=self.name,
-                )
-                if finding.note.strip():
-                    findings.append(finding)
-
+            items = json.loads(json_text)
         except (json.JSONDecodeError, TypeError) as e:
-            logger.debug(f"[{self.name}] JSON parsing failed: {e}")
+            repaired = self._repair_json_text(json_text)
+            try:
+                items = json.loads(repaired)
+            except (json.JSONDecodeError, TypeError):
+                logger.debug(f"[{self.name}] JSON parsing failed: {e}")
+                items = self._parse_json_objects_lenient(json_text)
+
+        for item in items or []:
+            finding = self._finding_from_json_item(item)
+            if finding and finding.note.strip():
+                findings.append(finding)
 
         return findings
+
+    def _finding_from_json_item(self, item: Any) -> Optional[Finding]:
+        """Convert one JSON object to a Finding, returning None for invalid items."""
+        if not isinstance(item, dict):
+            return None
+
+        severity_str = str(item.get("severity", "medium")).lower()
+        try:
+            severity = Severity(severity_str)
+        except ValueError:
+            severity = Severity.MEDIUM
+
+        try:
+            confidence = float(item.get("confidence", 0.7))
+        except (TypeError, ValueError):
+            confidence = 0.7
+        confidence = max(0.0, min(1.0, confidence))
+
+        context_str = str(item.get("context_level", "diff")).lower()
+        try:
+            ctx_level = ContextLevel(context_str)
+        except ValueError:
+            ctx_level = ContextLevel.DIFF
+
+        return Finding(
+            path=item.get("path", ""),
+            from_line=self._safe_int(item.get("from_line")),
+            to_line=self._safe_int(item.get("to_line")),
+            category=self.category,
+            severity=severity,
+            confidence=confidence,
+            note=item.get("note", ""),
+            context_level=ctx_level,
+            side=item.get("side", "right"),
+            affected_code=item.get("affected_code", ""),
+            suggested_fix=item.get("suggested_fix", "") or self._fallback_fix_from_note(
+                item.get("note", "")
+            ),
+            agent_name=self.name,
+        )
+
+    @staticmethod
+    def _fallback_fix_from_note(note: str) -> str:
+        """Extract concise fix guidance when the model omits suggested_fix."""
+        text = str(note or "").strip()
+        if not text:
+            return ""
+
+        markers = (
+            "To fix this,",
+            "To fix,",
+            "Fix by",
+            "Use ",
+            "Move ",
+            "Consider ",
+            "The resolution should",
+            "It should",
+        )
+        for marker in markers:
+            idx = text.find(marker)
+            if idx >= 0:
+                return text[idx:].strip()
+
+        sentences = re.split(r"(?<=[.!?])\s+", text)
+        return sentences[-1].strip() if len(sentences) > 1 else ""
+
+    @staticmethod
+    def _repair_json_text(text: str) -> str:
+        """Repair common LLM JSON mistakes without accepting prose as data."""
+        repaired = re.sub(r",\s*([}\]])", r"\1", text.strip())
+        output = []
+        in_string = False
+        escaped = False
+        for char in repaired:
+            if in_string:
+                if escaped:
+                    output.append(char)
+                    escaped = False
+                    continue
+                if char == "\\":
+                    output.append(char)
+                    escaped = True
+                    continue
+                if char == '"':
+                    output.append(char)
+                    in_string = False
+                    continue
+                if char == "\n":
+                    output.append("\\n")
+                    continue
+                if char == "\r":
+                    output.append("\\r")
+                    continue
+                if char == "\t":
+                    output.append("\\t")
+                    continue
+                output.append(char)
+                continue
+
+            output.append(char)
+            if char == '"':
+                in_string = True
+        return "".join(output)
+
+    @classmethod
+    def _parse_json_objects_lenient(cls, json_text: str) -> List[dict]:
+        """Salvage valid objects from a malformed JSON array."""
+        items = []
+        for object_text in cls._extract_json_objects(json_text):
+            try:
+                items.append(json.loads(cls._repair_json_text(object_text)))
+            except (json.JSONDecodeError, TypeError):
+                continue
+        if not items:
+            partial = cls._extract_partial_json_object(json_text)
+            if partial:
+                items.append(partial)
+        return items
+
+    @classmethod
+    def _extract_partial_json_object(cls, text: str) -> Optional[dict]:
+        """Salvage key fields from a truncated first JSON object."""
+        object_start = text.find("{")
+        if object_start < 0:
+            return None
+        fragment = text[object_start:]
+
+        def string_field(name: str) -> str:
+            match = re.search(
+                rf'"{re.escape(name)}"\s*:\s*"((?:\\.|[^"\\])*)"',
+                fragment,
+                re.DOTALL,
+            )
+            if not match:
+                return ""
+            try:
+                return json.loads(f'"{match.group(1)}"')
+            except json.JSONDecodeError:
+                return match.group(1)
+
+        def int_field(name: str) -> Optional[int]:
+            match = re.search(rf'"{re.escape(name)}"\s*:\s*(\d+)', fragment)
+            return int(match.group(1)) if match else None
+
+        def float_field(name: str) -> Optional[float]:
+            match = re.search(rf'"{re.escape(name)}"\s*:\s*(\d+(?:\.\d+)?)', fragment)
+            return float(match.group(1)) if match else None
+
+        item = {
+            "path": string_field("path"),
+            "from_line": int_field("from_line"),
+            "to_line": int_field("to_line"),
+            "side": string_field("side") or "right",
+            "severity": string_field("severity") or "medium",
+            "confidence": float_field("confidence") or 0.6,
+            "context_level": string_field("context_level") or "diff",
+            "note": string_field("note"),
+            "affected_code": string_field("affected_code"),
+            "suggested_fix": string_field("suggested_fix"),
+        }
+        if item["path"] and item["note"]:
+            return item
+        return None
+
+    @staticmethod
+    def _extract_json_objects(text: str) -> List[str]:
+        """Extract balanced JSON object candidates from text."""
+        objects = []
+        start = None
+        depth = 0
+        in_string = False
+        escaped = False
+
+        for idx, char in enumerate(text):
+            if in_string:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == '"':
+                    in_string = False
+                continue
+
+            if char == '"':
+                in_string = True
+            elif char == "{":
+                if depth == 0:
+                    start = idx
+                depth += 1
+            elif char == "}":
+                depth -= 1
+                if depth == 0 and start is not None:
+                    objects.append(text[start:idx + 1])
+                    start = None
+
+        return objects
+
+    @staticmethod
+    def _strip_markdown_fence(text: str) -> str:
+        """Remove markdown code fences, including unterminated fences."""
+        stripped = (text or "").strip()
+        fenced = re.match(r"^```(?:json)?\s*\n([\s\S]*?)\n```$", stripped, re.IGNORECASE)
+        if fenced:
+            return fenced.group(1).strip()
+        if stripped.startswith("```"):
+            lines = stripped.splitlines()
+            if lines:
+                lines = lines[1:]
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            return "\n".join(lines).strip()
+        return stripped
+
+    @classmethod
+    def _extract_json_candidate(cls, raw_output: str) -> str:
+        """Return the JSON-looking suffix for lenient object salvage."""
+        text = cls._strip_markdown_fence(raw_output)
+        array_start = text.find("[")
+        object_start = text.find("{")
+        starts = [idx for idx in (array_start, object_start) if idx >= 0]
+        if not starts:
+            return ""
+        return text[min(starts):].strip()
+
+    @classmethod
+    def _extract_json_array(cls, raw_output: str) -> str:
+        """Extract the first balanced JSON array, ignoring brackets inside strings."""
+        text = cls._strip_markdown_fence(raw_output)
+        start = text.find("[")
+        if start < 0:
+            return ""
+
+        depth = 0
+        in_string = False
+        escaped = False
+        for idx in range(start, len(text)):
+            char = text[idx]
+            if in_string:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == '"':
+                    in_string = False
+                continue
+
+            if char == '"':
+                in_string = True
+            elif char == "[":
+                depth += 1
+            elif char == "]":
+                depth -= 1
+                if depth == 0:
+                    return text[start:idx + 1]
+
+        return ""
+
+    @classmethod
+    def _looks_like_structured_json(cls, raw_output: str) -> bool:
+        """Detect model responses that should not be parsed as prose comments."""
+        text = cls._strip_markdown_fence(raw_output).lstrip()
+        if text.startswith("[") or text.startswith("{"):
+            return True
+        lowered = text[:1000].lower()
+        return (
+            "```json" in raw_output.lower()
+            or '"path"' in lowered
+            or '"from_line"' in lowered
+            or '"suggested_fix"' in lowered
+            or '"affected_code"' in lowered
+        )
 
     def _parse_xml_output(self, raw_output: str) -> List[Finding]:
         """Parse XML-tag format output (notesplit compatible)."""
@@ -407,6 +679,7 @@ class ReviewAgent(ABC):
                 severity_match = re.search(r'<severity>(.*?)</severity>', block, re.DOTALL)
                 confidence_match = re.search(r'<confidence>(.*?)</confidence>', block, re.DOTALL)
                 fix_match = re.search(r'<fix>(.*?)</fix>', block, re.DOTALL)
+                affected_match = re.search(r'<affected_code>(.*?)</affected_code>', block, re.DOTALL)
 
                 if not note_match or not note_match.group(1).strip():
                     continue
@@ -433,6 +706,7 @@ class ReviewAgent(ABC):
                     confidence=max(0.0, min(1.0, confidence)),
                     note=note_match.group(1).strip(),
                     side="right",
+                    affected_code=affected_match.group(1).strip() if affected_match else "",
                     suggested_fix=fix_match.group(1).strip() if fix_match else "",
                     agent_name=self.name,
                 )
@@ -475,6 +749,8 @@ class ReviewAgent(ABC):
         for section in sections:
             section = section.strip()
             if not section or len(section) < 20:
+                continue
+            if self._looks_like_structured_json(section):
                 continue
 
             # Try to extract a file path
@@ -546,6 +822,7 @@ class ReviewAgent(ABC):
                 note=note[:1000],  # Truncate very long notes
                 context_level=ContextLevel.DIFF,
                 side="right",
+                affected_code="",
                 suggested_fix="",
                 agent_name=self.name,
             )

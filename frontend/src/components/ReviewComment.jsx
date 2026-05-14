@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React from "react";
 import "../styles/ReviewComment.css";
 
 const CATEGORY_MAP = {
@@ -156,8 +156,53 @@ function ReviewNote({ note }) {
   );
 }
 
+function SuggestedFix({ fix }) {
+  const normalized = normalizeSuggestedFix(fix);
+  if (!normalized) return null;
+
+  return (
+    <div className="review-comment__suggested-fix">
+      <div className="review-comment__suggested-fix-label">
+        <OutlineIcon name="lightbulb" />
+        Suggested fix
+      </div>
+      <pre>{normalized}</pre>
+    </div>
+  );
+}
+
+function normalizeSuggestedFix(fix) {
+  let text = String(fix || "").trim();
+  const fenced = text.match(/^```[a-zA-Z0-9_-]*\s*\n([\s\S]*?)\n```$/);
+  if (fenced) text = fenced[1].trim();
+  return text;
+}
+
+function fallbackFixFromNote(note) {
+  const text = String(note || "").trim();
+  if (!text) return "";
+
+  const fixMarkers = [
+    "To fix this,",
+    "To fix,",
+    "Fix by",
+    "Use ",
+    "Move ",
+    "Consider ",
+    "The resolution should",
+    "It should",
+  ];
+
+  for (const marker of fixMarkers) {
+    const idx = text.indexOf(marker);
+    if (idx >= 0) return text.slice(idx).trim();
+  }
+
+  const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean);
+  return sentences.length > 1 ? sentences[sentences.length - 1] : "";
+}
+
 export default function ReviewComment({ comment }) {
-  const [showFix, setShowFix] = useState(false);
   const {
     path,
     from_line,
@@ -187,6 +232,9 @@ export default function ReviewComment({ comment }) {
     from_line && firstErrorIndex >= 0
       ? from_line - firstErrorIndex
       : from_line || 1;
+  const normalizedFix = normalizeSuggestedFix(suggested_fix);
+  const fallbackFix = fallbackFixFromNote(note);
+  const displayFix = normalizedFix || fallbackFix;
 
   return (
     <div className={`review-comment review-comment--severity-${severity || "medium"}`}>
@@ -210,23 +258,41 @@ export default function ReviewComment({ comment }) {
       </div>
 
       {code_snippet && (
-        <div className="review-comment__code-snippet">
-          <div className="review-comment__code-snippet-label">Affected code</div>
-          <pre>
-            {snippetLines.map((line, i) => {
-              const isError = /^\s*>/.test(line);
-              const display = isError ? line.replace(/^\s*> ?/, "") : line;
-              const actualLine = snippetStartLine + i;
-              return (
-                <div key={i} className={`code-line ${isError ? "code-line--error" : ""}`}>
-                  <span className="code-line__number">{actualLine}</span>
-                  <span className="code-line__text">{display}</span>
-                </div>
-              );
-            })}
-          </pre>
+        <div className="review-comment__code-comparison review-comment__code-comparison--split">
+          <div className="review-comment__code-pane review-comment__code-pane--affected">
+            <div className="review-comment__code-pane-label">Affected code</div>
+            <pre>
+              {snippetLines.map((line, i) => {
+                const isError = /^\s*>/.test(line);
+                const display = isError ? line.replace(/^\s*> ?/, "") : line;
+                const actualLine = snippetStartLine + i;
+                return (
+                  <div key={i} className={`code-line ${isError ? "code-line--error" : ""}`}>
+                    <span className="code-line__number">{actualLine}</span>
+                    <span className="code-line__text">{display}</span>
+                  </div>
+                );
+              })}
+            </pre>
+          </div>
+
+          <div className="review-comment__code-pane review-comment__code-pane--fix">
+            <div className="review-comment__code-pane-label">
+              <OutlineIcon name="lightbulb" />
+              Suggested fix
+            </div>
+            {displayFix ? (
+              <pre>{displayFix}</pre>
+            ) : (
+              <div className="review-comment__fix-empty">
+                No concrete replacement was returned. Follow the fix guidance in the note below.
+              </div>
+            )}
+          </div>
         </div>
       )}
+
+      {!code_snippet && <SuggestedFix fix={displayFix} />}
 
       <ReviewNote note={note} />
 
@@ -240,16 +306,6 @@ export default function ReviewComment({ comment }) {
         )}
         {agent_name && <span className="review-comment__agent">{agent_name}</span>}
       </div>
-
-      {suggested_fix && (
-        <div className="review-comment__fix-section">
-          <button className="review-comment__fix-toggle" onClick={() => setShowFix(!showFix)}>
-            <OutlineIcon name="lightbulb" />
-            {showFix ? "Hide Fix" : "Show Suggested Fix"}
-          </button>
-          {showFix && <div className="review-comment__fix-content">{suggested_fix}</div>}
-        </div>
-      )}
     </div>
   );
 }

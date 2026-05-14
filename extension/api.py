@@ -23,6 +23,7 @@ import sys
 import shutil
 from pathlib import Path
 from typing import Optional, Any, Dict, List
+from dataclasses import asdict, is_dataclass
 
 # Add backend to Python path for imports
 _project_root = Path(__file__).parent.parent
@@ -314,6 +315,254 @@ def cleanup_review_artifacts(
         cleanup_pr_worktree(repo_root, worktree_path)
     elif worktree_path.exists():
         shutil.rmtree(worktree_path, ignore_errors=True)
+
+
+def _graph_stats_to_dict(stats: Any) -> Dict[str, Any]:
+    if stats is None:
+        return {}
+    if is_dataclass(stats):
+        return asdict(stats)
+    if isinstance(stats, dict):
+        return stats
+    return {
+        key: getattr(stats, key)
+        for key in (
+            "total_nodes",
+            "total_edges",
+            "nodes_by_kind",
+            "edges_by_kind",
+            "languages",
+            "files_count",
+            "last_updated",
+        )
+        if hasattr(stats, key)
+    }
+
+
+def _compact_graph_path(path: str) -> str:
+    normalized = (path or "").replace("\\", "/")
+    if not normalized:
+        return ""
+
+    parts = [p for p in normalized.split("/") if p]
+    if len(parts) <= 3:
+        return normalized
+    return "/".join(parts[-3:])
+
+
+def _graph_module_name(path: str) -> str:
+    normalized = (path or "").replace("\\", "/")
+    parts = [p for p in normalized.split("/") if p]
+    if not parts:
+        return "unknown"
+    if len(parts) == 1:
+        return parts[0]
+    if parts[0] in {"src", "app", "packages", "libs", "lib", "tests", "test"} and len(parts) >= 3:
+        return "/".join(parts[:3])
+    return "/".join(parts[:2])
+
+
+def _node_to_view(node: Any, degree: int = 0) -> Dict[str, Any]:
+    qualified_name = getattr(node, "qualified_name", "") or ""
+    name = getattr(node, "name", "") or qualified_name.rsplit("::", 1)[-1]
+    file_path = getattr(node, "file_path", "")
+    return {
+        "id": qualified_name,
+        "name": name,
+        "kind": getattr(node, "kind", ""),
+        "parent_name": getattr(node, "parent_name", None),
+        "params": getattr(node, "params", None),
+        "return_type": getattr(node, "return_type", None),
+        "file": _compact_graph_path(file_path),
+        "module": _graph_module_name(file_path),
+        "line_start": getattr(node, "line_start", None),
+        "line_end": getattr(node, "line_end", None),
+        "language": getattr(node, "language", ""),
+        "is_test": bool(getattr(node, "is_test", False)),
+        "degree": degree,
+    }
+
+
+def _read_node_code(
+    node: Any,
+    repo_root: Optional[Path] = None,
+    max_lines: int = 260,
+) -> Dict[str, Any]:
+    """Read the source span for a graph node when the backing file is available."""
+    file_path = Path(getattr(node, "file_path", "") or "")
+    line_start = getattr(node, "line_start", None)
+    line_end = getattr(node, "line_end", None)
+
+    candidates = [file_path]
+    if repo_root and not file_path.is_absolute():
+        candidates.insert(0, repo_root / file_path)
+
+    source_path = next((path for path in candidates if path.exists()), None)
+
+    if not source_path or not line_start or not line_end:
+        return {
+            "code_snippet": "",
+            "snippet_start_line": None,
+            "snippet_end_line": None,
+            "code_truncated": False,
+            "source_path": "",
+        }
+
+    try:
+        lines = source_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return {
+            "code_snippet": "",
+            "snippet_start_line": None,
+            "snippet_end_line": None,
+            "code_truncated": False,
+            "source_path": "",
+        }
+
+    start = max(int(line_start), 1)
+    end = max(int(line_end), start)
+    truncated = False
+    if end - start + 1 > max_lines:
+        end = start + max_lines - 1
+        truncated = True
+
+    selected = lines[start - 1:end]
+    return {
+        "code_snippet": "\n".join(selected),
+        "snippet_start_line": start,
+        "snippet_end_line": end,
+        "code_truncated": truncated,
+        "source_path": str(source_path),
+    }
+
+
+def _edge_to_view(edge: Any) -> Dict[str, Any]:
+    return {
+        "source": getattr(edge, "source_qualified", ""),
+        "target": getattr(edge, "target_qualified", ""),
+        "kind": getattr(edge, "kind", ""),
+        "line": getattr(edge, "line", None),
+        "confidence": getattr(edge, "confidence", 1.0),
+    }
+
+
+def build_graph_view(
+    owner: str,
+    repo: str,
+    db_path: Path,
+    limit: int = 80,
+    offset: int = 0,
+    edge_limit: int = 20000,
+) -> Dict[str, Any]:
+    """
+    Return a small high-signal graph slice for browser visualization.
+
+    Large repositories can contain thousands of nodes, so the endpoint ranks
+    nodes by call/dependency degree and returns only the visible subgraph.
+    """
+    from code_review_graph.graph import GraphStore
+
+    store = GraphStore(str(db_path))
+    try:
+        nodes = store.get_all_nodes(exclude_files=True)
+        edges = store.get_all_edges()
+        stats = _graph_stats_to_dict(store.get_stats())
+    finally:
+        store.close()
+
+    degree: Dict[str, int] = {}
+    for edge in edges:
+        source = getattr(edge, "source_qualified", "")
+        target = getattr(edge, "target_qualified", "")
+        if source:
+            degree[source] = degree.get(source, 0) + 1
+        if target:
+            degree[target] = degree.get(target, 0) + 1
+
+    ranked_nodes = sorted(
+        nodes,
+        key=lambda node: (
+            degree.get(getattr(node, "qualified_name", ""), 0),
+            0 if getattr(node, "is_test", False) else 1,
+            getattr(node, "kind", "") in {"Function", "Class", "Method"},
+        ),
+        reverse=True,
+    )
+    all_nodes_requested = limit <= 0
+    bounded_offset = 0 if all_nodes_requested else max(0, offset)
+    visible_nodes = (
+        ranked_nodes
+        if all_nodes_requested
+        else ranked_nodes[bounded_offset:bounded_offset + limit]
+    )
+    visible_edge_limit = max(0, edge_limit)
+    selected = {getattr(node, "qualified_name", "") for node in visible_nodes}
+    visible_edges = [
+        edge for edge in edges
+        if getattr(edge, "source_qualified", "") in selected
+        and getattr(edge, "target_qualified", "") in selected
+    ][: visible_edge_limit]
+
+    cluster_counts: Dict[str, int] = {}
+    for node in visible_nodes:
+        cluster = _compact_graph_path(getattr(node, "file_path", ""))
+        cluster_counts[cluster] = cluster_counts.get(cluster, 0) + 1
+
+    return {
+        "repo": f"{owner}/{repo}",
+        "owner": owner,
+        "name": repo,
+        "db_path": str(db_path),
+        "stats": stats,
+        "all_nodes_requested": all_nodes_requested,
+        "total_node_count": len(ranked_nodes),
+        "total_edge_count": len(edges),
+        "offset": bounded_offset,
+        "limit": limit,
+        "has_previous": not all_nodes_requested and bounded_offset > 0,
+        "has_next": (
+            not all_nodes_requested
+            and bounded_offset + len(visible_nodes) < len(ranked_nodes)
+        ),
+        "previous_offset": max(0, bounded_offset - limit) if not all_nodes_requested else None,
+        "next_offset": (
+            bounded_offset + limit
+            if not all_nodes_requested
+            and bounded_offset + len(visible_nodes) < len(ranked_nodes)
+            else None
+        ),
+        "visible_node_count": len(visible_nodes),
+        "visible_edge_count": len(visible_edges),
+        "clusters": [
+            {"name": name, "count": count}
+            for name, count in sorted(cluster_counts.items(), key=lambda item: item[1], reverse=True)
+        ],
+        "nodes": [
+            _node_to_view(node, degree.get(getattr(node, "qualified_name", ""), 0))
+            for node in visible_nodes
+        ],
+        "edges": [_edge_to_view(edge) for edge in visible_edges],
+    }
+
+
+def get_graph_db_or_404(owner: str, name: str, pr_number: Optional[int] = None) -> Path:
+    """Resolve a main or PR graph DB path, raising an HTTP 404 when absent."""
+    if pr_number is not None:
+        db_path = lifecycle.get_pr_db_path(owner, name, pr_number)
+        if not db_path:
+            raise HTTPException(
+                status_code=404,
+                detail=f"PR graph not built for {owner}/{name}#{pr_number}.",
+            )
+        return db_path
+
+    db_path = lifecycle.get_main_db_path(owner, name)
+    if not db_path:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Main graph not built for {owner}/{name}.",
+        )
+    return db_path
 
 
 # ─── Endpoints ───────────────────────────────────────────────────────────
@@ -776,6 +1025,79 @@ async def graph_status(owner: str, name: str, pr_number: Optional[int] = None):
         status["pr_graph_ready"] = lifecycle.pr_graph_ready(owner, name, pr_number)
 
     return status
+
+
+@app.get("/api/graph/{owner}/{name}", tags=["graph"])
+async def graph_view(
+    owner: str,
+    name: str,
+    pr_number: Optional[int] = None,
+    limit: int = 80,
+    offset: int = 0,
+    edge_limit: int = 20000,
+):
+    """Return a compact node/edge view of a built main or PR graph."""
+    repo = registry.get(owner, name)
+    if not repo:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Repo {owner}/{name} not registered.",
+        )
+
+    bounded_limit = 0 if limit <= 0 else max(10, min(limit, 2000))
+    bounded_offset = max(0, offset)
+    bounded_edge_limit = max(0, min(edge_limit, 100000))
+    db_path = get_graph_db_or_404(owner, name, pr_number)
+
+    try:
+        return build_graph_view(
+            owner=owner,
+            repo=name,
+            db_path=db_path,
+            limit=bounded_limit,
+            offset=bounded_offset,
+            edge_limit=bounded_edge_limit,
+        )
+    except Exception as e:
+        logger.error("Failed to load graph view for %s/%s: %s", owner, name, e, exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/graph/{owner}/{name}/node", tags=["graph"])
+async def graph_node_detail(
+    owner: str,
+    name: str,
+    qualified_name: str,
+    pr_number: Optional[int] = None,
+):
+    """Return node metadata plus the source span for the selected code node."""
+    repo = registry.get(owner, name)
+    if not repo:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Repo {owner}/{name} not registered.",
+        )
+
+    db_path = get_graph_db_or_404(owner, name, pr_number)
+
+    from code_review_graph.graph import GraphStore
+
+    store = GraphStore(str(db_path))
+    try:
+        node = store.get_node(qualified_name)
+    finally:
+        store.close()
+
+    if not node:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Node not found: {qualified_name}",
+        )
+
+    return {
+        "node": _node_to_view(node),
+        **_read_node_code(node, Path(repo["local_path"])),
+    }
 
 
 @app.delete("/api/repos/{owner}/{name}", tags=["repos"])

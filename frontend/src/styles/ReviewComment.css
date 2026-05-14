@@ -73,7 +73,7 @@
 .review-comment__category,
 .review-comment__severity,
 .review-comment__context-level,
-.review-comment__fix-toggle {
+.review-comment__suggested-fix-label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -158,29 +158,81 @@
   white-space: pre-wrap;
 }
 
-.review-comment__code-snippet {
-  background: #fffafa;
-  border-bottom: 1px solid #ffe0dd;
-  border-top: 1px solid #ffe0dd;
+.review-comment__code-comparison {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #fbfdff;
+  border-bottom: 1px solid rgba(11, 92, 255, 0.1);
+  border-top: 1px solid rgba(11, 92, 255, 0.1);
   overflow-x: auto;
 }
 
-.review-comment__code-snippet-label {
-  padding: 10px 14px 0;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #b42318;
+.review-comment__code-comparison--split {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
-.review-comment__code-snippet pre {
+.review-comment__code-pane {
+  min-width: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.review-comment__code-pane--affected {
+  border: 1px solid #ffe0dd;
+  background: #fffafa;
+}
+
+.review-comment__code-pane--fix {
+  border: 1px solid rgba(5, 150, 105, 0.28);
+  background: #ecfdf5;
+}
+
+.review-comment__code-pane-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.review-comment__code-pane--affected .review-comment__code-pane-label {
+  color: #b42318;
+  background: #fff1f0;
+  border-bottom: 1px solid #ffe0dd;
+}
+
+.review-comment__code-pane--fix .review-comment__code-pane-label {
+  color: #047857;
+  background: #d1fae5;
+  border-bottom: 1px solid rgba(5, 150, 105, 0.18);
+}
+
+.review-comment__code-pane pre {
   margin: 0;
-  padding: 10px 0 14px;
+  padding: 9px 0 12px;
   font-family: var(--font-mono);
   font-size: 12px;
   line-height: 1.6;
   color: #344054;
+  overflow-x: auto;
+}
+
+.review-comment__code-pane--fix pre {
+  padding: 9px 12px 12px;
+  color: #064e3b;
+  white-space: pre-wrap;
+}
+
+.review-comment__fix-empty {
+  padding: 12px;
+  color: #047857;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .code-line {
@@ -197,6 +249,12 @@
   color: #98a2b3;
   text-align: right;
   user-select: none;
+}
+
+@media (max-width: 760px) {
+  .review-comment__code-comparison--split {
+    grid-template-columns: 1fr;
+  }
 }
 
 .code-line--error {
@@ -266,33 +324,37 @@
   color: #52637a;
 }
 
-.review-comment__fix-section {
-  border-top: 1px solid rgba(11, 92, 255, 0.1);
+.review-comment__suggested-fix {
+  margin: 0 14px 14px;
+  border: 1px solid rgba(5, 150, 105, 0.28);
+  border-left: 4px solid #059669;
+  border-radius: 8px;
+  background: #ecfdf5;
+  overflow: hidden;
 }
 
-.review-comment__fix-toggle {
-  width: 100%;
-  padding: 10px 14px;
-  background: #ffffff;
-  border: none;
-  color: #0b5cff;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 700;
-  text-align: left;
-  transition: background 0.15s;
+.review-comment__suggested-fix-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border-bottom: 1px solid rgba(5, 150, 105, 0.18);
+  background: #d1fae5;
+  color: #047857;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
-.review-comment__fix-toggle:hover {
-  background: #f5f9ff;
-}
-
-.review-comment__fix-content {
-  padding: 12px 14px 14px;
+.review-comment__suggested-fix pre {
+  margin: 0;
+  padding: 9px 12px 12px;
+  color: #064e3b;
+  background: transparent;
+  font-family: var(--font-mono);
   font-size: 12px;
   line-height: 1.6;
-  color: #26364d;
-  background: #f8fbff;
   white-space: pre-wrap;
-  font-family: var(--font-mono);
+  overflow-x: auto;
 }

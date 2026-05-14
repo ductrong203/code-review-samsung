@@ -52,6 +52,7 @@ def _to_chat_response(result: dict, pr_url: str) -> ChatResponse:
             severity=c.get("severity", "medium"),
             confidence=c.get("confidence", 0.7),
             context_level=c.get("context_level", "diff"),
+            affected_code=c.get("affected_code", ""),
             suggested_fix=c.get("suggested_fix", ""),
             agent_name=c.get("agent_name", ""),
             code_snippet=c.get("code_snippet", ""),

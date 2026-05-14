@@ -36,8 +36,16 @@ class Settings(BaseSettings):
         description="Run agents in parallel (True) or sequential (False)",
     )
     AGENT_CONFIDENCE_THRESHOLD: float = Field(
-        default=0.3,
+        default=0.2,
         description="Minimum confidence threshold for findings (0.0-1.0)",
+    )
+    AGENT_TIMEOUT_SECONDS: int = Field(
+        default=120,
+        description="Maximum seconds to wait for each agent result",
+    )
+    LLM_MAX_OUTPUT_TOKENS: int = Field(
+        default=8192,
+        description="Maximum generated tokens requested from the LLM",
     )
     MAX_FILE_CONTEXT_CHARS: int = Field(
         default=10000,

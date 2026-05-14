@@ -41,7 +41,12 @@ class ReviewComment(BaseModel):
         description='Minimum detection scope (not file location): "diff" | "file" | "repo"',
     )
     suggested_fix: str = Field(
-        default="", description="Suggested code fix"
+        default="",
+        description="Plain replacement code snippet for the affected lines when available; explanatory fix guidance remains in note",
+    )
+    affected_code: str = Field(
+        default="",
+        description="Exact original changed code span that should be highlighted/replaced",
     )
     agent_name: str = Field(
         default="", description="Name of the agent(s) that found this issue"

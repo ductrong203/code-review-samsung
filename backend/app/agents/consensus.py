@@ -10,12 +10,14 @@ high-quality set of review comments with:
 - Blast radius analysis
 """
 import logging
-from typing import List, Dict, Tuple
+from difflib import SequenceMatcher
+from typing import List, Dict, Optional
 from collections import defaultdict
 
 from app.agents.agent_base import (
     Finding, ReviewReport, Category, Severity,
 )
+from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +35,14 @@ class ConsensusEngine:
 
     def __init__(
         self,
-        confidence_threshold: float = 0.3,
-        line_overlap_threshold: int = 3,
+        confidence_threshold: Optional[float] = None,
+        line_overlap_threshold: int = 1,
     ):
-        self.confidence_threshold = confidence_threshold
+        self.confidence_threshold = (
+            confidence_threshold
+            if confidence_threshold is not None
+            else get_settings().AGENT_CONFIDENCE_THRESHOLD
+        )
         self.line_overlap_threshold = line_overlap_threshold
 
     def process(self, all_findings: List[Finding]) -> ReviewReport:
@@ -140,7 +146,7 @@ class ConsensusEngine:
                 for j, f2 in enumerate(file_findings):
                     if j <= i or j in used:
                         continue
-                    if self._lines_overlap(f1, f2):
+                    if self._should_merge_duplicate(f1, f2):
                         overlapping.append(f2)
                         used.add(j)
 
@@ -156,6 +162,30 @@ class ConsensusEngine:
             result.extend(merged)
 
         return result
+
+    def _should_merge_duplicate(self, f1: Finding, f2: Finding) -> bool:
+        """Merge only comments that are likely the same issue, not merely nearby."""
+        if not self._lines_overlap(f1, f2):
+            return False
+
+        affected_1 = (f1.affected_code or "").strip()
+        affected_2 = (f2.affected_code or "").strip()
+        if affected_1 and affected_2 and affected_1 == affected_2:
+            return True
+
+        if f1.category != f2.category:
+            return False
+
+        note_1 = self._normalize_note(f1.note)
+        note_2 = self._normalize_note(f2.note)
+        if not note_1 or not note_2:
+            return False
+
+        if note_1 in note_2 or note_2 in note_1:
+            return True
+
+        similarity = SequenceMatcher(None, note_1, note_2).ratio()
+        return similarity >= 0.62
 
     def _lines_overlap(self, f1: Finding, f2: Finding) -> bool:
         """Check if two findings have overlapping line ranges."""
@@ -173,6 +203,13 @@ class ConsensusEngine:
             f1_from <= f2_to + self.line_overlap_threshold and
             f2_from <= f1_to + self.line_overlap_threshold
         )
+
+    @staticmethod
+    def _normalize_note(note: str) -> str:
+        """Normalize note text for duplicate detection."""
+        text = (note or "").lower()
+        text = " ".join(text.split())
+        return text[:800]
 
     def _merge_findings(self, findings: List[Finding]) -> Finding:
         """
@@ -198,19 +235,26 @@ class ConsensusEngine:
 
         # Combine notes if from different categories
         categories_seen = set()
+        notes_seen = set()
         combined_notes = []
         for f in findings:
+            normalized_note = self._normalize_note(f.note)
+            if normalized_note in notes_seen:
+                continue
+            notes_seen.add(normalized_note)
+
             if f.category not in categories_seen:
                 prefix = f"**[{f.category.value}]** "
                 combined_notes.append(prefix + f.note)
                 categories_seen.add(f.category)
-            elif f.note not in combined_notes:
-                # Same category but different insight
+            else:
                 combined_notes.append(f.note)
 
         # Combine suggested fixes
         fixes = [f.suggested_fix for f in findings if f.suggested_fix]
         combined_fix = fixes[0] if fixes else ""
+        affected_blocks = [f.affected_code for f in findings if f.affected_code]
+        combined_affected_code = affected_blocks[0] if affected_blocks else ""
 
         # Use the widest line range
         all_from = [f.from_line for f in findings if f.from_line is not None]
@@ -226,6 +270,7 @@ class ConsensusEngine:
             note="\n\n".join(combined_notes),
             context_level=primary.context_level,
             side=primary.side,
+            affected_code=combined_affected_code,
             suggested_fix=combined_fix,
             agent_name=", ".join(set(f.agent_name for f in findings)),
             consensus_score=boosted_confidence,

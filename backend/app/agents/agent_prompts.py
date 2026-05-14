@@ -27,8 +27,9 @@ Output format — a JSON array of issue objects:
     "severity": "high",
     "confidence": 0.85,
     "context_level": "diff",
-    "note": "Clear description of the issue",
-    "suggested_fix": "Code or description of the fix"
+    "note": "Clear description of the issue and fix guidance",
+    "affected_code": "Exact original code from the smallest affected changed line range",
+    "suggested_fix": "Exact replacement code snippet for the affected lines"
   }}
 ]
 
@@ -38,17 +39,26 @@ Field requirements:
 - "severity": One of: "critical", "high", "medium", "low", "info"
 - "confidence": Float 0.0-1.0 indicating how confident you are this is a real issue
 - "context_level": Minimum reasoning scope to recognize the issue. Values: "diff" = the problem is evident from added/changed lines alone; "file" = you need other lines in the same file (callers, helpers, imports); "repo" = you need multiple files or contracts. Pick the smallest scope that truthfully applies. In DIFF-ONLY BASELINE MODE, only output issues with "context_level": "diff".
-- "note": Clear, actionable description explaining WHY it's an issue. IMPORTANT: If context_level is "file" or "repo", you MUST explicitly mention the affected function name and file name in this note.
-- "suggested_fix": Specific code fix or clear instruction
+- "note": Clear, actionable description explaining WHY it's an issue and HOW to fix it in words. This field must still include fix guidance even when "suggested_fix" contains code. IMPORTANT: If context_level is "file" or "repo", you MUST explicitly mention the affected function name and file name in this note.
+- "affected_code": Exact original code text from the smallest changed-line span that contains the actual problem. Copy it from `+` lines in the diff without the leading `+`, line numbers, or markdown fences. Do not include the parent block, function signature, interface/class header, or surrounding context unless that surrounding line itself must be replaced. If the issue is one unused field, one wrong condition, or one unsafe call, this should usually be one line.
+- "suggested_fix": Exact replacement code for `affected_code` whenever possible. Return plain code only, without Markdown fences and without explanation. If the correct fix is to delete the affected code, use an empty string only when deletion is truly the full replacement and explain the deletion in "note". If a safe replacement cannot be inferred from the available context, leave this field as an empty string; the "note" must still explain the recommended fix.
+
+Length constraints to avoid truncation:
+- Keep "note" under 500 characters.
+- Keep "affected_code" to the smallest 1-5 changed lines. Never paste a whole function unless every line is truly defective.
+- Keep "suggested_fix" under 8 lines. Prefer the minimal replacement for the affected lines.
 
 Rules:
 - Only report REAL issues, not style preferences
-- Each issue MUST have precise line numbers from the diff
+- Each issue MUST have precise line numbers from the diff. "from_line" and "to_line" MUST identify the same smallest line range as "affected_code", not the enclosing declaration or block.
+- Aim for high recall: enumerate every distinct, actionable issue you can verify in the changed code, including multiple issues in the same function or nearby lines. Do not stop after the top 1-2 findings per file.
+- Keep distinct root causes as separate JSON objects even when they share the same changed line, function, or affected file.
 - You may use file/repo graph context to recognize an issue, but the reported location must still be anchored to a changed line from the diff.
 - Do NOT default to "diff" context_level when richer context is available. Use "file" when same-file context was necessary and "repo" when callers, callees, tests, flows, or cross-file contracts from graph context were necessary. In DIFF-ONLY BASELINE MODE, do not report file/repo-context issues at all.
 - If you find NO issues, output an empty array: []
 - Do NOT hallucinate issues — only report what you can verify in the code
 - Set confidence lower (0.3-0.5) for uncertain findings, higher (0.8-1.0) for clear bugs
+- When reporting a fixable issue, provide all three: fix guidance in "note", exact original changed code in "affected_code", and replacement code in "suggested_fix" when you can produce a safe, concrete snippet.
 - Output ONLY the JSON array, no markdown, no explanatory text
 """
 

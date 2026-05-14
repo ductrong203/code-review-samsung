@@ -34,7 +34,7 @@ def get_llm(settings: Settings) -> BaseChatModel:
             base_url=settings.OLLAMA_BASE_URL,
             model=settings.OLLAMA_MODEL,
             temperature=0.1,
-            num_predict=8192,
+            num_predict=settings.LLM_MAX_OUTPUT_TOKENS,
         )
 
     elif provider == "gemini":
@@ -43,12 +43,17 @@ def get_llm(settings: Settings) -> BaseChatModel:
         if not settings.GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY is required when using 'gemini' provider")
 
-        logger.info(f"Initializing Gemini LLM: {settings.GEMINI_MODEL}")
+        logger.info(
+            "Initializing Gemini LLM: %s (max_tokens=%s)",
+            settings.GEMINI_MODEL,
+            settings.LLM_MAX_OUTPUT_TOKENS,
+        )
         return ChatGoogleGenerativeAI(
             model=settings.GEMINI_MODEL,
             google_api_key=settings.GEMINI_API_KEY,
             temperature=0.1,
-            max_output_tokens=8192,
+            max_tokens=settings.LLM_MAX_OUTPUT_TOKENS,
+            response_mime_type="application/json",
         )
 
     else:
