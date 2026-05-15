@@ -44,6 +44,10 @@ class ReviewComment(BaseModel):
         default="",
         description="Plain replacement code snippet for the affected lines when available; explanatory fix guidance remains in note",
     )
+    fix_note: str = Field(
+        default="",
+        description="Short prose guidance describing how to fix the issue",
+    )
     affected_code: str = Field(
         default="",
         description="Exact original changed code span that should be highlighted/replaced",

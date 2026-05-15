@@ -97,6 +97,7 @@ export default function ChatMessage({ message }) {
     progress,
     streamStage,
     progressLog,
+    agentRuns,
   } = message;
   const isUser = role === "user";
 
@@ -137,6 +138,21 @@ export default function ChatMessage({ message }) {
                 <div className="stream-progress__fill" style={{ width: `${Math.round((progress || 0) * 100)}%` }} />
               </div>
             </div>
+            {agentRuns?.length > 0 && (
+              <div className="stream-agents" aria-label="Agent review progress">
+                {agentRuns.map((agent) => (
+                  <div
+                    className={`stream-agent stream-agent--${agent.status}`}
+                    key={agent.name}
+                  >
+                    <span className="stream-agent__name">{agent.name}</span>
+                    <span className="stream-agent__count">
+                      {agent.findings} finding{agent.findings === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
             {progressLog?.length > 0 && (
               <div className="stream-log">
                 {progressLog.map((item) => (

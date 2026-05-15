@@ -156,9 +156,24 @@ function ReviewNote({ note }) {
   );
 }
 
-function SuggestedFix({ fix }) {
+function FixGuidance({ text, compact = false }) {
+  const guidance = String(text || "").trim();
+  if (!guidance) return null;
+
+  return (
+    <div className={`review-comment__fix-guidance ${compact ? "review-comment__fix-guidance--compact" : ""}`}>
+      <div className="review-comment__fix-guidance-label">
+        <OutlineIcon name="lightbulb" />
+        Fix note
+      </div>
+      <div className="review-comment__fix-guidance-text">{guidance}</div>
+    </div>
+  );
+}
+
+function SuggestedFix({ fix, fixNote }) {
   const normalized = normalizeSuggestedFix(fix);
-  if (!normalized) return null;
+  if (!normalized && !String(fixNote || "").trim()) return null;
 
   return (
     <div className="review-comment__suggested-fix">
@@ -166,7 +181,8 @@ function SuggestedFix({ fix }) {
         <OutlineIcon name="lightbulb" />
         Suggested fix
       </div>
-      <pre>{normalized}</pre>
+      {normalized && <pre>{normalized}</pre>}
+      <FixGuidance text={fixNote} compact />
     </div>
   );
 }
@@ -176,6 +192,13 @@ function normalizeSuggestedFix(fix) {
   const fenced = text.match(/^```[a-zA-Z0-9_-]*\s*\n([\s\S]*?)\n```$/);
   if (fenced) text = fenced[1].trim();
   return text;
+}
+
+function looksLikeProseFix(fix) {
+  const text = String(fix || "").trim();
+  if (!text) return false;
+  if (text.includes("\n")) return false;
+  return /^(to fix|fix by|use |move |consider |the resolution should|it should|ensure )/i.test(text);
 }
 
 function fallbackFixFromNote(note) {
@@ -215,6 +238,7 @@ export default function ReviewComment({ comment }) {
     agent_name,
     context_level,
     code_snippet,
+    fix_note,
   } = comment;
 
   const resolvedCategory = category || detectCategory(note);
@@ -233,8 +257,12 @@ export default function ReviewComment({ comment }) {
       ? from_line - firstErrorIndex
       : from_line || 1;
   const normalizedFix = normalizeSuggestedFix(suggested_fix);
+  const proseOnlySuggestedFix = looksLikeProseFix(normalizedFix);
+  const displayFix = proseOnlySuggestedFix ? "" : normalizedFix;
   const fallbackFix = fallbackFixFromNote(note);
-  const displayFix = normalizedFix || fallbackFix;
+  const displayFixNote = String(fix_note || "").trim()
+    || (proseOnlySuggestedFix ? normalizedFix : "")
+    || fallbackFix;
 
   return (
     <div className={`review-comment review-comment--severity-${severity || "medium"}`}>
@@ -285,14 +313,15 @@ export default function ReviewComment({ comment }) {
               <pre>{displayFix}</pre>
             ) : (
               <div className="review-comment__fix-empty">
-                No concrete replacement was returned. Follow the fix guidance in the note below.
+                No concrete replacement was returned. Follow the fix note below.
               </div>
             )}
+            <FixGuidance text={displayFixNote} compact />
           </div>
         </div>
       )}
 
-      {!code_snippet && <SuggestedFix fix={displayFix} />}
+      {!code_snippet && <SuggestedFix fix={displayFix} fixNote={displayFixNote} />}
 
       <ReviewNote note={note} />
 

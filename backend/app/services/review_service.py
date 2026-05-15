@@ -93,6 +93,7 @@ def findings_to_comment_dicts(findings: List[Finding]) -> List[Dict[str, Any]]:
             "context_level": f.context_level.value,
             "affected_code": f.affected_code,
             "suggested_fix": f.suggested_fix,
+            "fix_note": f.fix_note,
             "agent_name": f.agent_name,
             "code_snippet": f.code_snippet,
         }

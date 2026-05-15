@@ -387,7 +387,7 @@ class ReviewOrchestrator:
                     completed += 1
                     progress = 0.3 + (0.5 * completed / total)
                     self._report_progress(
-                        f"{agent.name} done — {len(findings)} findings",
+                        f"{agent.name} done - {len(findings)} findings",
                         progress,
                     )
                 except Exception as e:
@@ -409,8 +409,18 @@ class ReviewOrchestrator:
                 self._inject_code_snippets(findings, context)
                 all_findings.extend(findings)
                 self._report_findings(findings)
+                done_progress = 0.3 + (0.5 * (i + 1) / len(self.agents))
+                self._report_progress(
+                    f"{agent.name} done - {len(findings)} findings",
+                    done_progress,
+                )
                 logger.info(f"{agent.name}: {len(findings)} findings")
             except Exception as e:
                 logger.error(f"{agent.name} failed: {e}")
+                done_progress = 0.3 + (0.5 * (i + 1) / len(self.agents))
+                self._report_progress(
+                    f"{agent.name} failed - 0 findings",
+                    done_progress,
+                )
 
         return all_findings

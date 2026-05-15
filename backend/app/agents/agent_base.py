@@ -65,6 +65,7 @@ class Finding:
     side: str = "right"
     affected_code: str = ""
     suggested_fix: str = ""
+    fix_note: str = ""
     agent_name: str = ""
     code_snippet: str = ""
     # Used by consensus engine
@@ -423,7 +424,8 @@ class ReviewAgent(ABC):
             context_level=ctx_level,
             side=item.get("side", "right"),
             affected_code=item.get("affected_code", ""),
-            suggested_fix=item.get("suggested_fix", "") or self._fallback_fix_from_note(
+            suggested_fix=item.get("suggested_fix", ""),
+            fix_note=item.get("fix_note", "") or self._fallback_fix_from_note(
                 item.get("note", "")
             ),
             agent_name=self.name,
@@ -547,6 +549,7 @@ class ReviewAgent(ABC):
             "note": string_field("note"),
             "affected_code": string_field("affected_code"),
             "suggested_fix": string_field("suggested_fix"),
+            "fix_note": string_field("fix_note"),
         }
         if item["path"] and item["note"]:
             return item
@@ -708,6 +711,7 @@ class ReviewAgent(ABC):
                     side="right",
                     affected_code=affected_match.group(1).strip() if affected_match else "",
                     suggested_fix=fix_match.group(1).strip() if fix_match else "",
+                    fix_note=self._fallback_fix_from_note(note_match.group(1).strip()),
                     agent_name=self.name,
                 )
                 findings.append(finding)
@@ -824,6 +828,7 @@ class ReviewAgent(ABC):
                 side="right",
                 affected_code="",
                 suggested_fix="",
+                fix_note=self._fallback_fix_from_note(note),
                 agent_name=self.name,
             )
             findings.append(finding)

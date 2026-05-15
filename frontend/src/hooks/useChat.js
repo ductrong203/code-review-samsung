@@ -11,6 +11,26 @@ const WELCOME_MESSAGE =
   "- **Maintainability Agent** - code quality and SOLID\n\n" +
   "Paste a GitHub PR URL to start.";
 
+function normalizeProgressStage(stage) {
+  return String(stage || "")
+    .replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, "")
+    .replace(/â€”|—/g, "-")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function agentUpdateFromStage(stage) {
+  const normalized = normalizeProgressStage(stage);
+  const match = normalized.match(/^(.*?)\s+(done|failed)\s+-\s+(\d+)\s+findings?/i);
+  if (!match) return null;
+
+  return {
+    name: match[1].trim(),
+    status: match[2].toLowerCase(),
+    findings: Number(match[3]) || 0,
+  };
+}
+
 export function useChat() {
   const [messages, setMessages] = useState([
     {
@@ -51,6 +71,7 @@ export function useChat() {
         progress: 0.02,
         streamStage: "Starting review...",
         progressLog: ["Starting review..."],
+        agentRuns: [],
         timestamp: new Date(),
       },
     ]);
@@ -61,19 +82,32 @@ export function useChat() {
         response = await streamChatMessage(text.trim(), {
           onProgress: ({ stage, progress }) => {
             const nextStage = stage || "";
+            const agentUpdate = agentUpdateFromStage(nextStage);
             setMessages((prev) =>
               prev.map((msg) =>
                 msg.id === streamId
-                  ? {
-                      ...msg,
-                      content: nextStage || msg.content,
-                      streamStage: nextStage || msg.streamStage,
-                      progress: typeof progress === "number" ? progress : msg.progress,
-                      progressLog:
-                        nextStage && !(msg.progressLog || []).includes(nextStage)
-                          ? [...(msg.progressLog || []), nextStage]
-                          : msg.progressLog || [],
-                    }
+                  ? (() => {
+                      const agentRuns = agentUpdate
+                        ? [
+                            ...(msg.agentRuns || []).filter(
+                              (run) => run.name !== agentUpdate.name,
+                            ),
+                            agentUpdate,
+                          ]
+                        : msg.agentRuns || [];
+
+                      return {
+                        ...msg,
+                        content: nextStage || msg.content,
+                        streamStage: nextStage || msg.streamStage,
+                        progress: typeof progress === "number" ? progress : msg.progress,
+                        progressLog:
+                          nextStage && !(msg.progressLog || []).includes(nextStage)
+                            ? [...(msg.progressLog || []), nextStage]
+                            : msg.progressLog || [],
+                        agentRuns,
+                      };
+                    })()
                   : msg,
               ),
             );

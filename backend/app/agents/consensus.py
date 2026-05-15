@@ -253,6 +253,8 @@ class ConsensusEngine:
         # Combine suggested fixes
         fixes = [f.suggested_fix for f in findings if f.suggested_fix]
         combined_fix = fixes[0] if fixes else ""
+        fix_notes = [f.fix_note for f in findings if f.fix_note]
+        combined_fix_note = fix_notes[0] if fix_notes else ""
         affected_blocks = [f.affected_code for f in findings if f.affected_code]
         combined_affected_code = affected_blocks[0] if affected_blocks else ""
 
@@ -272,6 +274,7 @@ class ConsensusEngine:
             side=primary.side,
             affected_code=combined_affected_code,
             suggested_fix=combined_fix,
+            fix_note=combined_fix_note,
             agent_name=", ".join(set(f.agent_name for f in findings)),
             consensus_score=boosted_confidence,
         )

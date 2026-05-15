@@ -158,6 +158,50 @@
   transition: width 0.25s ease;
 }
 
+.stream-agents {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.stream-agent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  border: 1px solid rgba(11, 92, 255, 0.13);
+  border-radius: 8px;
+  background: #f8fbff;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.stream-agent__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #26364d;
+  font-weight: 600;
+}
+
+.stream-agent__count {
+  flex: 0 0 auto;
+  color: #0b5cff;
+  font-weight: 800;
+}
+
+.stream-agent--failed {
+  border-color: #ffd6d2;
+  background: #fff7f6;
+}
+
+.stream-agent--failed .stream-agent__count {
+  color: #d92d20;
+}
+
 .stream-log {
   display: flex;
   flex-direction: column;

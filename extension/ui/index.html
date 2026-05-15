@@ -441,6 +441,44 @@
         background: var(--accent);
         flex: 0 0 auto;
       }
+      .agent-progress {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 7px;
+        margin-top: 10px;
+      }
+      .agent-progress__item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        min-width: 0;
+        border: 1px solid rgba(11, 92, 255, 0.13);
+        border-radius: var(--r-sm);
+        background: #f8fbff;
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+      .agent-progress__name {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--text2);
+        font-weight: 600;
+      }
+      .agent-progress__count {
+        flex: 0 0 auto;
+        color: var(--accent);
+        font-weight: 800;
+      }
+      .agent-progress__item.failed {
+        border-color: rgba(217, 45, 32, 0.22);
+        background: #fff7f6;
+      }
+      .agent-progress__item.failed .agent-progress__count {
+        color: var(--err);
+      }
       .graph-chip-row {
         display: flex;
         flex-wrap: wrap;
@@ -952,6 +990,34 @@
         line-height: 1.55;
         white-space: pre-wrap;
         overflow-x: auto;
+      }
+      .fix-note {
+        border-top: 1px solid rgba(5, 150, 105, 0.18);
+        background: rgba(255, 255, 255, 0.62);
+      }
+      .fix-note__label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 10px 0;
+        color: #047857;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .fix-note__text {
+        padding: 6px 10px 10px;
+        color: var(--text2);
+        font-size: 12px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+      }
+      .fix-panel__empty {
+        padding: 10px;
+        color: #047857;
+        font-size: 12px;
+        line-height: 1.5;
       }
 
       /* Poller status */
@@ -1766,6 +1832,44 @@
         return text;
       }
 
+      function looksLikeProseFix(fix) {
+        const text = String(fix || "").trim();
+        if (!text) return false;
+        if (text.includes("\n")) return false;
+        return /^(to fix|fix by|use |move |consider |the resolution should|it should|ensure|replace )/i.test(text);
+      }
+
+      function fallbackFixNoteFromReviewNote(note) {
+        const text = String(note || "").trim();
+        if (!text) return "";
+        const markers = [
+          "To fix this,",
+          "To fix,",
+          "Fix by",
+          "Use ",
+          "Move ",
+          "Consider ",
+          "The resolution should",
+          "It should",
+          "Replace ",
+        ];
+        for (const marker of markers) {
+          const idx = text.indexOf(marker);
+          if (idx >= 0) return text.slice(idx).trim();
+        }
+        const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean);
+        return sentences.length > 1 ? sentences[sentences.length - 1] : "";
+      }
+
+      function renderFixNote(note) {
+        const text = String(note || "").trim();
+        if (!text) return "";
+        return `<div class="fix-note">
+          <div class="fix-note__label">${icon("lightbulb")} Fix note</div>
+          <div class="fix-note__text">${escapeHtml(text)}</div>
+        </div>`;
+      }
+
       function renderCodeSnippet(comment) {
         if (!comment.code_snippet) return "";
 
@@ -1796,11 +1900,22 @@
       }
 
       function renderSuggestedFix(comment) {
-        const fix = normalizeSuggestedFix(comment.suggested_fix);
-        if (!fix) return "";
+        const rawFix = normalizeSuggestedFix(comment.suggested_fix);
+        const proseOnlyFix = looksLikeProseFix(rawFix);
+        const fix = proseOnlyFix ? "" : rawFix;
+        const fixNote =
+          String(comment.fix_note || "").trim() ||
+          (proseOnlyFix ? rawFix : "") ||
+          fallbackFixNoteFromReviewNote(comment.note);
+        if (!fix && !fixNote) return "";
         return `<div class="fix-panel">
           <div class="fix-panel__label">${icon("lightbulb")} Suggested fix</div>
-          <pre>${escapeHtml(fix)}</pre>
+          ${
+            fix
+              ? `<pre>${escapeHtml(fix)}</pre>`
+              : `<div class="fix-panel__empty">No concrete replacement was returned. Follow the fix note below.</div>`
+          }
+          ${renderFixNote(fixNote)}
         </div>`;
       }
 
@@ -2127,6 +2242,7 @@
               <div id="liveStage" style="font-size:13px;color:var(--text2)">Starting...</div>
               <div class="progress-track"><div id="liveProgress" class="progress-fill" style="width:2%"></div></div>
               <div id="liveGraph" class="graph-chip-row"></div>
+              <div id="liveAgents" class="agent-progress"></div>
               <div id="liveProgressLog" class="progress-log"></div>
               <div id="liveSummary" style="font-size:13px;line-height:1.7;margin-top:10px"></div>
               <div id="liveFindings" style="margin-top:8px"></div>
@@ -2149,11 +2265,13 @@
           const liveStage = liveMsg.querySelector("#liveStage");
           const liveProgress = liveMsg.querySelector("#liveProgress");
           const liveGraph = liveMsg.querySelector("#liveGraph");
+          const liveAgents = liveMsg.querySelector("#liveAgents");
           const liveProgressLog = liveMsg.querySelector("#liveProgressLog");
           const liveSummary = liveMsg.querySelector("#liveSummary");
           const liveFindings = liveMsg.querySelector("#liveFindings");
           const renderedFindings = new Set();
           const renderedProgressStages = new Set();
+          const agentProgress = new Map();
 
           function parseEvent(block) {
             let event = "message";
@@ -2179,6 +2297,33 @@
             );
           }
 
+          function parseAgentProgress(stage) {
+            const text = stripLegacyIcons(stage || "")
+              .replace(/â€”|—/g, "-")
+              .replace(/[ \t]{2,}/g, " ")
+              .trim();
+            const match = text.match(/^(.*?)\s+(done|failed)\s+-\s+(\d+)\s+findings?/i);
+            if (!match) return null;
+            return {
+              name: match[1].trim(),
+              status: match[2].toLowerCase(),
+              findings: Number(match[3]) || 0,
+            };
+          }
+
+          function renderAgentProgress(update) {
+            if (!update || !liveAgents) return;
+            agentProgress.set(update.name, update);
+            liveAgents.innerHTML = [...agentProgress.values()]
+              .map(
+                (agent) => `<div class="agent-progress__item ${agent.status === "failed" ? "failed" : ""}">
+                  <span class="agent-progress__name">${escapeHtml(agent.name)}</span>
+                  <span class="agent-progress__count">${agent.findings} finding${agent.findings === 1 ? "" : "s"}</span>
+                </div>`,
+              )
+              .join("");
+          }
+
           while (true) {
             const { value, done } = await reader.read();
             if (done) break;
@@ -2194,6 +2339,7 @@
                 const stage = stripLegacyIcons(parsed.data.stage || "Reviewing...");
                 if (liveStage) liveStage.textContent = stage;
                 if (liveProgress) liveProgress.style.width = `${pct}%`;
+                renderAgentProgress(parseAgentProgress(stage));
                 appendProgress(stage);
               }
               if (parsed.event === "graph") {

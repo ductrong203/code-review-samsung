@@ -29,7 +29,8 @@ Output format — a JSON array of issue objects:
     "context_level": "diff",
     "note": "Clear description of the issue and fix guidance",
     "affected_code": "Exact original code from the smallest affected changed line range",
-    "suggested_fix": "Exact replacement code snippet for the affected lines"
+    "suggested_fix": "Exact replacement code snippet for the affected lines",
+    "fix_note": "Short prose guidance explaining how to apply the fix"
   }}
 ]
 
@@ -42,9 +43,11 @@ Field requirements:
 - "note": Clear, actionable description explaining WHY it's an issue and HOW to fix it in words. This field must still include fix guidance even when "suggested_fix" contains code. IMPORTANT: If context_level is "file" or "repo", you MUST explicitly mention the affected function name and file name in this note.
 - "affected_code": Exact original code text from the smallest changed-line span that contains the actual problem. Copy it from `+` lines in the diff without the leading `+`, line numbers, or markdown fences. Do not include the parent block, function signature, interface/class header, or surrounding context unless that surrounding line itself must be replaced. If the issue is one unused field, one wrong condition, or one unsafe call, this should usually be one line.
 - "suggested_fix": Exact replacement code for `affected_code` whenever possible. Return plain code only, without Markdown fences and without explanation. If the correct fix is to delete the affected code, use an empty string only when deletion is truly the full replacement and explain the deletion in "note". If a safe replacement cannot be inferred from the available context, leave this field as an empty string; the "note" must still explain the recommended fix.
+- "fix_note": Short non-code guidance for the fix. This must be prose, not a code block. Mention the intended change, validation, or safer pattern. Always include this when an issue is reported, even if "suggested_fix" has code.
 
 Length constraints to avoid truncation:
 - Keep "note" under 500 characters.
+- Keep "fix_note" under 240 characters.
 - Keep "affected_code" to the smallest 1-5 changed lines. Never paste a whole function unless every line is truly defective.
 - Keep "suggested_fix" under 8 lines. Prefer the minimal replacement for the affected lines.
 
@@ -58,7 +61,7 @@ Rules:
 - If you find NO issues, output an empty array: []
 - Do NOT hallucinate issues — only report what you can verify in the code
 - Set confidence lower (0.3-0.5) for uncertain findings, higher (0.8-1.0) for clear bugs
-- When reporting a fixable issue, provide all three: fix guidance in "note", exact original changed code in "affected_code", and replacement code in "suggested_fix" when you can produce a safe, concrete snippet.
+- When reporting a fixable issue, provide all four: issue explanation in "note", prose fix guidance in "fix_note", exact original changed code in "affected_code", and replacement code in "suggested_fix" when you can produce a safe, concrete snippet.
 - Output ONLY the JSON array, no markdown, no explanatory text
 """
 

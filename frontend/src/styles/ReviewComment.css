@@ -73,7 +73,8 @@
 .review-comment__category,
 .review-comment__severity,
 .review-comment__context-level,
-.review-comment__suggested-fix-label {
+.review-comment__suggested-fix-label,
+.review-comment__fix-guidance-label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -357,4 +358,44 @@
   line-height: 1.6;
   white-space: pre-wrap;
   overflow-x: auto;
+}
+
+.review-comment__fix-guidance {
+  margin: 0 14px 12px;
+  border: 1px solid rgba(11, 92, 255, 0.15);
+  border-left: 4px solid #0b5cff;
+  border-radius: 8px;
+  background: #f8fbff;
+  overflow: hidden;
+}
+
+.review-comment__code-pane--fix .review-comment__fix-guidance,
+.review-comment__suggested-fix .review-comment__fix-guidance--compact {
+  margin: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.review-comment__fix-guidance-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(11, 92, 255, 0.12);
+  color: #0b5cff;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.review-comment__fix-guidance-text {
+  padding: 10px 12px;
+  color: #26364d;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
 }
