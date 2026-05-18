@@ -1,0 +1,42 @@
+<notesplit>
+<path>src/Mod/BIM/ArchStairs.py</path>
+<side>right</side>
+<from>1271</from>
+<to>1271</to>
+<note>The comment contains a TODO with unclear grammar: '# TODO to allow one tolerance Part.LineSegment / edge.toShape() allow?'. It is difficult to understand the intent of this TODO.</note>
+</notesplit>
+<notesplit>
+<path>src/3rdParty/salomesmesh/inc/MED_Wrapper.hxx</path>
+<side>right</side>
+<from>41</from>
+<to>41</to>
+<note>The comment contains a typo 'syncronization' which should be 'synchronization'.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Draft/draftguitools/gui_beziers.py</path>
+<side>right</side>
+<from>128</from>
+<to>128</to>
+<note>The comment contains a typo 'to insensitive' which should be 'too insensitive'.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Draft/draftguitools/gui_beziers.py</path>
+<side>right</side>
+<from>332</from>
+<to>332</to>
+<note>The comment contains a typo 'to insensitive' which should be 'too insensitive'.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Draft/draftguitools/gui_beziers.py</path>
+<side>right</side>
+<from>368</from>
+<to>368</to>
+<note>The comment contains a typo 'to insensitive' which should be 'too insensitive'.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Draft/draftguitools/gui_splines.py</path>
+<side>right</side>
+<from>117</from>
+<to>117</to>
+<note>The comment contains a typo 'to insensitive' which should be 'too insensitive'.</note>
+</notesplit>

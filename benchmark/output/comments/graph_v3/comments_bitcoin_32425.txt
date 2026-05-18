@@ -1,0 +1,25 @@
+<notesplit>
+<path>src/init.cpp</path>
+<side>right</side>
+<from>1224</from>
+<to>1224</to>
+<note>**[Code Defect]** The logic for extracting the host/port part of the proxy string is flawed. If the string does not contain an '=', `rfind` returns `std::string::npos`. Passing `std::string::npos` to `substr` as the second argument (length) is invalid and will cause an out-of-range exception or incorrect behavior.
+
+**[Maintainability and Readability]** The logic for extracting the host/port from a parameter string uses `rfind('=')` without verifying if the '=' is actually a separator for a network suffix or part of a malformed address. This makes the parsing logic fragile if the input format is unexpected.
+
+**[Security Vulnerability]** The code uses `param_value.rfind('=')` to split the host/port from the network suffix. If a user provides a malformed input like `addr:port=`, `rfind` returns the index of the last character, and `substr(0, index)` results in `addr:port`. However, if the input is just `=`, `rfind` returns 0, and `substr(0, 0)` results in an empty string, which might bypass validation or cause unexpected behavior in `SplitHostPort`.</note>
+</notesplit>
+<notesplit>
+<path>src/init.cpp</path>
+<side>right</side>
+<from>1223</from>
+<to>1224</to>
+<note>The code performs a string search (rfind) and substring creation inside a loop that iterates over configuration arguments. While the number of arguments is typically small, this pattern is inefficient for repeated parsing. It is better to perform the split once or use a more efficient string view approach.</note>
+</notesplit>
+<notesplit>
+<path>src/init.cpp</path>
+<side>right</side>
+<from>1207</from>
+<to>1207</to>
+<note>The loop over a vector of tuples to validate configuration parameters is becoming complex. Using a tuple with boolean flags (unix, suffix_allowed) makes the code hard to read as it's not immediately clear what each boolean represents without checking the definition.</note>
+</notesplit>

@@ -1,0 +1,53 @@
+<notesplit>
+<path>server/src/repositories/album.repository.ts</path>
+<side>right</side>
+<from>141</from>
+<to>141</to>
+<note>**[Security Vulnerability]** The use of raw SQL template literals with user-provided input (ids) in the `getMetadataForIds` method creates a potential SQL injection vulnerability. While `ids` is passed to the `where` clause, the `sql<Date>` template literal uses string interpolation for the `AT TIME ZONE` expression. If this were to be extended or if the input handling changes, it could lead to injection. Always use parameterized queries for all dynamic SQL parts.
+
+**[Performance]** The use of `AT TIME ZONE 'UTC'::text` inside the `min` and `max` aggregate functions forces a timezone conversion for every single asset row in the join before aggregation. This prevents the database from utilizing indexes on the `localDateTime` column effectively and significantly increases CPU overhead during the aggregation phase for large datasets.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/album.repository.ts</path>
+<side>right</side>
+<from>142</from>
+<to>142</to>
+<note>**[Security Vulnerability]** Similar to the startDate selection, the endDate selection uses raw SQL template literals with string interpolation. This is a risky pattern that can lead to SQL injection if the input context changes. Use parameterized expressions instead.
+
+**[Performance]** Similar to the startDate aggregation, the endDate aggregation performs an unnecessary timezone conversion on every row, which degrades query performance on large asset tables.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/album.repository.ts</path>
+<side>right</side>
+<from>139</from>
+<to>139</to>
+<note>The SQL query in getMetadataForIds now uses a LEFT JOIN logic implicitly by selecting from 'assets' and joining 'albums_assets_assets'. However, if an album exists but has no assets (or all assets are deleted), the query will return no rows for that album ID. The previous implementation joined 'albums' first, ensuring all requested album IDs were returned even if empty. This will cause the service layer to miss metadata for empty albums.</note>
+</notesplit>
+<notesplit>
+<path>server/src/queries/album.repository.sql</path>
+<side>right</side>
+<from>213</from>
+<to>215</to>
+<note>The SQL query was changed from selecting from 'albums' to 'assets'. This causes the query to return no rows for albums that have no assets, breaking the contract where the service expects metadata for all requested album IDs. The original query correctly preserved the album list.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/album.repository.ts</path>
+<side>right</side>
+<from>143</from>
+<to>143</to>
+<note>The comment 'lastModifiedAssetTimestamp is only used in mobile app, please remove if not need' indicates dead or legacy code that should be cleaned up rather than propagated. If it is truly only for mobile, it should be handled via a specific DTO or projection rather than polluting the general repository interface.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/album.service.ts</path>
+<side>right</side>
+<from>67</from>
+<to>67</to>
+<note>The comment 'lastModifiedAssetTimestamp is only used in mobile app, please remove if not need' is repeated here. This suggests a violation of the Single Responsibility Principle where the service is forced to carry data it doesn't need for its primary logic, just to satisfy a specific client requirement.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/album.repository.ts</path>
+<side>right</side>
+<from>141</from>
+<to>142</to>
+<note>The use of raw SQL strings for date casting inside the query builder makes the code harder to maintain and less portable across different database environments. It also bypasses the type-safety provided by the query builder.</note>
+</notesplit>

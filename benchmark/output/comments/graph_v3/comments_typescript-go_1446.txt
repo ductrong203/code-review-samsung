@@ -1,0 +1,44 @@
+<notesplit>
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>right</side>
+<from>47</from>
+<to>47</to>
+<note>The regex used to remove t.Skip() is too broad. It matches any line containing 't.Skip()' regardless of indentation or surrounding characters, and the replacement with an empty string leaves an empty line. More importantly, if the test file contains other lines matching this pattern (e.g., in comments or strings), they will be incorrectly removed.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/convertFourslash.mts</path>
+<side>right</side>
+<from>24</from>
+<to>30</to>
+<note>**[Performance]** The getManualTests function reads and parses the entire manualTests.txt file every time it is called. If this function is called inside a loop or frequently during the execution of parseTypeScriptFiles, it causes redundant I/O and string processing. It should be cached or loaded once at the start of the script.
+
+**[Maintainability and Readability]** The getManualTests function performs file I/O and parsing logic that is not cached. If called repeatedly in a loop or complex process, this could be inefficient. Additionally, the manual parsing of the file line-by-line is fragile; consider using a more robust approach if the file format grows.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>right</side>
+<from>33</from>
+<to>42</to>
+<note>The script reads the entire manualTests.txt file, splits it, sorts it, and writes it back to disk every time a single test is added. While acceptable for small lists, this is inefficient for larger datasets. Additionally, using Array.includes() on a large list is O(n); a Set should be used for lookups.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>right</side>
+<from>47</from>
+<to>48</to>
+<note>The regex replacement `content.replace(/^\s*t\.Skip\(\)\s*$/m, "")` is fragile. It relies on exact formatting of the `t.Skip()` call. If the test file formatting changes (e.g., extra spaces, comments, or different indentation), the skip removal will fail silently.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>right</side>
+<from>38</from>
+<to>42</to>
+<note>The script manually manages the manualTests.txt file by reading, modifying, and writing the entire file back. This is prone to race conditions and data loss if the file is modified externally. It also uses a hardcoded newline approach for list management.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>right</side>
+<from>17</from>
+<to>17</to>
+<note>The script takes user-provided input (testName) and uses it directly to construct file paths (genTestFile). While this is a build/test script, it lacks validation to prevent path traversal attacks (e.g., passing '../../some_file' as an argument).</note>
+</notesplit>

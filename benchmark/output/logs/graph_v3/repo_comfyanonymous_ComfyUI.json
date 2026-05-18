@@ -1,0 +1,54 @@
+{
+  "run_name": "graph_v3",
+  "repo": "comfyanonymous/ComfyUI",
+  "dataset_path": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\dataset\\positive_samples.json",
+  "extension_base": "http://localhost:8100/api",
+  "backend_url": "",
+  "started_at": "2026-05-18T21:34:48",
+  "comments_output_dir": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3",
+  "results": [
+    {
+      "pr_url": "https://github.com/comfyanonymous/ComfyUI/pull/7952",
+      "pr_id": "ComfyUI_7952",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ComfyUI_7952.txt"
+    },
+    {
+      "pr_url": "https://github.com/comfyanonymous/ComfyUI/pull/8446",
+      "pr_id": "ComfyUI_8446",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ComfyUI_8446.txt"
+    },
+    {
+      "pr_url": "https://github.com/comfyanonymous/ComfyUI/pull/6033",
+      "pr_id": "ComfyUI_6033",
+      "status": "error",
+      "error": "HTTP 400: {\"detail\":\"Graph not ready for PR #6033. Build it via /api/build-pr or ensure repo is registered.\"}"
+    },
+    {
+      "pr_url": "https://github.com/comfyanonymous/ComfyUI/pull/9560",
+      "pr_id": "ComfyUI_9560",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ComfyUI_9560.txt"
+    },
+    {
+      "pr_url": "https://github.com/comfyanonymous/ComfyUI/pull/6542",
+      "pr_id": "ComfyUI_6542",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ComfyUI_6542.txt"
+    }
+  ],
+  "initial_graph_status": {
+    "repo": "comfyanonymous/ComfyUI",
+    "registered": true,
+    "local_path": "E:\\My_Project\\samsung\\ComfyUI",
+    "main_graph_ready": true
+  },
+  "finished_at": "2026-05-18T21:34:55",
+  "summary": {
+    "selected": 5,
+    "success": 0,
+    "skipped": 4,
+    "errors": 1
+  }
+}

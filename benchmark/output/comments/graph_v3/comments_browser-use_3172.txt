@@ -1,0 +1,37 @@
+<notesplit>
+<path>browser_use/llm/google/chat.py</path>
+<side>right</side>
+<from>314</from>
+<to>314</to>
+<note>**[Code Defect]** The variable 'messages' is used inside '_make_api_call' but is not defined in its scope. It was previously available in the outer 'ainvoke' scope, but the refactoring moved the logic into a nested function without passing 'messages' as an argument or capturing it from the closure correctly.
+
+**[Performance]** The code performs a deep copy of the entire message history list on every fallback attempt using `[m.model_copy(deep=True) for m in messages]`. If the conversation history is long, this creates significant memory pressure and CPU overhead. Since only the last message is modified, it is more efficient to copy only the last message and reuse the references for the preceding ones.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/llm/google/chat.py</path>
+<side>right</side>
+<from>208</from>
+<to>221</to>
+<note>The _make_api_call function has become a 'God function' that handles text generation, structured output, fallback logic, and logging for multiple scenarios. This violates the Single Responsibility Principle. It should be decomposed into smaller, specialized methods like _handle_text_response, _handle_structured_output, and _handle_fallback_mode.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/llm/google/chat.py</path>
+<side>right</side>
+<from>269</from>
+<to>274</to>
+<note>The logic for stripping markdown code fences (```json, ```) is duplicated in both the structured output handler and the fallback handler. This duplication should be extracted into a single utility method to ensure consistent parsing behavior.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/llm/google/chat.py</path>
+<side>right</side>
+<from>283</from>
+<to>284</to>
+<note>The code logs raw API error messages and potentially sensitive model responses (up to 200 characters) using self.logger.error and self.logger.debug. If these logs are aggregated in a centralized system, they may inadvertently expose PII or sensitive user data contained in the model's output or error context.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/llm/google/chat.py</path>
+<side>right</side>
+<from>392</from>
+<to>403</to>
+<note>The error handling for timeouts is manually checking strings like 'timeout' or 'cancelled'. This is fragile. It is better to catch specific exception types (e.g., asyncio.TimeoutError) if possible, or at least centralize this diagnostic logic to avoid cluttering the main execution flow.</note>
+</notesplit>

@@ -1,0 +1,83 @@
+<notesplit>
+<path>internal/fourslash/_scripts/convertFourslash.mts</path>
+<side>right</side>
+<from>13</from>
+<to>13</to>
+<note>**[Code Defect]** The line `const helperFilePath = path.join(import.meta.dirname, "../", "tests", "util_test.go");` was removed and replaced with `const manualTestsPath = ...`. However, `helperFilePath` is not used anywhere in the file. More critically, the original code had `const failingTestsPath` and `const helperFilePath` on separate lines. The diff shows `helperFilePath` being replaced by `manualTestsPath`. This is a direct replacement, but if `helperFilePath` was intended to be used or if `failingTestsPath` is still needed, this might be a logic error. Looking at the rest of the file, `failingTestsPath` is used in `getFailingTests()`. `helperFilePath` is NOT used. So this is just a cleanup. Wait, looking closer at the diff: Line 13 in the original was `const helperFilePath = ...`. In the new code, line 13 is `const manualTestsPath = ...`. This is a replacement. Is there a bug? No, `helperFilePath` was unused. The new `manualTestsPath` is used. This is fine.
+
+**[Maintainability and Readability]** The variable `helperFilePath` is assigned on line 13 but never used anywhere in the file. This is dead code that should be removed to reduce clutter and confusion.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/convertFourslash.mts</path>
+<side>right</side>
+<from>65</from>
+<to>65</to>
+<note>In `convertFourslash.mts`, line 66: `else if (file.endsWith(".ts") && !manualTests.has(file.slice(0, -3)))`. The `manualTests` set contains test names like `TestCompletionListInClosedFunction05`. The `file` variable is the filename, e.g., `TestCompletionListInClosedFunction05_test.ts`. `file.slice(0, -3)` would be `TestCompletionListInClosedFunction05_test`. This does NOT match the test name in `manualTests` (which is `TestCompletionListInClosedFunction05`). The manual test name in `manualTests.txt` is `completionListInClosedFunction05` (lowercase, no `Test` prefix, no `_test` suffix). The file name is `completionListInClosedFunction05_test.ts`. `file.slice(0, -3)` is `completionListInClosedFunction05_test`. This does NOT match `completionListInClosedFunction05`. Therefore, the manual test will NOT be skipped. This is a logic error.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/convertFourslash.mts</path>
+<side>right</side>
+<from>63</from>
+<to>63</to>
+<note>In `parseTypeScriptFiles`, the function signature changed from `(failingTests: Set<string>, folder: string)` to `(failingTests: Set<string>, manualTests: Set<string>, folder: string)`. The call site at line 46 passes `getFailingTests(), getManualTests(), stradaFourslashPath`. This is correct. However, the recursive call at line 63 passes `failingTests, manualTests, filePath`. This is also correct. The issue is that `manualTests` is a Set of test names (filenames without extension), but `file` in the loop is the filename with extension. At line 66, `manualTests.has(file.slice(0, -3))` is used. This assumes `.ts` extension. If a file is not `.ts`, this logic is skipped. This seems correct.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/convertFourslash.mts</path>
+<side>right</side>
+<from>28</from>
+<to>28</to>
+<note>**[Security Vulnerability]** The script reads manualTests.txt and parses it into a Set without validating the content. If an attacker can modify manualTests.txt (e.g., via a previous commit or local modification), they can inject arbitrary filenames. While the script only reads .ts files, the lack of validation on the input file list is a minor integrity issue.
+
+**[Performance]** The file is read entirely into memory with readFileSync and then split into an array. For very large test files, this creates a large array of strings in memory. Consider using a streaming approach or line-by-line reading if manualTests.txt grows significantly.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>right</side>
+<from>41</from>
+<to>41</to>
+<note>**[Security Vulnerability]** The script writes to manualTests.txt without checking if the file is writable or if the path is safe. If the script runs with elevated privileges, it could overwrite critical configuration files.
+
+**[Code Defect]** In `makeManual.mts`, line 43: `fs.writeFileSync(manualTestsPath, [...manualTests, ""].join("\n"), "utf-8");`. This adds an empty string at the end, resulting in a trailing newline. This is a common pattern for text files. However, if `manualTests` is empty, it writes `"\n"`. This is fine.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/convertFourslash.mts</path>
+<side>right</side>
+<from>24</from>
+<to>30</to>
+<note>The `getManualTests` function reads a file and parses it inline. If the file is large, this could be inefficient. More importantly, the logic for reading and parsing the manual tests list is duplicated in `makeManual.mts`. This should be abstracted into a shared utility function to avoid code duplication.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>right</side>
+<from>19</from>
+<to>19</to>
+<note>The script reads the generated test file and writes it to a new location without validating the source path or content. If the gen directory contains maliciously crafted files (e.g., path traversal attempts in filenames), this could lead to unintended file overwrites or directory traversal if not properly constrained.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>right</side>
+<from>32</from>
+<to>42</to>
+<note>The entire manualTests.txt file is read into memory, parsed into an array, checked for existence, potentially modified, sorted, and written back. If this file becomes large, reading/writing the whole file for a single test addition is inefficient. Consider appending directly or using a database/lock-free append mechanism.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>right</side>
+<from>32</from>
+<to>36</to>
+<note>The logic for reading, parsing, and sorting the `manualTests.txt` file in `makeManual.mts` is duplicated from `convertFourslash.mts`. This code duplication should be abstracted into a shared utility function to ensure consistency and reduce maintenance burden.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>right</side>
+<from>40</from>
+<to>40</to>
+<note>In `makeManual.mts`, line 42: `manualTests.sort();`. The `manualTests` array is sorted in place. Then line 43: `fs.writeFileSync(manualTestsPath, [...manualTests, ""].join("\n"), "utf-8");`. The spread operator `[...manualTests, ""]` creates a new array. This is fine. However, `manualTests` is defined as `let manualTests: string[] = [];`. If the file doesn't exist, it's an empty array. If it does, it's populated. The sort is in-place. This is correct.</note>
+</notesplit>
+<notesplit>
+<path>internal/fourslash/_scripts/makeManual.mts</path>
+<side>right</side>
+<from>38</from>
+<to>42</to>
+<note>The code manually checks for existence, reads, parses, checks for inclusion, pushes, sorts, and writes back the entire file. This is a complex sequence of operations that could be simplified. Also, the sorting is done every time a test is added, which is unnecessary if the file is already sorted or if sorting is done less frequently.</note>
+</notesplit>

@@ -1,0 +1,91 @@
+<notesplit>
+<path>comfy/weight_adapter/lora.py</path>
+<side>right</side>
+<from>18</from>
+<to>18</to>
+<note>The LoraDiff constructor unpacks a tuple of 6 elements without validation or named fields. This is highly fragile and makes the code difficult to maintain if the training scheme changes.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_train.py</path>
+<side>right</side>
+<from>47</from>
+<to>47</to>
+<note>The code calls 'latent.clone()' inside the training loop. If 'latent' is a tensor requiring gradients, cloning it without detaching or handling the graph correctly can lead to memory leaks or incorrect gradient accumulation across iterations.</note>
+</notesplit>
+<notesplit>
+<path>comfy/weight_adapter/lora.py</path>
+<side>right</side>
+<from>35</from>
+<to>35</to>
+<note>The code attempts to initialize a Conv layer with a tensor 'mid' as the first argument. torch.nn.Conv2d expects (in_channels, out_channels, kernel_size) as positional arguments, not a weight tensor. This will cause a TypeError.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_train.py</path>
+<side>right</side>
+<from>159</from>
+<to>162</to>
+<note>The VALIDATE_INPUTS method checks if a file exists using exists_annotated_filepath, but it does not sanitize the input path. An attacker could provide a path containing directory traversal sequences (e.g., ../../) to access files outside the intended input directory.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_train.py</path>
+<side>right</side>
+<from>120</from>
+<to>123</to>
+<note>The image loading loop performs repeated list appending and tensor concatenation. Creating a list of tensors and calling torch.cat once at the end is significantly more memory-efficient and faster than repeated operations.</note>
+</notesplit>
+<notesplit>
+<path>comfy/weight_adapter/base.py</path>
+<side>right</side>
+<from>21</from>
+<to>27</to>
+<note>The create_train method is defined in the base class but lacks a clear contract for the expected structure of *args. This forces subclasses to guess or rely on implicit knowledge of the training scheme, violating the interface segregation principle.</note>
+</notesplit>
+<notesplit>
+<path>comfy/weight_adapter/lora.py</path>
+<side>right</side>
+<from>52</from>
+<to>52</to>
+<note>The __call__ method performs a .to(org_dtype) conversion on every forward pass. If the model is running in a specific precision (e.g., float16), this creates unnecessary overhead and potential synchronization points.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_train.py</path>
+<side>right</side>
+<from>95</from>
+<to>97</to>
+<note>The load_images method in LoadImageSetNode is missing error handling for potential I/O failures during the image loading loop, which could crash the entire training node.</note>
+</notesplit>
+<notesplit>
+<path>comfy/weight_adapter/lora.py</path>
+<side>right</side>
+<from>22</from>
+<to>27</to>
+<note>The logic to determine the layer type (Conv1d/2d/3d vs Linear) based on mid.ndim is implicit and hard to read. It should be extracted into a helper function.</note>
+</notesplit>
+<notesplit>
+<path>comfy/weight_adapter/lora.py</path>
+<side>right</side>
+<from>51</from>
+<to>51</to>
+<note>The code uses 'diff.reshape(w.shape)' after a matrix multiplication. If the weight 'w' is a convolution weight (4D), the matrix multiplication result 'diff' might have a different shape or dimension order than 'w', leading to incorrect weight updates or runtime shape mismatch errors.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_train.py</path>
+<side>right</side>
+<from>132</from>
+<to>136</to>
+<note>The list comprehension in INPUT_TYPES iterates over the entire directory using os.listdir every time the node is initialized or validated. This is an I/O bottleneck if the input directory contains many files.</note>
+</notesplit>
+<notesplit>
+<path>folder_paths.py</path>
+<side>right</side>
+<from>417</from>
+<to>421</to>
+<note>The get_input_subfolders function uses os.walk on the input directory. If the input directory is misconfigured or points to a sensitive system location, this could expose the entire directory structure of the host system to the user interface.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_train.py</path>
+<side>right</side>
+<from>99</from>
+<to>100</to>
+<note>The image mode check 'img.mode == "I"' uses a magic number/string for normalization. This should be documented or handled via a standard library constant.</note>
+</notesplit>

@@ -1,0 +1,30 @@
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1322</from>
+<to>1334</to>
+<note>**[Code Defect]** The code comment explicitly states that 'saveCheckpoint(true)' requires the checkpoint hash to be present before returning to ensure 'doesLatestTaskCompletionHaveNewChanges()' works correctly. By making 'this.checkpointTracker.commit()' asynchronous and unawaited, the function now returns before the commit hash is available, breaking the dependency in the completion flow. This will cause 'doesLatestTaskCompletionHaveNewChanges()' to operate on stale or missing data.
+
+**[Security Vulnerability]** The asynchronous .then() block performs state updates (updateClineMessage) without error handling. If the background git operation fails (e.g., disk full, permission error, or git lock), the promise rejection will be unhandled, potentially leading to process instability or silent failure of critical state synchronization.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1318</from>
+<to>1320</to>
+<note>The comment block is excessively long and verbose, making the code harder to scan. It explains implementation details that should ideally be handled by code structure or a brief summary. Consider moving the detailed 'NOTE' about the completion flow to the relevant method documentation or a design document.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1322</from>
+<to>1322</to>
+<note>The promise chain inside `saveCheckpoint` lacks an explicit `.catch()` block. Since this is a background operation, any failure in `this.checkpointTracker.commit()` or the subsequent state update will fail silently, making debugging difficult.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1324</from>
+<to>1327</to>
+<note>The `findLastIndex` operation is performed inside an asynchronous `.then()` callback on the full message array. If the message history grows large, this linear scan (O(n)) performed repeatedly in the background can lead to performance degradation. Since the index is needed to update the message, consider caching the reference to the message object or its index when the 'checkpoint_created' message is initially sent.</note>
+</notesplit>

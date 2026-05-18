@@ -1,0 +1,35 @@
+<notesplit>
+<path>qa/smoke-test-http/src/internalClusterTest/java/org/elasticsearch/http/SearchErrorTraceIT.java</path>
+<side>right</side>
+<from>236</from>
+<to>236</to>
+<note>The test method 'testDataNodeLogsStackTraceWhenErrorTraceFalseOrEmptyMultiSearch' is incomplete and ends abruptly with 'if (randomBool', causing a compilation error.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/SearchService.java</path>
+<side>right</side>
+<from>588</from>
+<to>599</to>
+<note>The logging logic inside `maybeWrapListenerForStackTrace` is becoming complex and violates the Single Responsibility Principle. It is now responsible for both wrapping the listener and determining logging severity based on exception types. This logic should be extracted into a private helper method to improve readability and maintainability.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/SearchService.java</path>
+<side>right</side>
+<from>588</from>
+<to>593</to>
+<note>The logging logic inside the listener wrapper creates a new lambda supplier and performs string formatting on every failure. While this is only triggered on error paths, it can still be optimized by using parameterized logging (e.g., logger.debug("[{}]...", nodeId, shardId, taskId, e)) to avoid unnecessary string concatenation and object allocation when the log level is disabled.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/SearchService.java</path>
+<side>right</side>
+<from>595</from>
+<to>599</to>
+<note>The logging implementation logs the full exception object 'e' at the WARN level. If the exception contains sensitive information (e.g., PII, credentials, or internal system paths) in its message or cause chain, this will be exposed in the server logs. While this is intended for debugging, it violates the principle of least privilege regarding log data exposure.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/SearchService.java</path>
+<side>right</side>
+<from>577</from>
+<to>579</to>
+<note>The `maybeWrapListenerForStackTrace` method signature now has 6 parameters, which exceeds the recommended limit of 5. This makes the method harder to call and maintain. Consider grouping `nodeId`, `shardId`, and `taskId` into a small context object or record.</note>
+</notesplit>

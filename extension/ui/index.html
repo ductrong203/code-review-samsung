@@ -551,8 +551,8 @@
       }
       .finding-note {
         color: var(--text2);
-        font-size: 12px;
-        line-height: 1.5;
+        font-size: 13px;
+        line-height: 1.65;
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -562,7 +562,7 @@
         background: #f8fbff;
         border-left: 3px solid rgba(11, 92, 255, 0.22);
         border-radius: var(--r-sm);
-        padding: 9px 10px;
+        padding: 10px 11px;
       }
       .finding-note__label {
         display: inline-flex;
@@ -579,7 +579,32 @@
         text-transform: uppercase;
       }
       .finding-note__text {
-        white-space: pre-wrap;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+      .finding-note__sentence {
+        margin: 0;
+      }
+      .finding-note__sentence + .finding-note__sentence {
+        padding-top: 7px;
+        border-top: 1px solid rgba(11, 92, 255, 0.08);
+      }
+      .finding-note code,
+      .review-summary code,
+      .msg-bubble code {
+        display: inline-block;
+        max-width: 100%;
+        vertical-align: baseline;
+        padding: 1px 5px;
+        border-radius: 5px;
+        background: #eef4ff;
+        border: 1px solid rgba(11, 92, 255, 0.16);
+        color: #0b4db3;
+        font-family: var(--mono);
+        font-size: 0.92em;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
       }
       .finding-path {
         font-family: var(--mono);
@@ -1772,6 +1797,88 @@
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;");
       }
+      function renderInlineMarkdown(text) {
+        const raw = String(text || "");
+        const parts = raw.split("`");
+        if (parts.length < 3) return escapeHtml(raw.replace(/`/g, ""));
+
+        return parts
+          .map((part, idx) => {
+            if (idx % 2 === 0) return escapeHtml(part);
+            if (idx >= parts.length - 1) return escapeHtml(part);
+            const code = part.trim();
+            if (!code) return "";
+            return `<code>${escapeHtml(code)}</code>`;
+          })
+          .join("");
+      }
+      function splitReviewSentences(text) {
+        const normalized = String(text || "")
+          .replace(/\r\n/g, "\n")
+          .replace(/[ \t]+/g, " ")
+          .trim();
+        if (!normalized) return [];
+
+        const chunks = normalized
+          .split(/\n+/)
+          .map((chunk) => chunk.trim())
+          .filter(Boolean);
+
+        const shouldSplitAt = (value, idx) => {
+          const ch = value[idx];
+          if (!".!?".includes(ch)) return false;
+
+          const next = value[idx + 1] || "";
+          if (next && !/\s/.test(next)) return false;
+
+          const prevWord = value.slice(Math.max(0, idx - 24), idx + 1);
+          if (/\b[\w-]+\.(?:rs|py|js|jsx|ts|tsx|java|go|cs|cpp|c|h|hpp|rb|php|swift|kt|kts|scala|sql|json|yaml|yml|toml|md|html|css)$/i.test(prevWord)) {
+            return false;
+          }
+
+          return true;
+        };
+
+        const splitChunk = (chunk) => {
+          const result = [];
+          let start = 0;
+          let inCode = false;
+
+          for (let i = 0; i < chunk.length; i += 1) {
+            if (chunk[i] === "`") {
+              if (chunk.indexOf("`", i + 1) !== -1) inCode = !inCode;
+              continue;
+            }
+            if (inCode || !shouldSplitAt(chunk, i)) continue;
+
+            const sentence = chunk.slice(start, i + 1).trim();
+            if (sentence) result.push(sentence);
+            start = i + 1;
+            while (chunk[start] && /\s/.test(chunk[start])) start += 1;
+          }
+
+          const tail = chunk.slice(start).trim();
+          if (tail) result.push(tail);
+          return result;
+        };
+
+        const sentences = [];
+        chunks.forEach((chunk) => {
+          splitChunk(chunk).forEach((part) => sentences.push(part));
+        });
+
+        return sentences;
+      }
+      function renderReviewNoteBody(body) {
+        const sentences = splitReviewSentences(body);
+        if (!sentences.length) return "";
+        return sentences
+          .map(
+            (sentence) =>
+              `<p class="finding-note__sentence">${renderInlineMarkdown(sentence)}</p>`,
+          )
+          .join("");
+      }
       function escapeJsString(text) {
         return String(text || "")
           .replace(/\\/g, "\\\\")
@@ -1805,7 +1912,7 @@
           .map(
             (part) => `<div class="finding-note__point">
               ${part.label ? `<div class="finding-note__label">${escapeHtml(part.label)}</div>` : ""}
-              <div class="finding-note__text">${escapeHtml(part.body)}</div>
+              <div class="finding-note__text">${renderReviewNoteBody(part.body)}</div>
             </div>`,
           )
           .join("");
@@ -2244,7 +2351,7 @@
               <div id="liveGraph" class="graph-chip-row"></div>
               <div id="liveAgents" class="agent-progress"></div>
               <div id="liveProgressLog" class="progress-log"></div>
-              <div id="liveSummary" style="font-size:13px;line-height:1.7;margin-top:10px"></div>
+              <div id="liveSummary" class="review-summary" style="font-size:13px;line-height:1.7;margin-top:10px"></div>
               <div id="liveFindings" style="margin-top:8px"></div>
             </div>`,
           );

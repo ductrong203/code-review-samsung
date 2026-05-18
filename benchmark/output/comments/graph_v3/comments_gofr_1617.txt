@@ -1,0 +1,58 @@
+<notesplit>
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>80</from>
+<to>92</to>
+<note>The retryConnect method runs an infinite loop without any mechanism to stop it (e.g., context cancellation). If the client is shut down or the application stops, this goroutine will leak indefinitely.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>79</from>
+<to>93</to>
+<note>**[Maintainability and Readability]** The retryConnect method implements an infinite loop without a context-based cancellation mechanism. This makes it impossible to stop the retry process during application shutdown, potentially leading to goroutine leaks.
+
+**[Security Vulnerability]** The retryConnect loop lacks a termination condition (e.g., context check). It will loop forever even if the parent application is shutting down, potentially causing issues during service termination.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>134</from>
+<to>136</to>
+<note>The repetitive manual check of the client state (checkClient) across multiple public methods violates the DRY principle and adds boilerplate. Consider implementing a decorator pattern or a middleware-like wrapper for the Client methods to handle connection validation centrally.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>50</from>
+<to>50</to>
+<note>The retryConnect function runs in a background goroutine without any context cancellation or termination mechanism. This can lead to resource leaks (goroutine leaks) if the NATS client is closed or the application shuts down, as the retry loop will continue indefinitely.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>144</from>
+<to>145</to>
+<note>The Subscribe method uses a busy-wait loop with time.Sleep(defaultRetryTimeout) when the client is disconnected. This introduces a latency floor of up to 2 seconds for every subscription attempt if the connection is flapping, which is inefficient for reactive systems.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>356</from>
+<to>356</to>
+<note>The checkClient function accesses c.connManager.isConnected(). If c.connManager is nil, this will cause a panic. While there is a nil check for c.connManager on line 353, it is safer to use a nil-safe check or ensure the order of operations is strictly enforced.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>86</from>
+<to>86</to>
+<note>The retryConnect loop uses a fixed time.Sleep(defaultRetryTimeout) (2 seconds). In scenarios where the NATS server is temporarily unavailable, this fixed interval can lead to slow recovery times or unnecessary resource consumption if the server is under heavy load.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>347</from>
+<to>361</to>
+<note>The checkClient function is defined as a standalone helper but is tightly coupled to the internal structure of the Client struct. It should be a method on the Client struct (e.g., c.ensureConnected()) to improve encapsulation.</note>
+</notesplit>

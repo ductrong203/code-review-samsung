@@ -1,0 +1,44 @@
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueMetadata.cpp</path>
+<side>right</side>
+<from>182</from>
+<to>182</to>
+<note>The code dereferences `metadata_ref_count` without checking if it is null. In `ObjectStorageQueueMetadata::createFileMetadata`, `metadata_ref_count` is a member pointer that is initialized to `nullptr` and only set via `setMetadataRefCount`. If `createFileMetadata` is called before `setMetadataRefCount`, this will cause a null pointer dereference.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueMetadata.cpp</path>
+<side>right</side>
+<from>450</from>
+<to>450</to>
+<note>**[Security Vulnerability]** The code initializes a local `std::atomic<size_t> noop = 0;` and passes it by reference to the `ObjectStorageQueueOrderedFileMetadata` constructor. This creates a dangling reference if the metadata object outlives the scope of `noop`. While currently used in a temporary object, this pattern is highly dangerous and prone to memory corruption if the reference is stored or accessed asynchronously.
+
+**[Maintainability and Readability]** The use of a local 'noop' atomic variable to satisfy the constructor signature is a code smell indicating that the constructor design is forcing unnecessary dependencies on callers. This should be refactored to use an optional reference or a default parameter.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueMetadata.cpp</path>
+<side>right</side>
+<from>454</from>
+<to>454</to>
+<note>The local variable `noop` is created as an `std::atomic<size_t>` and passed by reference to `ObjectStorageQueueOrderedFileMetadata`. However, `ObjectStorageQueueOrderedFileMetadata` stores this as a `const std::atomic<size_t> &`. Since `noop` is a local variable that goes out of scope immediately after the constructor call, the reference stored in the metadata object becomes dangling, leading to undefined behavior when accessed later.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>right</side>
+<from>240</from>
+<to>251</to>
+<note>The code performs a manual copy of the batch into a new vector when some objects are filtered out. This involves unnecessary allocations and element moves. Since the batch is already being processed, it is more efficient to use std::remove_if or a similar in-place filtering pattern to avoid reallocating the entire vector.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueIFileMetadata.cpp</path>
+<side>right</side>
+<from>267</from>
+<to>293</to>
+<note>The logic inside prepareSetProcessingRequests is becoming complex with nested locking and multiple early returns. This violates the Single Responsibility Principle as it handles both state validation and concurrency control. Consider extracting the locking and state check into a helper method.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueMetadataFactory.h</path>
+<side>right</side>
+<from>29</from>
+<to>29</to>
+<note>Using std::unique_ptr<std::atomic<size_t>> for a simple counter adds unnecessary heap allocation and indirection. A simple std::atomic<size_t> member would suffice if the lifetime is managed correctly.</note>
+</notesplit>

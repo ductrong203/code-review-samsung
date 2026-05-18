@@ -1,0 +1,25 @@
+<notesplit>
+<path>shell/common/gin_helper/persistent_dictionary.h</path>
+<side>right</side>
+<from>46</from>
+<to>51</to>
+<note>**[Code Defect]** The ValueOrDefault implementation is broken. It initializes a local variable 'value' with T{}, then calls Get(key, &value). If Get returns false (key not found), it returns the local 'value' (which is T{}) instead of the provided 'default_value'.
+
+**[Performance]** The ValueOrDefault implementation performs a redundant object construction and lookup. It initializes a default-constructed object 'T{}' and then calls 'Get', which internally performs another lookup and assignment. For complex types (like std::string or base::Value::Dict), this causes unnecessary allocations and copies.
+
+**[Security Vulnerability]** The ValueOrDefault template function initializes a local variable 'value' with T{} and then attempts to populate it via Get(). If Get() fails, it returns the default_value. However, if T is a complex type (like a pointer or a struct containing pointers), the default initialization T{} might not be safe or might lead to undefined behavior if Get() fails to fully initialize the object. While safe for primitives, this pattern is risky for non-POD types.</note>
+</notesplit>
+<notesplit>
+<path>shell/common/gin_helper/persistent_dictionary.h</path>
+<side>right</side>
+<from>48</from>
+<to>50</to>
+<note>The ValueOrDefault implementation uses a default-constructed object T{} to call Get. If T is a complex type, this may be inefficient or incorrect if the type doesn't support default construction. It is safer to use std::optional or a pattern that doesn't require a dummy instance.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/api/electron_api_web_contents.cc</path>
+<side>right</side>
+<from>3025</from>
+<to>3034</to>
+<note>The chain of .Set() calls on a temporary base::Value::Dict is becoming hard to read and maintain. If the dictionary structure grows, this will become a 'wall of code'. Consider using a more declarative approach or breaking it into smaller helper functions.</note>
+</notesplit>

@@ -1,0 +1,72 @@
+<notesplit>
+<path>packages/cli/src/gemini.tsx</path>
+<side>right</side>
+<from>301</from>
+<to>305</to>
+<note>In `packages/cli/src/gemini.tsx`, the `loadNonInteractiveConfig` function was removed. This function was responsible for loading the CLI config a second time in non-interactive mode to apply tool exclusions and then calling `config.initialize()`. The new code calls `validateNonInteractiveAuth` directly with the `config` object. However, `config.initialize()` is no longer called in the non-interactive path in `gemini.tsx`. The `runNonInteractive` function in `nonInteractiveCli.ts` also had `await config.initialize()` removed. This means `config.initialize()` is never called in non-interactive mode if `config` was already initialized in interactive mode? No, `config` is created once. If it's interactive, `initialize` is called later? Let's check. In `gemini.tsx`, if `config.isInteractive()` is true, it renders the UI. The UI likely calls `initialize`. If it's non-interactive, `runNonInteractive` is called. `runNonInteractive` no longer calls `initialize`. And `gemini.tsx` no longer calls `initialize`. This means `config.initialize()` is NEVER called in non-interactive mode. This is a critical bug. The `initialize` method sets up the FileDiscoveryService and other critical services. Without it, the CLI will likely crash or fail to function.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/nonInteractiveCli.ts</path>
+<side>right</side>
+<from>30</from>
+<to>30</to>
+<note>In `packages/cli/src/nonInteractiveCli.ts`, the `await config.initialize();` call was removed. As identified in the `gemini.tsx` analysis, `initialize` is now only called in the interactive path (likely by the UI). In non-interactive mode, `initialize` is never called. This is a critical bug because `initialize` sets up essential services like `FileDiscoveryService`. Without it, subsequent calls to methods that depend on these services will fail.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/config.ts</path>
+<side>right</side>
+<from>374</from>
+<to>375</to>
+<note>**[Code Defect]** In `packages/cli/src/config/config.ts`, the `interactive` variable is calculated using `process.stdin.isTTY`. However, `parseArguments()` is called before this calculation. If `parseArguments` or any code it calls reads `process.stdin.isTTY`, the value might be different from what is expected later. More critically, `process.stdin.isTTY` is a global state. If the CLI is run in a way that changes this state between `parseArguments` and the `interactive` calculation, the logic will be incorrect. The main bug is that `process.stdin.isTTY` is checked directly in the business logic. This is fragile. But the real bug is likely in `gemini.tsx` where `loadNonInteractiveConfig` was removed. Let's look at `gemini.tsx`.
+
+**[Security Vulnerability]** The code uses `process.stdin.isTTY` to determine interactivity. This is a heuristic that can be bypassed or spoofed in certain environments (e.g., if stdin is redirected but TTY is forced, or if an attacker controls the environment variables affecting TTY detection). While not a direct injection, relying on `isTTY` for security decisions (like excluding tools) is fragile. If an attacker can manipulate the TTY state or force interactive mode, they might bypass tool restrictions.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/config.test.ts</path>
+<side>right</side>
+<from>670</from>
+<to>671</to>
+<note>The test name was changed to 'should return an empty array when no excludeTools are specified and it is interactive', but the test logic does not verify the 'interactive' condition. It sets `process.stdin.isTTY = true` inside the test, but the `mergeExcludeTools` function in `config.ts` relies on `process.stdin.isTTY` being set BEFORE `loadCliConfig` is called (which calls `parseArguments`). Since `parseArguments` is called after `isTTY` is set, the logic might work, but the test is fragile. More importantly, the test name implies a check for interactivity, but the assertion `expect(config.getExcludeTools()).toEqual([])` only checks the result. The real issue is that the test for non-interactive mode (lines 682-696) is the one that actually tests the new logic. The test at 667 is a regression test for the old behavior but is now redundant or misleading because the logic has moved. However, looking closer, the test at 667 sets `isTTY=true` then calls `loadCliConfig`. The new logic in `loadCliConfig` checks `process.stdin.isTTY`. So this test is valid. Wait, looking at the diff, the test at 667 is `it('should return an empty array when no excludeTools are specified and it is interactive', async () => { process.stdin.isTTY = true; ... }`. This is fine. Let's look for actual bugs.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/config.test.ts</path>
+<side>right</side>
+<from>564</from>
+<to>574</to>
+<note>The test file `packages/cli/src/config/config.test.ts` has duplicate setup logic for `process.stdin.isTTY` management. The `mergeExcludeTools` describe block (lines 564-573) sets up `beforeEach`/`afterEach` hooks to save and restore `process.stdin.isTTY`. However, the newly added `loadCliConfig tool exclusions` and `loadCliConfig interactive` describe blocks (lines 1245-1330) also define their own `beforeEach`/`afterEach` hooks with identical logic for saving/restoring `originalIsTTY`. This duplication violates DRY principles and increases maintenance burden if the pattern changes.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/config.test.ts</path>
+<side>right</side>
+<from>1246</from>
+<to>1263</to>
+<note>The test block `loadCliConfig tool exclusions` in `packages/cli/src/config/config.test.ts` duplicates the setup logic for `process.stdin.isTTY` and `process.argv`/`process.env` restoration. It defines `originalArgv`, `originalEnv`, and `originalIsTTY` and restores them in `afterEach`, which is identical to the subsequent `loadCliConfig interactive` block and partially overlaps with the `mergeExcludeTools` block. This repetition makes the test file harder to maintain.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/config.ts</path>
+<side>right</side>
+<from>377</from>
+<to>380</to>
+<note>The `extraExcludes` logic relies on `interactive` and `approvalMode` to determine which tools to exclude. If `interactive` is incorrectly determined (see previous issue), the exclusion list might be empty when it shouldn't be, allowing potentially dangerous tools (Shell, Edit, Write) to run in non-interactive mode. This is a business logic flaw in security controls.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/config.ts</path>
+<side>right</side>
+<from>538</from>
+<to>541</to>
+<note>In `mergeExcludeTools`, the `extraExcludes` array is spread into a new array literal every time the function is called. While likely small, this creates a new array allocation on every config load. If `extraExcludes` is passed frequently, consider checking if it's undefined before spreading or using a more efficient set construction if the array is large.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/config.test.ts</path>
+<side>right</side>
+<from>1290</from>
+<to>1300</to>
+<note>In `packages/cli/src/config/config.test.ts`, the test 'should be interactive if prompt-interactive is set' is incomplete. The `expect` statement is cut off in the diff, but even if complete, it relies on `process.stdin.isTTY = false` set in `beforeEach` but potentially overridden or not explicitly set in the test itself, relying on implicit state. More importantly, the test name suggests checking `--prompt-interactive`, but the setup `process.stdin.isTTY = false` is from the global `beforeEach`. If the test doesn't explicitly set `process.stdin.isTTY = false` at the start, it might be relying on the `beforeEach` which sets it to `true`. Wait, the `beforeEach` sets it to `true`. So this test needs to explicitly set it to `false`. The diff shows `process.stdin.isTTY = false` is NOT present in the test body, only in the `beforeEach` which sets it to `true`. This test will likely fail or be flaky because it expects non-TTY behavior but the `beforeEach` forces TTY. Actually, looking closely, the `beforeEach` sets `process.stdin.isTTY = true`. The test does NOT override it. So `isTTY` is `true`. The test expects `isInteractive()` to be true because of `--prompt-interactive`. This is correct. However, the test is cut off in the provided diff. Assuming it's complete, it's fine. But the diff ends abruptly. I will flag the incomplete test if it's truly incomplete, but since I can't see the end, I'll skip this specific line unless I can infer. The diff ends at line 1300 with `expect(config.isInteractive()).toBe(`. This is a syntax error in the source if not completed. I will report it as a potential issue if the file is truncated, but usually diffs are complete. Let's assume it's complete and just cut off in the prompt. I will not report this as a maintainability issue if it's just a display cutoff. However, if the code is actually missing the closing parenthesis and semicolon, it's a bug. I'll skip this as it's likely a prompt truncation.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/config.ts</path>
+<side>right</side>
+<from>371</from>
+<to>371</to>
+<note>In `loadCliConfig`, `argv.promptInteractive || argv.prompt || ''` is computed and stored in `question`. This is a minor optimization issue as it's a simple property access chain, but it's done repeatedly if `loadCliConfig` were called multiple times (though the PR aims to prevent that). No major performance impact here.</note>
+</notesplit>

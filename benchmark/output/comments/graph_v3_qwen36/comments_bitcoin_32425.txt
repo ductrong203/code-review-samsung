@@ -1,0 +1,18 @@
+<notesplit>
+<path>src/init.cpp</path>
+<side>right</side>
+<from>1223</from>
+<to>1224</to>
+<note>**[Security Vulnerability]** Path Traversal / Local File Access via -proxy argument. The code extracts the host/port part of the -proxy argument by finding the last '=' and taking the substring before it. If a user provides a path like 'unix:/etc/passwd=ipv4', the code strips '=ipv4' and passes 'unix:/etc/passwd' to SplitHostPort. While SplitHostPort might reject it, the logic for stripping the suffix is flawed for paths containing '='. This allows potential manipulation of how the path is parsed or validated, potentially bypassing intended restrictions on local file paths.
+
+Potential Information Disclosure or Logic Error in Proxy Parsing. The code uses `rfind('=')` to find the network suffix. If a user provides a valid IP address or hostname that contains an '=' (unlikely but possible in some edge cases or future formats), or if the path itself contains '=', the parsing might incorrectly identify the suffix. This could lead to incorrect proxy configuration, potentially bypassing intended network restrictions.
+
+**[Performance]** String concatenation in a loop: `param_value.substr(...)` creates a new string object on every iteration of the loop over arguments. While likely not a critical bottleneck for startup, repeated string allocations in the initialization path can be optimized by using string views or checking for the suffix presence first to avoid allocation when not needed.</note>
+</notesplit>
+<notesplit>
+<path>src/init.cpp</path>
+<side>right</side>
+<from>1223</from>
+<to>1223</to>
+<note>Potential inefficient string search: `param_value.rfind('=')` is called on every iteration. If the suffix is rarely present, this search is wasted work. A check for the presence of '=' before calling substr could be slightly more efficient, though rfind is fast for short strings.</note>
+</notesplit>

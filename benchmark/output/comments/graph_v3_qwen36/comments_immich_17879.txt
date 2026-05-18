@@ -1,0 +1,51 @@
+<notesplit>
+<path>server/src/services/notification.service.ts</path>
+<side>right</side>
+<from>400</from>
+<to>400</to>
+<note>In `handleAlbumUpdate`, `this.userRepository.get` is called for every job execution. Since the new architecture creates one job per recipient, this results in N database queries for N recipients (N+1 pattern). Previously, all recipients were processed in a single job with a batched lookup. This change significantly increases database load for albums with many users.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/job.repository.ts</path>
+<side>right</side>
+<from>235</from>
+<to>240</to>
+<note>The removeJob method has an empty catch block. If the job removal fails for any reason other than 'Missing key for job' (which is now removed), the error is silently swallowed. This makes debugging difficult if the queue operation fails unexpectedly.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/notification.service.ts</path>
+<side>right</side>
+<from>189</from>
+<to>189</to>
+<note>**[Performance]** In `onAlbumUpdate`, `this.jobRepository.removeJob` is called for each recipient. This involves a database query to check for existing jobs. Previously, one removeJob call handled the entire batch. Now, for N recipients, there are N removeJob calls. This increases database load and potential contention.
+
+**[Security Vulnerability]** The `removeJob` call uses a constructed ID `${id}/${recipientId}`. If `id` or `recipientId` are not validated, this could lead to unexpected job removals if an attacker can control these values. Verify that `id` and `recipientId` are strictly controlled and not user-supplied in a way that allows manipulation.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/notification.service.ts</path>
+<side>right</side>
+<from>189</from>
+<to>193</to>
+<note>In NotificationService.onAlbumUpdate, removeJob is called before queue. If removeJob fails (e.g., network error), the queue operation might still proceed, potentially leading to duplicate jobs or inconsistent state. The error handling is missing for the removeJob call.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/notification.service.ts</path>
+<side>right</side>
+<from>381</from>
+<to>382</to>
+<note>In `handleAlbumUpdate`, `this.albumRepository.getById(id, { withAssets: false })` is called for every single recipient job. Previously, one job handled all recipients, so the album was fetched once. Now, for an album with 100 recipients, the album is fetched 100 times from the database. This is a redundant read that could be avoided.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/job.repository.ts</path>
+<side>right</side>
+<from>210</from>
+<to>210</to>
+<note>The jobId is constructed by concatenating `item.data.id` and `item.data.recipientId` with a slash separator. If these values are not sanitized, an attacker could inject characters that interfere with job queue internal logic or cause job ID collisions. Ensure `id` and `recipientId` are validated as safe strings (e.g., UUIDs) before use in job identifiers.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/notification.service.ts</path>
+<side>right</side>
+<from>400</from>
+<to>434</to>
+<note>The handleAlbumUpdate method is quite long (44 lines) and contains nested logic for checking user preferences and rendering emails. Consider extracting the email sending logic into a separate private method to improve readability and testability.</note>
+</notesplit>

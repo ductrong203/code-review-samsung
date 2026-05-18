@@ -1,0 +1,27 @@
+<notesplit>
+<path>server/src/services/metadata.service.ts</path>
+<side>right</side>
+<from>595</from>
+<to>595</to>
+<note>**[Code Defect]** The `earliestDate` method is called with `asset.fileModifiedAt` and `asset.fileCreatedAt`. If either of these properties is null or undefined, `valueOf()` will throw a TypeError, causing the metadata extraction process to crash.
+
+**[Maintainability and Readability]** The 'earliestDate' logic assumes that 'asset.fileModifiedAt' and 'asset.fileCreatedAt' are always defined. If these properties are optional or null, 'earliestDate' will throw an error when calling '.valueOf()'. The code should handle potential null/undefined values for these timestamps.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/metadata.service.ts</path>
+<side>right</side>
+<from>615</from>
+<to>617</to>
+<note>**[Performance]** The `earliestDate` method creates a new Date object unnecessarily. Since `Math.min` returns a primitive number (timestamp), you can compare the values directly or use a simple ternary operator to return the existing Date object, avoiding object allocation in this hot path.
+
+**[Maintainability and Readability]** The helper method 'earliestDate' is a simple wrapper around Math.min. While it improves readability, it is a generic utility that should ideally reside in a shared utility file rather than being a private method in MetadataService, as it could be useful elsewhere in the application.
+
+**[Security Vulnerability]** The `earliestDate` method does not validate that `a` or `b` are valid Date objects. If `asset.fileModifiedAt` or `asset.fileCreatedAt` are null or undefined, `valueOf()` will throw a TypeError, potentially causing a Denial of Service (DoS) in the metadata extraction service.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/metadata.service.ts</path>
+<side>right</side>
+<from>616</from>
+<to>616</to>
+<note>The `earliestDate` method assumes that `a` and `b` are always valid Date objects. If they are null or undefined, `valueOf()` will throw an error. The method should handle potential null values defensively.</note>
+</notesplit>

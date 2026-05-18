@@ -1,0 +1,25 @@
+<notesplit>
+<path>src/draw/lv_draw_label.c</path>
+<side>right</side>
+<from>203</from>
+<to>203</to>
+<note>**[Code Defect]** The variable base_dsc is initialized but not checked for NULL before accessing base_dsc->obj. If t->draw_dsc is NULL, this will cause a null pointer dereference.
+
+**[Performance]** The variable base_dsc is initialized but not used in the logic immediately following. While minor, unnecessary pointer dereferencing and assignment in a hot drawing path should be avoided.
+
+**[Security Vulnerability]** The code accesses base_dsc->obj without verifying if the pointer is NULL. If base_dsc is initialized but the obj field is not set, this will lead to a null pointer dereference, causing a crash (Denial of Service).</note>
+</notesplit>
+<notesplit>
+<path>src/draw/lv_draw_label.c</path>
+<side>right</side>
+<from>222</from>
+<to>222</to>
+<note>The condition 'base_dsc->obj && !lv_obj_has_flag(base_dsc->obj, LV_OBJ_FLAG_SEND_DRAW_TASK_EVENTS)' introduces a tight coupling between the drawing layer and the widget layer. The drawing layer should ideally be agnostic of specific widget flags. Consider if this logic can be abstracted into a helper function or if the draw descriptor can be populated more cleanly.</note>
+</notesplit>
+<notesplit>
+<path>src/widgets/label/lv_label_private.h</path>
+<side>right</side>
+<from>54</from>
+<to>54</to>
+<note>The new field 'text_size' is added to the private structure but lacks documentation regarding its units or coordinate system. While it is a simple point, documenting that it represents the cached text size would improve maintainability for future developers.</note>
+</notesplit>

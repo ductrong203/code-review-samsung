@@ -1,0 +1,126 @@
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1511</from>
+<to>1515</to>
+<note>In flushBuffer, the bufferStuckTimer is set to a new timeout, but the old timeout (if any) is never cleared. If flushBuffer is called multiple times rapidly, multiple timers will fire, causing multiple captureTerminalHang calls for the same stuck buffer. The timer should be cleared before setting a new one.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1512</from>
+<to>1515</to>
+<note>Resource leak: bufferStuckTimer is created in flushBuffer but not cleared when flushBuffer is called recursively or when the outer process completes. If flushBuffer is called again before the timeout fires, the old timer continues running and fires after the new flush completes, causing a duplicate telemetry event. The timer should be cleared at the start of flushBuffer or stored in a way that allows cleanup.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1577</from>
+<to>1583</to>
+<note>In executeCommandTool, the completionTimer is set to a new timeout, but the old timeout (if any) is never cleared. If process.once('completed') is called multiple times (which shouldn't happen per EventEmitter semantics, but if the code path is re-entered or if there's a race), multiple timers could fire. More importantly, if the process completes before the timer fires, the timer is cleared in the 'completed' handler, but if the process never emits 'completed' and the function exits early, the timer may leak. The timer should be cleared before setting a new one for safety.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1578</from>
+<to>1583</to>
+<note>Resource leak: completionTimer is created but may not be cleared in all code paths. If the process completes via the 'completed' event, the timer is cleared. However, if the process errors out or is aborted before emitting 'completed', the completionTimer may never be cleared, causing it to fire after the process has already finished. This leads to duplicate telemetry events and potential use-after-free issues.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1496</from>
+<to>1496</to>
+<note>Magic number 6000 used for BUFFER_STUCK_TIMEOUT_MS without a named constant or configuration. This makes it hard to adjust the timeout value later. Consider extracting this to a configuration constant or using a named constant like BUFFER_STUCK_TIMEOUT_MS = 6000 to make the intent clearer.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1530</from>
+<to>1538</to>
+<note>The catch block calls telemetryService.captureTerminalHang but does not clear the bufferStuckTimer. If an error occurs in the try block, the timer continues running and will fire after the error is caught, leading to a duplicate or stale telemetry event. The finally block clears the timer, but the catch block should also clear it to ensure immediate cleanup.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1575</from>
+<to>1575</to>
+<note>Magic number 6000 used for COMPLETION_TIMEOUT_MS without a named constant or configuration. This makes it hard to adjust the timeout value later. Consider extracting this to a configuration constant or using a named constant like COMPLETION_TIMEOUT_MS = 6000 to make the intent clearer.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1512</from>
+<to>1515</to>
+<note>In flushBuffer function in index.ts, the bufferStuckTimer is set but not cleared in all code paths. If the try block throws an exception before reaching the finally block's clearTimeout, the timer will remain active. The finally block does clear it, but if an error occurs before the try block completes, the timer might not be cleared properly. Consider moving the clearTimeout to a more robust cleanup pattern.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1578</from>
+<to>1583</to>
+<note>In executeCommandTool function in index.ts, the completionTimer is set but not cleared in all code paths. If the process.once('completed') handler is never called, the timer will remain active. The finally block does clear it, but if an error occurs before the try block completes, the timer might not be cleared properly. Consider moving the clearTimeout to a more robust cleanup pattern.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1530</from>
+<to>1532</to>
+<note>In the catch block of flushBuffer, captureTerminalHang is called for STREAM_TIMEOUT. However, this catch block catches errors from this.ask('command_output', chunk). This might not always be a 'stream timeout' — it could be any error (network, parsing, etc.). The telemetry event name 'STREAM_TIMEOUT' may be misleading if the actual error is different. Consider using a more generic failure reason or inspecting the error type.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/terminal/TerminalProcess.ts</path>
+<side>right</side>
+<from>191</from>
+<to>203</to>
+<note>In TerminalProcess.ts, when shell integration produces no output, captureTerminalOutputFailure is called with TIMEOUT, then the fallback is tried. If the fallback works, captureTerminalExecution is called with success=true. However, if the fallback also fails, captureTerminalExecution is called with success=false. This means both a failure event and an execution event are logged for the same attempt. This could lead to double-counting in analytics. Consider whether both events should be logged or if the execution event should only be logged on success.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/terminal/TerminalProcess.ts</path>
+<side>right</side>
+<from>194</from>
+<to>205</to>
+<note>Multiple synchronous telemetry calls are made in sequence without batching. Each captureTerminalOutputFailure and captureTerminalExecution call triggers a telemetry event. If these are called frequently (e.g., for every terminal command), this could create a performance bottleneck due to repeated I/O or network calls. Consider batching these calls or using a debounced approach.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/terminal/TerminalProcess.ts</path>
+<side>right</side>
+<from>217</from>
+<to>237</to>
+<note>In TerminalProcess.ts, when there's no shell integration, captureTerminalOutputFailure is called with NO_SHELL_INTEGRATION, then the fallback is tried. If the fallback works, captureTerminalExecution is called with success=true. If it fails, captureTerminalExecution is called with success=false. Similar to the previous issue, both failure and execution events are logged. Additionally, the NO_SHELL_INTEGRATION reason might not be a 'failure' — it's an expected condition when shell integration is not available. This could inflate failure metrics.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/terminal/TerminalProcess.ts</path>
+<side>right</side>
+<from>228</from>
+<to>237</to>
+<note>Similar to the previous issue, multiple synchronous telemetry calls are made in sequence. Each captureTerminalOutputFailure and captureTerminalExecution call triggers a telemetry event. If these are called frequently, this could create a performance bottleneck. Consider batching these calls or using a debounced approach.</note>
+</notesplit>
+<notesplit>
+<path>src/services/telemetry/TelemetryService.ts</path>
+<side>right</side>
+<from>959</from>
+<to>959</to>
+<note>The captureTerminalExecution method in TelemetryService.ts has a hardcoded method parameter type "shell_integration" | "clipboard" | "none". This should be extracted to an enum or constant for better maintainability and to prevent typos.</note>
+</notesplit>
+<notesplit>
+<path>src/services/telemetry/TelemetryService.ts</path>
+<side>right</side>
+<from>973</from>
+<to>973</to>
+<note>The captureTerminalOutputFailure method in TelemetryService.ts uses TerminalOutputFailureReason enum but doesn't validate the input. Consider adding input validation to ensure only valid enum values are passed.</note>
+</notesplit>
+<notesplit>
+<path>src/services/telemetry/TelemetryService.ts</path>
+<side>right</side>
+<from>986</from>
+<to>986</to>
+<note>The captureTerminalUserIntervention method in TelemetryService.ts uses TerminalUserInterventionAction enum but doesn't validate the input. Consider adding input validation to ensure only valid enum values are passed.</note>
+</notesplit>
+<notesplit>
+<path>src/services/telemetry/TelemetryService.ts</path>
+<side>right</side>
+<from>999</from>
+<to>999</to>
+<note>The captureTerminalHang method in TelemetryService.ts uses TerminalHangStage enum but doesn't validate the input. Consider adding input validation to ensure only valid enum values are passed.</note>
+</notesplit>

@@ -143,6 +143,93 @@ Các loại edge phổ biến:
 Edge là thành phần giúp hệ thống đi từ "dòng code này thay đổi" sang "caller,
 callee, test, flow và vùng rủi ro nào liên quan".
 
+## Ví Dụ Dễ Hiểu Về Node Và Edge
+
+Có thể hiểu code graph như một bản đồ của codebase:
+
+- Node là một thực thể trong code, ví dụ file, class, function hoặc test.
+- Edge là quan hệ giữa các thực thể đó, ví dụ file chứa function, function A gọi
+  function B, hoặc test kiểm thử function X.
+
+Ví dụ:
+
+```python
+# app/user_service.py
+
+from app.email import send_email
+
+class UserService:
+    def create_user(self, email):
+        user = save_user(email)
+        send_email(email)
+        return user
+```
+
+```python
+# tests/test_user_service.py
+
+def test_create_user():
+    service = UserService()
+    user = service.create_user("a@example.com")
+    assert user.email == "a@example.com"
+```
+
+Graph có thể biểu diễn thành:
+
+```text
+File app/user_service.py
+  CONTAINS -> Class UserService
+  CONTAINS -> Function UserService.create_user
+
+Function UserService.create_user
+  CALLS -> Function save_user
+  CALLS -> Function send_email
+
+File tests/test_user_service.py
+  CONTAINS -> Test test_create_user
+
+Test test_create_user
+  TESTED_BY / covers -> Function UserService.create_user
+```
+
+Nếu PR sửa dòng trong `create_user`, hệ thống sẽ:
+
+1. Map changed line trong diff vào node `Function UserService.create_user`.
+2. Tìm các function gọi tới nó qua incoming `CALLS` edge.
+3. Tìm các function nó gọi ra ngoài qua outgoing `CALLS` edge.
+4. Tìm test liên quan qua `TESTED_BY`.
+5. Nếu function quan trọng nhưng không có test, đưa vào `test_gaps`.
+6. Kết hợp số caller, test coverage, affected flow và tên function để tính
+   `risk_score`.
+
+Ví dụ `graph_context` rút gọn:
+
+```json
+{
+  "changed_functions": [
+    {
+      "name": "create_user",
+      "file": "app/user_service.py",
+      "line_start": 6,
+      "line_end": 10,
+      "callers": ["SignupAPI.post", "AdminController.register_user"],
+      "callees": ["save_user", "send_email"],
+      "tests": ["test_create_user"],
+      "is_untested": false,
+      "risk_score": 0.7
+    }
+  ]
+}
+```
+
+Điểm khác biệt so với review chỉ nhìn diff:
+
+```text
+Diff-only: Dòng này bị sửa.
+Graph-aware: Dòng này thuộc function nào, được ai gọi, gọi tới đâu,
+có test cover không, ảnh hưởng flow nào, và rủi ro lan truyền rộng hay hẹp.
+```
+
 ## Build hoặc Update PR Graph
 
 PR graph có thể được build trực tiếp:

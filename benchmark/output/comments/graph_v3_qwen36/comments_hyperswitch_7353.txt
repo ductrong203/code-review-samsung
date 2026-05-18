@@ -1,0 +1,67 @@
+<notesplit>
+<path>crates/api_models/src/payments.rs</path>
+<side>right</side>
+<from>5310</from>
+<to>5310</to>
+<note>**[Code Defect]** The field `recurring_details` in `ResponsePaymentMethodIntermediate` (or similar struct) is changed from `ProcessorPaymentToken` to `mandates::ProcessorPaymentToken`. If `ProcessorPaymentToken` was previously in scope or defined in the same module, this change is necessary. However, if `mandates::ProcessorPaymentToken` is not the correct type or if the struct `ResponsePaymentMethodIntermediate` is not the one intended, this could be a type mismatch. The diff shows `use crate::mandates;` and `mandates::ProcessorPaymentToken`. This looks like a correct namespace qualification. No obvious bug here unless `ProcessorPaymentToken` in `mandates` is different from the old one.
+
+**[Maintainability and Readability]** The field `recurring_details` in `ResponsePaymentMethodIntermediate` now uses a fully qualified path `mandates::ProcessorPaymentToken`. While correct, this makes the struct definition slightly more verbose. If `mandates` is not imported at the top level, consider importing `ProcessorPaymentToken` directly to keep struct definitions cleaner.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/events/payment.rs</path>
+<side>right</side>
+<from>269</from>
+<to>272</to>
+<note>The implementation for `ApiEventMetric` on `PaymentMethodDeleteResponse` under `feature = "v2"` accesses `self.id`, but the struct `PaymentMethodDeleteResponse` only has a `payment_method_id` field. This will cause a compilation error because the field `id` does not exist on this type.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/events/payment.rs</path>
+<side>right</side>
+<from>280</from>
+<to>283</to>
+<note>The implementation for `ApiEventMetric` on `PaymentMethodDeleteResponse` under `feature = "v1"` accesses `self.payment_method_id`, which is correct. However, the diff shows the struct name changed from `PaymentMethodDeleteResponse` to `payment_methods::PaymentMethodDeleteResponse`. If `PaymentMethodDeleteResponse` is not re-exported or imported at the top level, this might be a scope issue, but more critically, the `v2` block above has the wrong field. This block looks syntactically correct regarding the field, but the context_level is file because we need to verify the struct definition.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/events/payment.rs</path>
+<side>right</side>
+<from>290</from>
+<to>290</to>
+<note>The `impl ApiEventMetric for payment_methods::CustomerPaymentMethodsListResponse {}` is empty. While valid Rust, it might be a logic error if the intention was to implement a method that returns something, or if it was previously doing something else. However, looking at the diff, the previous version was `impl ApiEventMetric for CustomerPaymentMethodsListResponse {}`. The change is just the path. If the struct `CustomerPaymentMethodsListResponse` is not in scope or not in `payment_methods`, this will fail. More importantly, if `ApiEventMetric` requires a method implementation and this is just a stub, it might be fine. But wait, looking at `payment_methods.rs`, `CustomerPaymentMethodsListResponse` is defined there. The issue is likely that `CustomerPaymentMethodsListResponse` is not exported or accessible as `payment_methods::CustomerPaymentMethodsListResponse` if it's not pub. Let's look at `payment_methods.rs`. It defines `CustomerPaymentMethodsListResponse`. It seems accessible. The real bug is likely in the `v2` block for `PaymentMethodDeleteResponse`.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/events/refund.rs</path>
+<side>right</side>
+<from>26</from>
+<to>29</to>
+<note>The implementation for `ApiEventMetric` on `RefundsCreateRequest` under `feature = "v2"` accesses `self` but the struct `RefundsCreateRequest` might not have the fields expected if the struct definition changed or if this is a new struct. However, the body is `None`, so it doesn't access fields. The issue is that `RefundsCreateRequest` is now referenced as `refunds::RefundsCreateRequest`. If this struct is not in the `refunds` module or not public, this will fail. Looking at the diff, `RefundsCreateRequest` was previously imported directly. Now it's accessed via `refunds::`. This is a namespace change. If `RefundsCreateRequest` is not defined in `refunds.rs` or re-exported, this breaks. In `refunds.rs`, `RefundsCreateRequest` is likely defined. This is a potential compilation error if the path is wrong.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/payments.rs</path>
+<side>right</side>
+<from>8583</from>
+<to>8587</to>
+<note>The method `get_payment_token_for_api_request` returns `mandates::ProcessorPaymentToken`. The construction `mandates::ProcessorPaymentToken { ... }` is used. If `ProcessorPaymentToken` in `mandates` has a different set of fields or if the fields being assigned (`processor_payment_token`) are not present, this will cause a compilation error. This is a high-risk change as it affects the API contract of the method.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/events/payment.rs</path>
+<side>right</side>
+<from>9</from>
+<to>18</to>
+<note>**[Maintainability and Readability]** The import block for `crate::payments` has become excessively long, listing over 15 items on a single logical block. This reduces readability and makes diffs noisy. It should be split into multiple lines or grouped by relevance.
+
+**[Performance]** The import block for `crate::payments` has become very large, importing many types that may not all be used in this file. While this is primarily a style/clarity issue, excessive imports can slightly increase compile times. Verify that all imported types are actually used in the file.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/events/payment.rs</path>
+<side>right</side>
+<from>269</from>
+<to>270</to>
+<note>The implementation `impl ApiEventMetric for payment_methods::PaymentMethodDeleteResponse` is duplicated for both `v1` and `v2` features with identical logic. This violates DRY principles. The `#[cfg]` attributes should be combined or the implementation moved outside the feature-gated blocks if the logic is identical.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/events/payment.rs</path>
+<side>right</side>
+<from>19</from>
+<to>31</to>
+<note>The second import block for `crate::payments` also contains many types. Combined with the first block, this file imports a significant number of types from `payments`. Ensure all are necessary.</note>
+</notesplit>

@@ -1,0 +1,50 @@
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANATable.java</path>
+<side>right</side>
+<from>157</from>
+<to>160</to>
+<note>**[Code Defect]** The null check for `dbResult` is placed AFTER `JDBCUtils.safeGetInt` is called. If `dbResult` is null, `safeGetInt` will likely throw a NullPointerException before the null check can catch it. The null check should be performed before accessing the result set.
+
+**[Maintainability and Readability]** Dead code / Unreachable check in `fetchObject`. The `dbResult` parameter is checked for null after it has already been used implicitly by the JDBC driver or passed to the constructor. If `dbResult` is null, the previous line `session.prepareStatement` or the call to `HANAPartition` constructor would likely fail or throw before this check is reached, or the loop logic ensures it's never null. This check is likely ineffective.
+
+**[Security Vulnerability]** Redundant null check in HANATable.PartitionCache.fetchObject. The check 'if (dbResult == null)' is placed after JDBCUtils.safeGetInt has already been called. JDBCUtils.safeGetInt likely handles null results gracefully, making this check redundant. If dbResult is null, JDBCUtils.safeGetInt might throw a NullPointerException before the check is reached, or the check might never be reached. This is a minor code quality issue rather than a security vulnerability.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANAPartition.java</path>
+<side>right</side>
+<from>70</from>
+<to>79</to>
+<note>Code duplication in range start/end assignment. The logic to fetch LEVEL_1, LEVEL_2, and LEVEL_3 range values is repeated in a nested if-else structure. This should be abstracted into a helper method or a loop to reduce redundancy and improve maintainability.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANATable.java</path>
+<side>right</side>
+<from>142</from>
+<to>145</to>
+<note>**[Maintainability and Readability]** Magic strings in SQL query. The SQL query in `prepareObjectsStatement` contains hardcoded column names and table aliases (`M_CS_TABLES`, `TABLE_PARTITIONS`, `tp`, `mcs`) without comments explaining their origin or purpose. This makes the query hard to understand and maintain.
+
+**[Security Vulnerability]** SQL Injection vulnerability in HANATable.PartitionCache.prepareObjectsStatement. The SQL query uses string concatenation to build the query string, but the parameters are correctly passed using setString. However, the query construction itself is complex and spans multiple lines, increasing the risk of future injection if someone modifies the concatenation logic. The current implementation is safe because it uses parameterized queries for the actual values (table.getName() and table.getContainer().getName()), but the multi-line string concatenation style is error-prone.
+
+**[Performance]** The SQL query string is constructed using string concatenation with newlines inside the method `prepareObjectsStatement`. This method is called every time the partition cache is refreshed. While the concatenation itself is minor, constructing the SQL string repeatedly is less efficient than defining it as a static final constant. Additionally, the query selects `tp.*` which retrieves all columns from `TABLE_PARTITIONS`, potentially including unused data, increasing network and memory overhead.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANATable.java</path>
+<side>right</side>
+<from>142</from>
+<to>147</to>
+<note>In the SQL query within `prepareObjectsStatement`, the parameters are set in the wrong order. The query uses `?` for `TABLE_NAME` first and `SCHEMA_NAME` second. However, `dbStat.setString(1, table.getName())` sets the table name, and `dbStat.setString(2, table.getContainer().getName())` sets the schema name. This matches the query order. Wait, looking closer: `WHERE tp.TABLE_NAME = ? AND tp.SCHEMA_NAME = ?`. The first `?` is for `TABLE_NAME`, the second for `SCHEMA_NAME`. The code sets `1` to `table.getName()` and `2` to `table.getContainer().getName()`. This is actually correct. However, the join condition `mcs.SCHEMA_NAME=tp.SCHEMA_NAME AND mcs.TABLE_NAME=tp.TABLE_NAME AND mcs.PART_ID=tp.PART_ID` is also correct. The issue is that `HANATable` might not always have a valid container or name, but that's a broader context issue. Let's look for a clearer bug. Ah, the `visibleIf` annotation on `getName`, `getTableType`, `getSchema`, and `getDescription` uses `HANANotPartitionedTable.class`. This validator checks `!(object instanceof HANAPartition)`. Since `HANATable` is the object being validated, and `HANAPartition` extends `HANATable`, this validator will return `false` for `HANAPartition` instances, effectively hiding these properties when the table is partitioned. This is likely intentional to avoid showing base table properties on partition rows, but it might cause issues if `HANATable` is used directly for non-partitioned tables and the validator is called on the `HANATable` instance itself. The validator `isValidValue` takes `HANATable object` and checks `!(object instanceof HANAPartition)`. If `object` is a `HANATable` (not a `HANAPartition`), it returns `true`. If `object` is a `HANAPartition`, it returns `false`. This seems correct for hiding properties on partition objects. No obvious bug here.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANAPartition.java</path>
+<side>right</side>
+<from>72</from>
+<to>79</to>
+<note>In the `HANAPartition` constructor, there are three sequential `if` blocks checking for empty range start values to fallback to different level ranges. This implies a linear search through potential range columns. If the table has many partitions, this logic runs for each partition. While not O(n^2), it is a repeated conditional check that could be optimized if the range structure is known or if a single query could fetch the correct range column directly.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANATable.java</path>
+<side>right</side>
+<from>70</from>
+<to>94</to>
+<note>Code duplication / Redundant overrides. The methods `getName`, `getTableType`, `getSchema`, and `getDescription` in `HANATable` simply delegate to `super` methods. While they have `@Property` annotations, this creates a layer of indirection that might be unnecessary if the parent class already exposes these properties correctly. If the annotations are required for UI visibility, this is acceptable, but it adds boilerplate.</note>
+</notesplit>

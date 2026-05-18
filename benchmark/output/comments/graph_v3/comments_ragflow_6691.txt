@@ -1,0 +1,42 @@
+<notesplit>
+<path>graphrag/general/extractor.py</path>
+<side>right</side>
+<from>204</from>
+<to>204</to>
+<note>**[Code Defect]** The list.extend() method in Python modifies the list in-place and returns None. Calling sorted(set(node0_attrs['source_id'].extend(...))) will result in a TypeError because set() cannot be called on None.
+
+**[Performance]** The list.extend() method returns None in Python. Calling sorted(set(node0_attrs['source_id'].extend(...))) will result in a TypeError or incorrect data because the list is modified in-place and the expression evaluates to None. This logic is also inefficient as it creates multiple intermediate list/set objects.
+
+**[Maintainability and Readability]** The list.extend() method returns None in Python, so calling sorted(set(list.extend(...))) will result in a TypeError or incorrect data. The logic should be split into separate steps: extend the list, then sort the unique values.
+
+**[Security Vulnerability]** The use of list.extend() returns None in Python. Calling sorted(set(node0_attrs['source_id'].extend(...))) will result in a TypeError because it attempts to pass None to set(). This is a functional bug that can lead to application crashes or denial of service during graph processing.</note>
+</notesplit>
+<notesplit>
+<path>graphrag/general/extractor.py</path>
+<side>right</side>
+<from>216</from>
+<to>216</to>
+<note>**[Code Defect]** The list.extend() method returns None. Calling sorted(set(edge0_attrs[attr].extend(...))) will cause a TypeError because set() cannot be called on None.
+
+**[Performance]** Similar to the previous issue, list.extend() returns None. Using it inside sorted(set(...)) will cause a runtime error. This pattern is repeated for both 'keywords' and 'source_id'.
+
+**[Maintainability and Readability]** Similar to the previous issue, list.extend() returns None. Using it inside sorted(set(...)) will cause a runtime error. The list must be extended first, then processed.
+
+**[Security Vulnerability]** Similar to the previous issue, list.extend() returns None. Calling sorted(set(edge0_attrs[attr].extend(...))) will cause a TypeError, leading to potential service disruption during graph edge merging.</note>
+</notesplit>
+<notesplit>
+<path>graphrag/entity_resolution.py</path>
+<side>right</side>
+<from>114</from>
+<to>114</to>
+<note>The lambda function passed to nursery.start_soon captures the loop variable 'merging_nodes' by reference. In Python, this leads to all tasks potentially using the value of 'merging_nodes' from the final iteration of the loop.</note>
+</notesplit>
+<notesplit>
+<path>graphrag/utils.py</path>
+<side>right</side>
+<from>442</from>
+<to>442</to>
+<note>**[Performance]** The code spawns a new thread for every single edge deletion in a loop using nursery.start_soon. If removed_edges is large, this will cause significant thread overhead and context switching. Batching these deletions into a single operation or a smaller number of chunks would be significantly more performant.
+
+**[Maintainability and Readability]** The lambda function inside nursery.start_soon is becoming overly complex and nested. This reduces readability and makes debugging difficult. Extract this logic into a named helper function.</note>
+</notesplit>

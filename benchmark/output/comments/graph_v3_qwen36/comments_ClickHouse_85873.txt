@@ -1,0 +1,64 @@
+<notesplit>
+<path>src/Functions/base64URLDecode.cpp</path>
+<side>right</side>
+<from>43</from>
+<to>43</to>
+<note>The function `base64URLDecode` registers `FunctionBase64Decode` instead of `FunctionBase64URLDecode`. This is a copy-paste error that causes the wrong function implementation to be registered, leading to incorrect behavior for URL-safe base64 decoding.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/base64URLDecode.cpp</path>
+<side>right</side>
+<from>27</from>
+<to>27</to>
+<note>**[Maintainability and Readability]** The argument description for 'encoded' incorrectly states 'to encode' instead of 'to decode'. This is a copy-paste error from the base64Encode function that misleads users about the function's behavior.
+
+**[Code Defect]** The argument description for `base64URLDecode` says 'to encode' instead of 'to decode'. This is a documentation error that misleads users about the function's purpose.
+
+**[Security Vulnerability]** The documentation for base64URLDecode incorrectly states 'String column or constant to encode' instead of 'decode'. This is a documentation error that could mislead users about the function's purpose, potentially causing misuse of the function in security-sensitive contexts.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/base64Encode.cpp</path>
+<side>right</side>
+<from>26</from>
+<to>26</to>
+<note>**[Maintainability and Readability]** The argument description for 'plaintext' incorrectly states 'to decode' instead of 'to encode'. This is a copy-paste error from the base64Decode function that misleads users about the function's behavior.
+
+**[Code Defect]** The argument description for `base64Encode` says 'to decode' instead of 'to encode'. This is a documentation error that misleads users about the function's purpose.
+
+**[Security Vulnerability]** The documentation for base64Encode incorrectly states 'Plaintext column or constant to decode' instead of 'encode'. This is a documentation error that could mislead users about the function's purpose, potentially causing misuse of the function in security-sensitive contexts.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/base64URLDecode.cpp</path>
+<side>right</side>
+<from>45</from>
+<to>45</to>
+<note>The function registration call registers 'FunctionBase64Decode' instead of 'FunctionBase64URLDecode'. This is a copy-paste error that will likely cause a compilation error or register the wrong function type.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/concatWithSeparator.cpp</path>
+<side>right</side>
+<from>186</from>
+<to>186</to>
+<note>The syntax string contains a typo: 'exp1' should be 'expr1' to match the parameter name used in the description and examples. Inconsistent naming reduces readability.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/concatWithSeparator.cpp</path>
+<side>right</side>
+<from>216</from>
+<to>216</to>
+<note>The syntax string for the injective variant contains a typo: 'exp1' should be 'expr1' to match the parameter name used in the description and examples. Inconsistent naming reduces readability.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/concat.cpp</path>
+<side>right</side>
+<from>253</from>
+<to>321</to>
+<note>The REGISTER_FUNCTION block for 'concat' now contains large string literals for documentation (approx. 70 lines). This documentation is constructed at runtime every time the function is registered (likely at startup). While not a hot path, constructing large string literals and complex nested objects during initialization can add to startup time and memory usage unnecessarily. Consider moving these large documentation strings to static constexpr or separate static variables to avoid repeated allocation during registration.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/concatWithSeparator.cpp</path>
+<side>right</side>
+<from>183</from>
+<to>262</to>
+<note>The REGISTER_FUNCTION block for 'concatWithSeparator' now contains large string literals for documentation (approx. 85 lines). This documentation is constructed at runtime every time the function is registered. Constructing large string literals and complex nested objects during initialization adds to startup time and memory usage. Consider moving these large documentation strings to static constexpr or separate static variables.</note>
+</notesplit>

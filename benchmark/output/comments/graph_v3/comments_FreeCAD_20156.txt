@@ -1,0 +1,58 @@
+<notesplit>
+<path>src/Gui/SoDatumLabel.cpp</path>
+<side>right</side>
+<from>1446</from>
+<to>1446</to>
+<note>The change from 0.2F * std::abs(range) to 0.2F * range removes the absolute value check. If 'range' is negative, textMargin becomes negative, which can lead to incorrect layout calculations or rendering artifacts in the SoDatumLabel.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Spreadsheet/App/PropertySheet.cpp</path>
+<side>right</side>
+<from>2303</from>
+<to>2303</to>
+<note>**[Performance]** The change from .c_str() to passing the full std::string object by value into identifiers.emplace_back() causes an unnecessary heap allocation and string copy. Since identifiers likely stores strings, passing the temporary string object by value forces a copy of the underlying buffer.
+
+Similar to the previous instance, passing the result of cellName.toString() by value into emplace_back causes an unnecessary heap allocation and copy of the string data.</note>
+</notesplit>
+<notesplit>
+<path>src/Base/StackWalker.cpp</path>
+<side>right</side>
+<from>814</from>
+<to>816</to>
+<note>Using assert(false) for unreachable code is acceptable, but in modern C++ (C++23), std::unreachable() is preferred for better compiler optimization and intent. The comment suggests this, but the code should ideally use the standard feature if the project environment allows it.</note>
+</notesplit>
+<notesplit>
+<path>src/Base/StackWalker.cpp</path>
+<side>right</side>
+<from>1472</from>
+<to>1472</to>
+<note>The use of _snprintf_s with format specifiers like %ld for pointers or potentially mismatched types can lead to buffer truncation or incorrect output in diagnostic logs. While this is a diagnostic tool, incorrect formatting can hide critical security information during debugging or incident response.</note>
+</notesplit>
+<notesplit>
+<path>src/Base/StackWalker.cpp</path>
+<side>right</side>
+<from>1484</from>
+<to>1485</to>
+<note>Incorrect format specifiers for file version components (using %ld for what are likely 16-bit or 32-bit unsigned integers) can lead to misleading log output. In security-sensitive logging, accurate version reporting is essential for identifying vulnerable components.</note>
+</notesplit>
+<notesplit>
+<path>src/Gui/Dialogs/DlgPreferencePackManagementImp.cpp</path>
+<side>right</side>
+<from>129</from>
+<to>129</to>
+<note>The lambda capture list was changed from [this, name, item] to [this, item]. If 'name' was previously used inside the lambda, this change will break the code. If 'name' is unused, it should be removed from the function scope entirely to avoid dead code.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>right</side>
+<from>1545</from>
+<to>1545</to>
+<note>Swallowing exceptions by catching them and only logging a warning without rethrowing or handling the failure state can lead to silent data corruption or inconsistent application state. Ensure that the 'node' failure is truly recoverable.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/Geometry.cpp</path>
+<side>right</side>
+<from>1718</from>
+<to>1718</to>
+<note>Catching exceptions by reference without naming the exception object makes it impossible to log or inspect the error details. Even if the error is handled, logging the exception message is critical for maintainability.</note>
+</notesplit>

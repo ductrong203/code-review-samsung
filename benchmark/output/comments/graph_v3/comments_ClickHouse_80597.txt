@@ -1,0 +1,23 @@
+<notesplit>
+<path>src/Storages/MergeTree/KeyCondition.cpp</path>
+<side>right</side>
+<from>2916</from>
+<to>2917</to>
+<note>The `is_always_monotonic_chain` lambda checks monotonicity using an empty `Field` object. `func->getMonotonicityForRange` requires the actual range of the data to determine if a function is monotonic over that specific range. Using an empty field (default constructor) is incorrect for range-based monotonicity checks and will likely return false or incorrect results for functions that are only monotonic over specific intervals.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/MergeTree/KeyCondition.cpp</path>
+<side>right</side>
+<from>2905</from>
+<to>2922</to>
+<note>**[Performance]** The lambda 'is_always_monotonic_chain' is defined and called inside a loop over 'rpn'. This function performs multiple virtual calls (hasInformationAboutMonotonicity, getArgumentTypes, getMonotonicityForRange) for every element in the RPN. Since 'rpn' can be large, this repeated overhead is inefficient. The monotonicity check should be cached or pre-calculated if possible, or at least the lambda should be hoisted to avoid re-definition.
+
+**[Maintainability and Readability]** The lambda 'is_always_monotonic_chain' is defined inside 'matchesExactContinuousRange' but contains logic that is likely reusable elsewhere in the codebase. Moving this to a helper function or a static method would improve maintainability and testability.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/MergeTree/KeyCondition.cpp</path>
+<side>right</side>
+<from>2924</from>
+<to>2938</to>
+<note>The loop over 'rpn' contains nested logic that checks for monotonic chains and set index mappings. This increases the cyclomatic complexity of 'matchesExactContinuousRange'. The logic for validating the RPN element's monotonicity should be encapsulated.</note>
+</notesplit>

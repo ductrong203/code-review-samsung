@@ -1,0 +1,7 @@
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>613</from>
+<to>613</to>
+<note>The code in Command.cpp at line 613 is truncated and incomplete, resulting in a syntax error that will prevent compilation. The call to qApp->translate is cut off.</note>
+</notesplit>

@@ -1,0 +1,37 @@
+<notesplit>
+<path>tsl/src/continuous_aggs/refresh.c</path>
+<side>right</side>
+<from>1224</from>
+<to>1226</to>
+<note>The logic for identifying the first/last batch to apply the 'no-end' or 'no-start' boundary conditions is incorrect when refresh_newest_first is false. The original code used 'i == 0' and 'i == (SPI_processed - 1)', but the new logic uses 'batch == 0' and 'batch == (SPI_processed - 1)' combined with the boolean flag. When refresh_newest_first is false, the order is reversed, so the boundary conditions must be swapped.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/continuous_aggs/refresh.c</path>
+<side>right</side>
+<from>1237</from>
+<to>1239</to>
+<note>Similar to the end-boundary logic, the start-boundary logic is incorrectly indexed when refresh_newest_first is false. The condition must correctly identify the first or last batch based on the sort order to apply the 'no-begin' boundary.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/continuous_aggs/refresh.c</path>
+<side>right</side>
+<from>1145</from>
+<to>1147</to>
+<note>**[Performance]** The query string is constructed using psprintf with dynamic formatting for ORDER BY clauses. While functional, this approach forces the database to re-parse and re-plan the query every time the policy executes because the query text changes based on the 'refresh_newest_first' flag. This prevents the use of prepared statement caches for this query.
+
+**[Maintainability and Readability]** The SQL query construction uses string formatting with psprintf to inject ORDER BY clauses. This pattern is error-prone and hard to read. It is better to define the full query strings as constants or use a more structured approach to query building to avoid potential injection or maintenance issues.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/bgw_policy/continuous_aggregate_api.c</path>
+<side>right</side>
+<from>535</from>
+<to>537</to>
+<note>The function 'policy_refresh_cagg_add_internal' now has 8 parameters. This exceeds the recommended limit of 5, making the function signature difficult to manage and prone to errors when adding new options. Consider grouping these parameters into a configuration struct.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/continuous_aggs/refresh.c</path>
+<side>right</side>
+<from>1224</from>
+<to>1230</to>
+<note>The logic for determining the first/last batch boundary is highly complex and relies on nested ternary operators and boolean arithmetic. This is difficult to read and maintain. It should be refactored into a helper function or simplified with clearer conditional blocks.</note>
+</notesplit>

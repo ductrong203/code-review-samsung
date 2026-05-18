@@ -1,0 +1,187 @@
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>678</from>
+<to>683</to>
+<note>In PartFeature.cpp, the function getTopoShape is being refactored. The old signature was getTopoShape(obj, subname, needSubElement, pmat, powner, resolveLink, transform, noElementMap). The new signature is getTopoShape(obj, options, subname, pmat, powner). In the call at line 673-674, the old code was: getTopoShape(obj, subname, false, nullptr, nullptr, true, false). This means: subname=subname, needSubElement=false, pmat=nullptr, powner=nullptr, resolveLink=true, transform=false. The new code is: getTopoShape(obj, ShapeOption::ResolveLink, subname, nullptr, nullptr). This sets options=ResolveLink (which is 2), subname=subname, pmat=nullptr, powner=nullptr. The options only include ResolveLink, so NeedSubElement is false (correct), Transform is false (correct), NoElementMap is false (correct). This matches the original call. However, looking at line 677-682, the call to getTopoShape(src, srcSub, false, nullptr, &owner) is changed to getTopoShape(src, ShapeOption::ResolveLink | ShapeOption::Transform, srcSub, nullptr, &owner). The original had resolveLink=false, transform=false. The new code has ResolveLink | Transform which is true for both. This is a behavior change. The original call was getTopoShape(src, srcSub, false, nullptr, &owner, false, false) which means resolveLink=false, transform=false. The new call is getTopoShape(src, ResolveLink | Transform, srcSub, nullptr, &owner) which means resolveLink=true, transform=true. This is incorrect.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>911</from>
+<to>917</to>
+<note>**[Code Defect]** In PartFeature.cpp, the internal _getTopoShape function signature is changed. The old signature was _getTopoShape(obj, subname, needSubElement, pmat, powner, resolveLink, transform, noElementMap, hiddens, lastLink). The new signature is _getTopoShape(obj, options, subname, pmat, powner, hiddens, lastLink). The old code had 10 parameters, the new code has 8 parameters. The options parameter combines needSubElement, resolveLink, transform, and noElementMap into a single bitmask. This is a significant refactoring. Looking at the calls to _getTopoShape, they need to be updated to use the new signature. The diff shows that the calls to getTopoShape (the public API) are updated, but the internal _getTopoShape calls are not shown in the diff. This suggests that the internal calls might not have been updated, which would cause compilation errors or incorrect behavior.
+
+**[Maintainability and Readability]** In src/Mod/Part/App/PartFeature.cpp, the function _getTopoShape has a significantly changed signature. The parameter list was refactored from individual boolean flags (needSubElement, resolveLink, transform, noElementMap) to a single ShapeOptions bitmask. This is a major interface change that affects the internal logic of this function. The change improves maintainability by using flags, but the refactoring of the internal logic (e.g., changing if (!needSubElement) to if (!options.testFlag(ShapeOption::NeedSubElement)) is extensive and spans many lines. The comment block at lines 895-906 is also modified to reflect this new signature.
+
+**[Performance]** The internal helper function `_getTopoShape` in PartFeature.cpp has been refactored to use a `ShapeOptions` bitmask. However, the function signature still includes a `const std::set<std::string> hiddens` parameter by value. In a hot path for shape retrieval, passing a `std::set` by value causes a full copy of the set on every call, which is an unnecessary performance overhead. This should be passed by const reference.
+
+**[Security Vulnerability]** In Part::Feature::getTopoShape (PartFeature.cpp), the function signature was changed from accepting multiple boolean parameters to accepting a single ShapeOptions enum. The old signature had parameters like `needSubElement`, `resolveLink`, `transform`, and `noElementMap` as separate booleans. The new signature uses `ShapeOptions options` but the internal logic still references the old boolean parameters in some places (lines 897-907). This creates a potential for inconsistent behavior where some code paths use the new enum flags while others still use the old boolean logic, potentially leading to security issues if linked object resolution or transformation is incorrectly handled.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Import/App/ExportOCAF2.cpp</path>
+<side>right</side>
+<from>384</from>
+<to>389</to>
+<note>In ExportOCAF2.cpp, the call to Part::Feature::getTopoShape has changed from passing 'false' for the 'resolveLink' parameter (6th argument) to using 'Part::ShapeOption::NoFlag' (which is 0/false) for the 'transform' parameter (2nd argument). The new signature is getTopoShape(obj, options, subname, pmat, powner). The old call was getTopoShape(obj, sub, false, nullptr, &obj, false, !sub). The 'sub' parameter was passed as the subname, 'false' as needSubElement, nullptr as pmat, &obj as powner, 'false' as resolveLink, and '!sub' as transform. In the new call, 'sub' is passed as the subname, but 'resolveLink' is now NoFlag (false) and 'transform' is also NoFlag (false). The original code had 'resolveLink' as false and 'transform' as (!sub). If 'sub' is empty, transform was true; if 'sub' is not empty, transform was false. The new code always sets transform to false. This changes behavior when sub is empty.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>871</from>
+<to>878</to>
+<note>In PartFeature.cpp, the getShape function signature is changed from getShape(obj, subname, needSubElement, pmat, powner, resolveLink, transform) to getShape(obj, options, subname, pmat, powner). The old implementation was: return getTopoShape(obj, subname, needSubElement, pmat, powner, resolveLink, transform, true).getShape(). The new implementation is: return getTopoShape(obj, options | ShapeOption::NoElementMap, subname, pmat, powner).getShape(). This is correct because the old code always passed noElementMap=true, and the new code adds NoElementMap to the options. This preserves the behavior.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>883</from>
+<to>908</to>
+<note>In src/Mod/Part/App/PartFeature.cpp, lines 883-908, the _getTopoShape function is commented out and then redefined with a new signature. The maintainability issue is that the old signature is commented out, which is a temporary state. This is a high severity issue because it indicates that the refactoring is not complete or that there is a risk of leaving commented-out code in the repository. The new signature is defined immediately after, which is good, but the commented-out code should be removed to avoid confusion.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/PartDesign/App/FeatureSketchBased.cpp</path>
+<side>right</side>
+<from>416</from>
+<to>432</to>
+<note>In FeatureSketchBased.cpp, the getProfileShape function signature is changed from getProfileShape() to getProfileShape(Part::ShapeOptions subShapeOptions). The default value is Part::ShapeOption::NeedSubElement | Part::ShapeOption::ResolveLink | Part::ShapeOption::Transform. The old implementation called Part::Feature::getTopoShape with specific parameters. The new implementation passes the subShapeOptions to getTopoShape. This is a correct refactoring.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>799</from>
+<to>804</to>
+<note>In PartFeature.cpp at line 796-801, the call to getTopoShape(obj, nullptr, false, 0, &owner) is changed to getTopoShape(obj, ShapeOption::ResolveLink | ShapeOption::Transform, nullptr, nullptr, &owner). The original call had resolveLink=true (default), transform=true (default). The new call explicitly sets ResolveLink | Transform which is also true for both. This is correct.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/PartDesign/App/FeatureSketchBased.cpp</path>
+<side>right</side>
+<from>678</from>
+<to>683</to>
+<note>In FeatureSketchBased.cpp at line 675-681, the call to Part::Feature::getTopoShape(ref, subs.size() ? subs[0].c_str() : nullptr, true) is changed to Part::Feature::getTopoShape(ref, Part::ShapeOption::NeedSubElement | Part::ShapeOption::ResolveLink | Part::ShapeOption::Transform, subs.empty() ? nullptr : subs[0].c_str()). The original call had subname=subs[0] if subs is not empty, else nullptr. needSubElement=true. The new call has options=NeedSubElement | ResolveLink | Transform, subname=subs[0] if subs is not empty, else nullptr. This is correct because the original had needSubElement=true, and the new code has NeedSubElement in the options. The original didn't have ResolveLink or Transform, but the new code adds them. This might change behavior. Let me check the original getTopoShape default parameters. The default for getTopoShape is resolveLink=true, transform=true. So the original call with needSubElement=true would have resolveLink=true and transform=true by default. The new call explicitly sets all three flags. This is correct.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/PartDesign/App/FeatureSketchBased.cpp</path>
+<side>right</side>
+<from>708</from>
+<to>711</to>
+<note>In FeatureSketchBased.cpp at line 705-711, the call to Part::Feature::getTopoShape(ref, nullptr, true) is changed to Part::Feature::getTopoShape(ref, Part::ShapeOption::NeedSubElement | Part::ShapeOption::ResolveLink | Part::ShapeOption::Transform). The original call had subname=nullptr, needSubElement=true. The new call has options=NeedSubElement | ResolveLink | Transform, subname=nullptr. The original getTopoShape with subname=nullptr and needSubElement=true would have resolveLink=true and transform=true by default. The new call explicitly sets all three flags. This is correct.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/PartDesign/App/FeatureSketchBased.cpp</path>
+<side>right</side>
+<from>721</from>
+<to>726</to>
+<note>In FeatureSketchBased.cpp at line 718-724, the call to Part::Feature::getTopoShape(ref, subString.c_str(), true) is changed to Part::Feature::getShape(ref, Part::ShapeOption::NeedSubElement | Part::ShapeOption::ResolveLink | Part::ShapeOption::Transform, subString.c_str()). The original call was getTopoShape, but the new call is getShape. The getShape function internally calls getTopoShape with options | NoElementMap. So the new call is effectively getTopoShape(ref, NeedSubElement | ResolveLink | Transform | NoElementMap, subString.c_str(), nullptr, nullptr, true).getShape(). The original call was getTopoShape(ref, subString.c_str(), true, nullptr, nullptr, true, true).getShape(). The original had resolveLink=true, transform=true. The new call has ResolveLink | Transform which is also true for both. This is correct.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/PartDesign/App/FeatureHole.cpp</path>
+<side>right</side>
+<from>1858</from>
+<to>1862</to>
+<note>**[Code Defect]** In FeatureHole.cpp, the call to getProfileShape() is changed to getProfileShape(Part::ShapeOption::NeedSubElement | Part::ShapeOption::ResolveLink | Part::ShapeOption::Transform | Part::ShapeOption::DontSimplifyCompound). The old call was getProfileShape() with no arguments. The new signature of getProfileShape is getProfileShape(Part::ShapeOptions subShapeOptions = Part::ShapeOption::NeedSubElement | Part::ShapeOption::ResolveLink | Part::ShapeOption::Transform). The new call adds DontSimplifyCompound to the options. This is an intentional change to fix the edge case mentioned in the PR title. This is correct.
+
+**[Performance]** In `FeatureHole::execute`, the call to `getProfileShape` now passes `Part::ShapeOption::DontSimplifyCompound`. This is a specific fix for an edge case. While not a performance bug, adding `DontSimplifyCompound` might have performance implications if simplification was previously a cheap operation that avoided more complex geometry handling. However, since this is a specific fix for a bug, the performance impact is likely negligible or acceptable for correctness. No action needed.
+
+**[Maintainability and Readability]** In src/Mod/PartDesign/App/FeatureHole.cpp, lines 1857-1861, the call to getProfileShape is updated to include additional ShapeOptions. The maintainability issue is minor: the new flags are added in a way that is clear, but the line is long. However, this is a one-off change and not a pattern, so it's low severity.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>971</from>
+<to>971</to>
+<note>**[Maintainability and Readability]** In src/Mod/Part/App/PartFeature.cpp, line 969, the condition `if (options.testFlag(ShapeOption::ResolveLink) && obj != owner)` is a change from `if (resolveLink && obj != owner)`. This is part of the refactoring to use flags. The maintainability issue is similar to the previous ones: widespread API change increases cognitive load.
+
+**[Security Vulnerability]** In Part::Feature::getTopoShape (PartFeature.cpp), the logic for resolving linked objects at line 968 checks `if (options.testFlag(ShapeOption::ResolveLink) && obj != owner)`. However, the function signature change removed the `resolveLink` boolean parameter, and the callers are now passing `ShapeOption::ResolveLink` explicitly. This creates a potential issue where if a caller forgets to pass the ResolveLink flag, linked objects won't be resolved, potentially leading to incorrect shape transformations. This is a behavioral change that could affect security if linked objects contain sensitive geometry that should be resolved.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>871</from>
+<to>875</to>
+<note>In src/Mod/Part/App/PartFeature.cpp, lines 871-878, the getShape function is updated to use the new ShapeOptions parameter. The maintainability issue is that the function signature is changed, which affects all callers. The diff shows that callers are updated to pass the appropriate options. However, the change in the function signature is a breaking change for any external code that might call this function. This is a medium severity issue because it affects the API.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>934</from>
+<to>934</to>
+<note>In src/Mod/Part/App/PartFeature.cpp, line 934, the condition `if (!options.testFlag(ShapeOption::NeedSubElement) && subname)` is a change from the original `if (!needSubElement && subname)`. While this is part of the refactoring to use flags, the logic remains the same. However, the change in `PartFeature.h` and `PartFeature.cpp` to use `ShapeOption` enum and `Base::Flags` is a significant API change. The maintainability issue is that this change is widespread across many files, increasing the risk of inconsistent usage or errors if not all call sites are updated correctly. The diff shows many call sites updated, but the sheer number of changes increases the cognitive load for maintainers.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>947</from>
+<to>947</to>
+<note>In src/Mod/Part/App/PartFeature.cpp, line 947, the condition `if (options.testFlag(ShapeOption::NoElementMap))` is a change from `if (noElementMap)`. This is part of the refactoring to use flags. The maintainability issue is similar to the previous one: widespread API change increases cognitive load.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/Gui/Command.cpp</path>
+<side>right</side>
+<from>282</from>
+<to>282</to>
+<note>In Command.cpp at line 279-280, the call to Part::Feature::getTopoShape(it, nullptr, false, nullptr, nullptr, true, false, false) is changed to Part::Feature::getTopoShape(it, Part::ShapeOption::ResolveLink). The original call had subname=nullptr, needSubElement=false, pmat=nullptr, powner=nullptr, resolveLink=true, transform=false, noElementMap=false. The new call has options=ResolveLink, subname=nullptr, pmat=nullptr, powner=nullptr. The options only include ResolveLink, so NeedSubElement is false (correct), Transform is false (correct), NoElementMap is false (correct). This matches the original call. This is correct.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>877</from>
+<to>877</to>
+<note>The `getTopoShape` function is a central entry point for shape retrieval. The refactored signature now takes `ShapeOptions` as the second argument. All callers in the diff have been updated to pass the flags. However, if any internal logic or future callers rely on the default arguments of the old signature, they might break or behave unexpectedly. More importantly, the `getShape` wrapper function calls `getTopoShape` with `options | ShapeOption::NoElementMap`. This is efficient, but ensure that `ShapeOption::NoElementMap` is not being set redundantly by callers before passing to `getShape`, as it would be cleared or ignored depending on implementation. The current diff shows callers passing flags to `getTopoShape` directly, which is good.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>931</from>
+<to>931</to>
+<note>In Part::Feature::getTopoShape (PartFeature.cpp), the function signature was changed to accept ShapeOptions, but the internal logic for resolving linked objects still uses the old boolean parameters. Specifically, the code at line 931 checks `if (canCache(obj) && PropertyShapeCache::getShape(obj, shape, subname))` but the function signature no longer has the `noElementMap` parameter. The callers in PartFeature.cpp (lines 897-907) still pass the old boolean parameters which are now ignored, potentially causing inconsistent behavior between cached and non-cached shape retrieval paths. This could lead to unexpected shape resolution in linked objects.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/PartDesign/App/FeatureSketchBased.cpp</path>
+<side>right</side>
+<from>416</from>
+<to>416</to>
+<note>In src/Mod/PartDesign/App/FeatureSketchBased.cpp, lines 416-423, the function getProfileShape is updated to accept a ShapeOptions parameter. The maintainability issue is that this is a significant change to the function signature, which affects all callers. The diff shows that callers are updated to pass the appropriate options. However, the change in the function signature is a breaking change for any external code that might call this function. This is a medium severity issue because it affects the API.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/PartDesign/App/FeatureSketchBased.cpp</path>
+<side>right</side>
+<from>421</from>
+<to>432</to>
+<note>In src/Mod/PartDesign/App/FeatureSketchBased.cpp, lines 423-433, the body of getProfileShape is updated to use the new subShapeOptions parameter. The maintainability issue is that the logic is now more complex because it uses the passed options instead of hardcoding them. This is a positive change for maintainability, but it increases the cognitive load for readers who need to understand how the options are used.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/AppPartPy.cpp</path>
+<side>right</side>
+<from>2293</from>
+<to>2300</to>
+<note>In src/Mod/Part/App/AppPartPy.cpp, lines 2291-2297, the code constructs a ShapeOptions bitmask by OR-ing multiple ShapeOption values. This is a significant change from the original boolean parameters. The maintainability issue is that this construction is verbose and could be simplified. For example, the line `auto shape = Feature::getTopoShape(obj, (resolveLink ? ShapeOption::ResolveLink : ShapeOption::NoFlag) | (Base::asBoolean(needSubElement) ? ShapeOption::NeedSubElement : ShapeOption::NoFlag) | (Base::asBoolean(transform) ? ShapeOption::Transform : ShapeOption::NoFlag) | (Base::asBoolean(noElementMap) ? ShapeOption::NoElementMap : ShapeOption::NoFlag), subname, &mat, &subObj);` is very long and hard to read. It would be more maintainable to build the options step-by-step or use a helper function.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/PartDesign/App/FeatureSketchBased.h</path>
+<side>right</side>
+<from>134</from>
+<to>138</to>
+<note>In src/Mod/PartDesign/App/FeatureSketchBased.h, lines 134-138, the declaration of getProfileShape is updated to accept a ShapeOptions parameter with a default value. The maintainability issue is that this is a breaking change to the API. The default value is set to include NeedSubElement, ResolveLink, and Transform, which is a reasonable default, but any code that calls this function without specifying options will now get different behavior than before. This is a medium severity issue because it affects the API.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Import/App/ExportOCAF2.cpp</path>
+<side>right</side>
+<from>423</from>
+<to>425</to>
+<note>In the while loop at line 420, the call to Part::Feature::getTopoShape uses ResolveLink | Transform. The original call was getTopoShape(linked) which uses default parameters. The default for getTopoShape is resolveLink=true, transform=true. So the new call matches the original behavior. This is correct.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>876</from>
+<to>878</to>
+<note>In src/Mod/Part/App/PartFeature.cpp, lines 879-880, the body of getShape is updated to use the new options parameter. The maintainability issue is minor: the logic is now more complex because it uses the passed options instead of hardcoding them. This is a positive change for maintainability, but it increases the cognitive load for readers who need to understand how the options are used.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/PartDesign/Gui/TaskDressUpParameters.cpp</path>
+<side>right</side>
+<from>154</from>
+<to>155</to>
+<note>In TaskDressUpParameters.cpp at line 151-152, the call to Part::Feature::getTopoShape(base) is changed to Part::Feature::getTopoShape(base, Part::ShapeOption::ResolveLink | Part::ShapeOption::Transform). The original call used default parameters resolveLink=true and transform=true. The new call explicitly sets these flags. This is correct.</note>
+</notesplit>

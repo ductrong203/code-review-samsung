@@ -1,0 +1,30 @@
+<notesplit>
+<path>src/services/auth/AuthService.ts</path>
+<side>right</side>
+<from>33</from>
+<to>33</to>
+<note>**[Code Defect]** The _authNonce is now generated at class instantiation time. Since AuthService is a singleton, this nonce will persist for the entire lifetime of the extension process. If the user logs out and logs back in, the nonce will not change, potentially making the system vulnerable to replay attacks or stale state issues if the server expects a fresh nonce per request.
+
+**[Performance]** The authNonce is generated using crypto.randomBytes(32) during the instantiation of the AuthService singleton. Since AuthService is a long-lived singleton, this cryptographic operation is performed unnecessarily at startup even if authentication is never initiated. This should be lazily initialized to avoid blocking or consuming resources during extension activation.</note>
+</notesplit>
+<notesplit>
+<path>src/extension.ts</path>
+<side>right</side>
+<from>312</from>
+<to>322</to>
+<note>The authentication flow now allows the user to proceed with an authentication callback even if the 'state' parameter does not match the expected 'authNonce'. This bypasses CSRF protection, potentially allowing an attacker to force a user to link an attacker-controlled account to the extension.</note>
+</notesplit>
+<notesplit>
+<path>src/extension.ts</path>
+<side>right</side>
+<from>313</from>
+<to>317</to>
+<note>The error message 'Store token returned from ${uri.path}' is ambiguous and lacks context for the user. It does not explain why a mismatch occurred or what the security implications are. It should provide a clearer explanation of the state mismatch and the potential risk of proceeding.</note>
+</notesplit>
+<notesplit>
+<path>src/services/auth/AuthService.ts</path>
+<side>right</side>
+<from>193</from>
+<to>193</to>
+<note>The code uses 'String.create' which appears to be a custom wrapper or a non-standard pattern. If this is a standard string, it should be returned as a primitive. If it is a specific object type, it should be clearly documented or typed to avoid confusion with native string operations.</note>
+</notesplit>

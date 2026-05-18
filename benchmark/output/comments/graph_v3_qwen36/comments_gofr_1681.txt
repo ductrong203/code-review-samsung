@@ -1,0 +1,62 @@
+<notesplit>
+<path>pkg/gofr/http/middleware/logger.go</path>
+<side>right</side>
+<from>103</from>
+<to>103</to>
+<note>The `panicRecovery` defer is removed. The original code had `defer func() { panicRecovery(recover(), srw, logger) }()`. This line is missing in the new code, meaning panics in the inner handler will not be recovered by this middleware, leading to potential crashes or unhandled errors.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/middleware/logger.go</path>
+<side>right</side>
+<from>103</from>
+<to>111</to>
+<note>The `panicRecovery` defer is removed from the request handling flow. In the original code, `panicRecovery` was deferred to catch panics and log them. The new code only defers `handleRequestLog`. If a panic occurs in `inner.ServeHTTP`, it will propagate up without being caught by the middleware's recovery logic, potentially crashing the handler or skipping error logging.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/middleware/logger.go</path>
+<side>right</side>
+<from>147</from>
+<to>152</to>
+<note>The function isLogProbeDisabled contains a redundant condition check. The check 'probes.Disabled' is repeated inside the loop (line 150), but the function already returns false if probes are not disabled at the start (line 146). This makes the code confusing and harder to maintain. The inner check should be removed.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/middleware/logger.go</path>
+<side>right</side>
+<from>148</from>
+<to>152</to>
+<note>**[Security Vulnerability]** The isLogProbeDisabled function checks if probes are disabled and then iterates over a list of paths to skip logging. However, the check `if urlPath == path` performs an exact string match. If the health check endpoints are accessed with query parameters (e.g., `/.well-known/health?verbose=true`), the logging will NOT be skipped because `urlPath` (which is `r.URL.Path`) does not include query parameters, but if the configuration paths were to include them or if the logic was intended to match full URLs, it might fail. More critically, this is a functional logic issue rather than a direct security vulnerability, but it could lead to information leakage if the intent was to suppress ALL health check logs. A more robust check would be needed if partial matches are expected.
+
+**[Performance]** The isLogProbeDisabled function performs a linear search through the probes.Paths slice for every request. Since health check endpoints are called frequently (e.g., every few seconds by load balancers), this adds unnecessary overhead. Converting the slice to a map or using a set for O(1) lookups would improve performance for high-frequency health checks.
+
+String comparison in a loop for path matching is acceptable for small slices, but if 'probes.Paths' grows large, it becomes a bottleneck. Consider using a map[string]struct{} for path lookups if the list of paths is expected to grow significantly.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/middleware/logger.go</path>
+<side>right</side>
+<from>141</from>
+<to>155</to>
+<note>**[Maintainability and Readability]** The function isLogProbeDisabled is not tested directly. The graph context indicates 'untested=True' for this function. While it is called by Logging, its logic should be covered by unit tests to ensure maintainability and prevent regressions.
+
+**[Code Defect]** The `isLogProbeDisabled` function has redundant logic. The condition `if urlPath == path && probes.Disabled` checks `probes.Disabled` again, but this is already guaranteed by the outer `if !probes.Disabled { return false }` check. While not a bug, it's confusing. More importantly, if `probes.Paths` is nil or empty, the loop does nothing, which is correct. However, the logic is slightly inefficient.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/middleware/logger.go</path>
+<side>right</side>
+<from>117</from>
+<to>137</to>
+<note>The function handleRequestLog is not tested directly. The graph context indicates 'untested=True' for this function. It encapsulates logging logic that should be tested to ensure maintainability.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/middleware/config.go</path>
+<side>right</side>
+<from>44</from>
+<to>44</to>
+<note>The variable name 'logDisableProbes' is slightly misleading as it suggests a boolean value but is actually a string read from config. Renaming to 'logDisableProbesStr' or similar would improve clarity.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/middleware/config.go</path>
+<side>right</side>
+<from>45</from>
+<to>45</to>
+<note>The configuration for `LogProbes.Paths` is hardcoded to `[]string{service.HealthPath, service.AlivePath}`. While this is not a vulnerability in itself, it hardcodes the paths that will be suppressed. If an attacker knows these paths, they can verify the application's health without contributing to log noise, which might be a minor operational security (OpSec) concern if log analysis is used for threat detection. However, this is a design choice for reducing noise, not a security flaw.</note>
+</notesplit>

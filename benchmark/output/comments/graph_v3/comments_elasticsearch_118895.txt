@@ -1,0 +1,44 @@
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/lucene/search/uhighlight/CustomUnifiedHighlighter.java</path>
+<side>right</side>
+<from>128</from>
+<to>128</to>
+<note>The logic for checking if the field value exceeds the max analyzed offset is flawed. The original code used `queryMaxAnalyzedOffset > maxAnalyzedOffset` to determine if the query-provided offset was effectively 'larger' (or ignored). By switching to `queryMaxAnalyzedOffset.getNotNull() > maxAnalyzedOffset`, if the user sets -1 (which resolves to the index setting), the condition `indexMaxAnalyzedOffset > indexMaxAnalyzedOffset` becomes false, potentially bypassing the length check entirely when it should be enforced.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/fetch/subphase/highlight/PlainHighlighter.java</path>
+<side>right</side>
+<from>126</from>
+<to>126</to>
+<note>Similar to the UnifiedHighlighter, the PlainHighlighter logic for throwing an exception when the text length exceeds the max offset is broken when -1 is passed. If `queryMaxAnalyzedOffset` is -1, `getNotNull()` returns -1. The condition `(-1 > maxAnalyzedOffset)` is false, so the length check is skipped even if the text is longer than the index-defined limit.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/lucene/search/uhighlight/QueryMaxAnalyzedOffset.java</path>
+<side>right</side>
+<from>20</from>
+<to>25</to>
+<note>**[Performance]** The create method performs a conditional check and object instantiation every time a highlight request is processed. While the overhead is minimal, this is a hot path in search execution. Consider caching the QueryMaxAnalyzedOffset instance if the input parameters are identical to avoid repeated object allocation.
+
+**[Security Vulnerability]** The `create` method allows a negative value (specifically -1) to be passed through to the `QueryMaxAnalyzedOffset` constructor, which then uses the `indexMaxAnalyzedOffset` value. If `indexMaxAnalyzedOffset` is configured to a very large value or if the logic is misused, it could lead to resource exhaustion (DoS) by bypassing the intended per-query highlighting limits. While -1 is intended as a sentinel, ensure that the index-level setting is strictly validated to prevent excessive memory consumption during highlighting.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/lucene/search/uhighlight/QueryMaxAnalyzedOffset.java</path>
+<side>right</side>
+<from>27</from>
+<to>29</to>
+<note>The method name 'getNotNull()' is misleading because it returns the internal integer value, which could be any valid integer, not necessarily a 'non-null' object. A more descriptive name like 'getValue()' or 'offset()' would improve readability.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/fetch/subphase/highlight/AbstractHighlighterBuilder.java</path>
+<side>right</side>
+<from>568</from>
+<to>568</to>
+<note>The logic 'maxAnalyzedOffset < -1 || maxAnalyzedOffset == 0' is slightly non-intuitive. While correct, it is harder to read than checking for the allowed range explicitly. Consider using a constant or a clearer boolean expression.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/lucene/search/uhighlight/QueryMaxAnalyzedOffset.java</path>
+<side>right</side>
+<from>12</from>
+<to>12</to>
+<note>The class 'QueryMaxAnalyzedOffset' is a simple wrapper around an integer. It should be marked as 'final' to prevent unnecessary subclassing and clarify its intent as an immutable value object.</note>
+</notesplit>

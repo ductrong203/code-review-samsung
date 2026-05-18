@@ -1,0 +1,98 @@
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>35</from>
+<to>161</to>
+<note>The `loadCommands` method in `McpPromptLoader` is excessively long (over 100 lines) and violates the Single Responsibility Principle. It handles server iteration, command creation, argument parsing, help text generation, and prompt invocation logic all in one function. This makes the code hard to read, test, and maintain. It should be split into smaller, focused methods like `createPromptCommand`, `generateHelpText`, and `executePrompt`.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>41</from>
+<to>43</to>
+<note>In `McpPromptLoader.loadCommands`, `this.config.getMcpServers()` is called inside the `for...in` loop over server names. This is an N+1 query pattern where the same data is fetched repeatedly. It should be hoisted outside the loop to fetch once.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>97</from>
+<to>97</to>
+<note>The code executes `prompt.invoke(promptInputs)` where `promptInputs` is derived from user-provided CLI arguments via `parseArgs`. This passes user input directly to the MCP server prompt invocation without sanitization. If the MCP server prompt implementation is vulnerable to injection (e.g., template injection or command injection within the prompt's internal logic), this creates a direct attack vector. Additionally, the `parseArgs` function is not shown, but if it simply splits strings, it may be susceptible to argument injection or shell-like injection if the underlying MCP client passes these to a shell.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>106</from>
+<to>108</to>
+<note>In `McpPromptLoader.loadCommands`, `this.config.getMcpServers()` is called again inside the `action` closure for every prompt. This is a severe performance issue as it will be called every time the command is executed. It should be hoisted to the outer scope.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/tools/mcp-client.ts</path>
+<side>right</side>
+<from>486</from>
+<to>491</to>
+<note>The `discoverPrompts` function calls `mcpClient.request` with `method: 'prompts/list'`. This is an external call to an MCP server. If the MCP server is untrusted, it could return malicious prompt definitions. The `registerPrompt` function in `PromptRegistry` does not validate the prompt name or description, allowing for potential command name collisions or injection. The `invokeMcpPrompt` function then calls `mcpClient.request` with `method: 'prompts/get'` and user-supplied `params`. This is a direct injection point into the MCP server. If the MCP server is compromised, this could lead to RCE.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/ui/hooks/slashCommandProcessor.ts</path>
+<side>right</side>
+<from>248</from>
+<to>340</to>
+<note>The `handleSlashCommand` function in `slashCommandProcessor.ts` has become significantly longer and more complex due to the addition of error handling and new result types. The nested switch statements and try-catch blocks make it difficult to read and maintain. It violates the Single Responsibility Principle by handling too many different result types and error cases in one place.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>89</from>
+<to>95</to>
+<note>The `action` function for the main command checks `if (!this.config)` again, but `this.config` is already checked at the start of `loadCommands`. This redundant check inside the nested async function is unnecessary and adds clutter.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>107</from>
+<to>115</to>
+<note>The code retrieves `mcpServers` and `mcpServerConfig` again inside the `action` function. Since `serverName` is captured from the outer loop, and `mcpServers` is available in the outer scope, this repeated retrieval is inefficient and makes the code harder to follow. It should be passed or captured more cleanly.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>108</from>
+<to>108</to>
+<note>The code retrieves `mcpServerConfig` from `mcpServers[serverName]` using a user-controlled `serverName` variable (which comes from the loop over `mcpServers` keys, but `serverName` itself is derived from the config, not directly user input in this specific block. However, the `prompt.name` is used directly as the command name. If an MCP server can be configured to expose a prompt with a name that allows path traversal or command injection in the CLI context, it could be exploited. More critically, the `serverName` variable is captured from the outer loop. If `mcpServers` keys are user-controlled (e.g., from a config file), this is a configuration injection risk. The bigger risk is that `prompt.name` is used directly as a command name without sanitization, potentially allowing command name collisions or confusion.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/prompts/prompt-registry.ts</path>
+<side>right</side>
+<from>47</from>
+<to>55</to>
+<note>In `PromptRegistry.getPromptsByServer`, the method iterates over all prompts in the registry (`this.prompts.values()`) to filter by server name. This is O(N) where N is the total number of prompts across all servers. If there are many servers, this becomes inefficient. A map keyed by server name would be O(1) per server.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/ui/commands/mcpCommand.ts</path>
+<side>right</side>
+<from>166</from>
+<to>183</to>
+<note>The logic for building the status message in `mcpCommand.ts` is verbose and repetitive. It uses multiple `if` statements and string concatenations to handle different combinations of tools and prompts. This could be simplified using an array of parts and joining them, which is already partially done but could be cleaner.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/ui/commands/mcpCommand.ts</path>
+<side>right</side>
+<from>247</from>
+<to>268</to>
+<note>The code for displaying prompts in `mcpCommand.ts` is duplicated in structure from the tools display. It uses similar loops and string concatenations. This duplication could be abstracted into a helper function to display either tools or prompts, reducing code repetition.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>64</from>
+<to>67</to>
+<note>In `McpPromptLoader.loadCommands`, `prompt.arguments?.map(...)` is called multiple times in the help message generation (lines 56, 58). This is redundant computation. The mapped string should be computed once and reused.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>116</from>
+<to>116</to>
+<note>The code checks `if (!mcpServerConfig)` and returns an error. However, it does not verify that the `serverName` exists in the `mcpServers` object before accessing it in the loop. While the loop `for (const serverName in mcpServers)` ensures `serverName` is a key, the subsequent check `if (!mcpServerConfig)` is redundant but safe. The real issue is that `prompt.invoke` is called with user-supplied arguments. If the MCP server is untrusted, this is a remote code execution risk if the server's prompt implementation is compromised. This is an SSRF/Remote Code Execution risk depending on the MCP server's implementation.</note>
+</notesplit>

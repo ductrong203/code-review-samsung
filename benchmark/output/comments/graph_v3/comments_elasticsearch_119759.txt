@@ -1,0 +1,51 @@
+<notesplit>
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/TestSnapshotCases.java</path>
+<side>right</side>
+<from>21</from>
+<to>21</to>
+<note>**[Code Defect]** The constant ES_VERSION_6 is incorrectly assigned the value "5" instead of "6". This will cause the test suite to attempt to load the wrong snapshot file for version 6 tests.
+
+**[Maintainability and Readability]** The constant ES_VERSION_6 is incorrectly assigned the value "5". This is misleading and likely a copy-paste error that will cause confusion for future maintainers.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/TestSnapshotCases.java</path>
+<side>right</side>
+<from>24</from>
+<to>24</to>
+<note>The constant ES_VERSION_6_STANDARD_TOKEN_FILTER is assigned the value "5_custom_analyzer". This is misleading and likely a copy-paste error.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/archiveindex/ArchiveIndexTestCase.java</path>
+<side>right</side>
+<from>52</from>
+<to>52</to>
+<note>The code uses Strings.format to construct a JSON entity for every recovery operation. While functional, this is inefficient for repeated operations as it performs string concatenation and parsing overhead. Using a dedicated JSON builder or a pre-defined template would be more performant.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/archiveindex/ArchiveIndexTestCase.java</path>
+<side>right</side>
+<from>61</from>
+<to>61</to>
+<note>The code uses WarningsHandler.PERMISSIVE, which ignores all warnings returned by the Elasticsearch API. In a security-sensitive context, especially when testing backward compatibility and deprecations, ignoring warnings can mask critical security-related deprecation notices or configuration issues that should be explicitly handled or validated.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/searchablesnapshot/SearchableSnapshotTestCase.java</path>
+<side>right</side>
+<from>48</from>
+<to>52</to>
+<note>Similar to the archive index case, the JSON entity for the mount operation is constructed using Strings.format. This creates unnecessary string objects and overhead during the test lifecycle.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/java/org/elasticsearch/oldrepos/searchablesnapshot/SearchableSnapshotTestCase.java</path>
+<side>right</side>
+<from>56</from>
+<to>56</to>
+<note>The code uses WarningsHandler.PERMISSIVE, which ignores all warnings returned by the Elasticsearch API. This can hide critical security deprecations or misconfigurations during the snapshot mounting process, which is a sensitive operation.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/qa/repository-old-versions-compatibility/src/javaRestTest/resources/README.md</path>
+<side>right</side>
+<from>127</from>
+<to>156</to>
+<note>The README documentation for 'Create Index Version 5 - Custom-Analyzer' is duplicated, and the second instance appears to be intended for Version 6 but uses the same description and mapping structure as Version 5, creating confusion.</note>
+</notesplit>

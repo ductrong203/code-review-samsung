@@ -1,0 +1,16 @@
+<notesplit>
+<path>tsl/src/compression/api.c</path>
+<side>right</side>
+<from>1066</from>
+<to>1076</to>
+<note>The removal of the check for `num_segmentby == 0` in `tsl/src/compression/api.c` allows the function to proceed when no segmentby columns are defined. However, `get_compressed_chunk_index` relies on `settings` which may not be fully initialized or valid for chunks without segmentby, potentially leading to a null pointer dereference or incorrect index retrieval if `settings->fd.segmentby` is empty.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/recompress.c</path>
+<side>right</side>
+<from>217</from>
+<to>222</to>
+<note>**[Maintainability and Readability]** The log message uses a conditional ternary operator inside elog. While functional, this pattern is slightly harder to read and maintain than a simple if-else or a dedicated logging macro. Consider using a standard logging level or a helper function if this pattern repeats.
+
+**[Performance]** The elog call is executed unconditionally inside the recompression path. While it uses DEBUG1/INFO levels, string formatting via get_rel_name and elog overhead can add latency in high-frequency recompression operations. Consider wrapping this in a conditional check for the GUC to avoid unnecessary string processing.</note>
+</notesplit>

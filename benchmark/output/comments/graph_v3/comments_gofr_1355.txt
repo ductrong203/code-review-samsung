@@ -1,0 +1,35 @@
+<notesplit>
+<path>pkg/gofr/datasource/mongo/mongo.go</path>
+<side>right</side>
+<from>158</from>
+<to>158</to>
+<note>The code uses url.QueryEscape for the password, but MongoDB connection strings require specific handling for special characters in passwords. Using QueryEscape on a password that contains characters like '@' or ':' is correct, but the resulting URI string might be misinterpreted by the driver if not handled carefully. More importantly, the current implementation of `generateMongoURI` does not handle the case where the password contains characters that are not safe for a URL path/query but are valid in a MongoDB password, potentially leading to connection failures.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/mongo/mongo.go</path>
+<side>right</side>
+<from>132</from>
+<to>166</to>
+<note>The function generateMongoURI violates the Single Responsibility Principle by handling both URI construction (when fields are provided) and URI parsing (when a raw URI is provided). This makes the logic harder to test and maintain. Consider splitting this into two distinct functions: buildURIFromConfig and parseHostFromURI.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/mongo/mongo.go</path>
+<side>right</side>
+<from>168</from>
+<to>183</to>
+<note>The getDBHost function uses url.ParseRequestURI on every connection attempt. Parsing a URL string is a relatively expensive operation involving regex and string manipulation. Since this is called during the connection phase, it adds unnecessary latency. If the URI is static, it should be parsed once and cached.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/mongo/mongo.go</path>
+<side>right</side>
+<from>165</from>
+<to>165</to>
+<note>The generateMongoURI function returns the raw URI string, which may contain sensitive credentials (username/password). While the PR attempts to sanitize logs, the function itself still exposes the full URI, which could be accidentally logged or leaked by callers in the future.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/mongo/mongo.go</path>
+<side>right</side>
+<from>169</from>
+<to>169</to>
+<note>The use of url.ParseRequestURI is slightly misleading here as it is intended for relative URLs. For a full MongoDB connection string, url.Parse is generally more appropriate and robust.</note>
+</notesplit>

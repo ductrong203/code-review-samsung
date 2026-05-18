@@ -1,0 +1,23 @@
+<notesplit>
+<path>benchmarks/benchmark_throughput.py</path>
+<side>right</side>
+<from>473</from>
+<to>475</to>
+<note>The logic for checking supported datasets in validate_args uses a set union (|) on VisionArenaDataset.SUPPORTED_DATASET_PATHS.keys() and ConversationDataset.SUPPORTED_DATASET_PATHS. If ConversationDataset.SUPPORTED_DATASET_PATHS is a list or another type that does not support the | operator with a dict_keys object, this will raise a TypeError at runtime.</note>
+</notesplit>
+<notesplit>
+<path>benchmarks/benchmark_throughput.py</path>
+<side>right</side>
+<from>473</from>
+<to>478</to>
+<note>**[Performance]** The code performs set union operations (using the | operator) on SUPPORTED_DATASET_PATHS inside the validation logic. Since this validation runs every time the benchmark starts, creating new set objects repeatedly is inefficient. These sets should be pre-computed as constants or class-level attributes to avoid redundant allocations.
+
+**[Maintainability and Readability]** The validation logic in validate_args uses hardcoded set operations to check backend compatibility. This violates the Open/Closed principle; every time a new dataset is added, this function must be modified. This logic should be encapsulated within the dataset classes themselves (e.g., a 'required_backend' property).</note>
+</notesplit>
+<notesplit>
+<path>benchmarks/benchmark_throughput.py</path>
+<side>right</side>
+<from>335</from>
+<to>338</to>
+<note>The logic for setting dataset parameters is duplicated across different dataset types. The 'common_kwargs' setup for AIMODataset is manually managed here, which is prone to inconsistency as more datasets are added. This should be handled by a factory pattern or a unified interface method in the dataset classes.</note>
+</notesplit>

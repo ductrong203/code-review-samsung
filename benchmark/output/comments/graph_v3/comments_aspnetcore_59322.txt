@@ -1,0 +1,42 @@
+<notesplit>
+<path>src/Shared/Encoding/Int7BitEncodingUtils.cs</path>
+<side>right</side>
+<from>45</from>
+<to>45</to>
+<note>The bitwise OR operation 'uValue | ~0x7Fu' is incorrect for 7-bit encoding. The high bit (continuation bit) should be set using '0x80', not by ORing with the bitwise complement of 0x7F, which results in sign extension issues or incorrect bit patterns when cast to byte.</note>
+</notesplit>
+<notesplit>
+<path>src/DataProtection/DataProtection/src/KeyManagement/KeyRingBasedDataProtector.cs</path>
+<side>right</side>
+<from>391</from>
+<to>391</to>
+<note>The index calculation for the purpose count field is incorrect. It uses '4 + keySize + 4' which is correct for the total length, but the code attempts to write the purpose count at '4 + keySize'. The variable 'index' is then initialized to '4 + keySize + 4', which is correct for the start of the purposes, but the logic for writing the purpose count is offset by 4 bytes relative to the intended structure.</note>
+</notesplit>
+<notesplit>
+<path>src/Shared/Encoding/Int7BitEncodingUtils.cs</path>
+<side>right</side>
+<from>43</from>
+<to>47</to>
+<note>The implementation of Write7BitEncodedInt uses a bitwise OR with ~0x7Fu (which is 0xFFFFFF80) to set the continuation bit. This is correct for unsigned integers, but the method accepts a signed 'int' and casts it to 'uint'. If a negative integer is passed, the cast to uint results in a very large value, which will be encoded incorrectly as a 5-byte sequence. While this might not lead to RCE, it causes data corruption in the AAD template, potentially leading to authentication bypass or integrity failures.</note>
+</notesplit>
+<notesplit>
+<path>src/DataProtection/DataProtection/src/KeyManagement/KeyRingBasedDataProtector.cs</path>
+<side>right</side>
+<from>377</from>
+<to>377</to>
+<note>The code calls EncodingUtil.SecureUtf8Encoding.GetByteCount(purpose) inside a loop to calculate total length, and then calls EncodingUtil.SecureUtf8Encoding.GetBytes(purpose, ...) later in a second loop. This results in double-encoding the string. Since the string is already being converted to bytes, it is more efficient to encode it once into a temporary buffer or use a single pass if possible.</note>
+</notesplit>
+<notesplit>
+<path>src/Shared/Encoding/Int7BitEncodingUtils.cs</path>
+<side>right</side>
+<from>43</from>
+<to>49</to>
+<note>The method 'Write7BitEncodedInt' uses a manual loop to write bytes. While efficient, it lacks documentation explaining the 7-bit encoding format (e.g., the high-bit continuation flag), which is critical for maintainability of low-level binary protocols.</note>
+</notesplit>
+<notesplit>
+<path>src/DataProtection/DataProtection/src/KeyManagement/KeyRingBasedDataProtector.cs</path>
+<side>right</side>
+<from>368</from>
+<to>368</to>
+<note>The variable 'totalPurposeLen' is initialized with a magic number '4' representing the size of the purpose count, but it is not clearly documented or defined as a constant. This reduces readability for developers unfamiliar with the AAD binary format.</note>
+</notesplit>

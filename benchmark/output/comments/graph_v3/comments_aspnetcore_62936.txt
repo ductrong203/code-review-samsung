@@ -1,0 +1,23 @@
+<notesplit>
+<path>src/SignalR/server/StackExchangeRedis/test/Docker.cs</path>
+<side>right</side>
+<from>20</from>
+<to>20</to>
+<note>The hardcoded container name 'redisTestContainer74' includes a version suffix. This creates a maintenance burden where the code must be manually updated every time the Redis version changes, potentially leading to stale naming or naming conflicts if not updated in sync with the image name.</note>
+</notesplit>
+<notesplit>
+<path>src/SignalR/server/StackExchangeRedis/test/Docker.cs</path>
+<side>right</side>
+<from>116</from>
+<to>116</to>
+<note>**[Code Defect]** The comment on line 114 explicitly states that the code uses a static name 'redisTestContainer' to prevent container accumulation. By changing the container name to 'redisTestContainer74' while keeping the logic that relies on the old name for cleanup or collision avoidance, the test infrastructure may fail to clean up existing containers or fail to start due to name collisions if multiple versions are run.
+
+**[Security Vulnerability]** The code executes a Docker command using a string-interpolated image name. While this is a test utility, using a hardcoded private registry URL without verifying the image source or integrity (e.g., via digest) could lead to pulling malicious images if the registry is compromised or if the image tag is overwritten.</note>
+</notesplit>
+<notesplit>
+<path>src/SignalR/server/StackExchangeRedis/test/Docker.cs</path>
+<side>right</side>
+<from>116</from>
+<to>116</to>
+<note>The comment on line 114 explicitly states: 'use static name 'redisTestContainer' so if the container doesn't get removed we don't keep adding more'. By changing the container name to include '74', this comment is now outdated and contradicts the implementation.</note>
+</notesplit>

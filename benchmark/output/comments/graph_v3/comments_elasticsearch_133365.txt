@@ -1,0 +1,63 @@
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/index/codec/tsdb/es819/ES819TSDBDocValuesProducer.java</path>
+<side>right</side>
+<from>1538</from>
+<to>1538</to>
+<note>The code initializes lookAheadDISI inside tryRead but does not check if it was already initialized in a previous call. While it checks for null, the initialization logic is inside the tryRead method which might be called multiple times. More importantly, the logic for bulk reading is incomplete (TODO comment), and the current implementation lacks the necessary logic to actually perform the bulk read, potentially leading to incorrect results or incomplete data processing.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/index/codec/tsdb/es819/ES819TSDBDocValuesProducer.java</path>
+<side>right</side>
+<from>1538</from>
+<to>1547</to>
+<note>The lookAheadDISI is lazily initialized inside the tryRead method. If tryRead is called frequently, this repeated null check and conditional initialization adds unnecessary branching and overhead in a hot path. It should be initialized once or handled via a more efficient pattern.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/esql/compute/src/main/java/org/elasticsearch/compute/lucene/read/SingletonDoubleBuilder.java</path>
+<side>right</side>
+<from>77</from>
+<to>79</to>
+<note>The appendLongs method uses a manual loop to convert and copy values. While functional, this is less efficient than using System.arraycopy or vectorized operations if the conversion logic allows. For large blocks, this loop overhead is significant.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/index/codec/tsdb/es819/ES819TSDBDocValuesProducer.java</path>
+<side>right</side>
+<from>1535</from>
+<to>1536</to>
+<note>The code uses 'assert false' followed by an 'IllegalStateException'. In production, assertions are often disabled, making the 'assert' line useless. The exception should be thrown directly to ensure the error is caught regardless of JVM flags.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/index/codec/tsdb/es819/ES819TSDBDocValuesProducer.java</path>
+<side>right</side>
+<from>1536</from>
+<to>1536</to>
+<note>The code throws an IllegalStateException if advanceExact fails, but the error message is misleading because it assumes that if nullsFiltered is true, the doc MUST have a value. However, if the index is corrupted or the DISI state is inconsistent, this could lead to a crash instead of a graceful failure or proper error handling.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/index/codec/tsdb/es819/ES819TSDBDocValuesProducer.java</path>
+<side>right</side>
+<from>1550</from>
+<to>1551</to>
+<note>Similar to the previous issue, the 'assert false' followed by an 'IllegalStateException' is redundant and potentially ineffective in production environments.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/index/codec/tsdb/es819/ES819TSDBDocValuesProducer.java</path>
+<side>right</side>
+<from>1535</from>
+<to>1536</to>
+<note>The code uses 'assert false' to handle a state where 'nullsFiltered' is true but a document has no value. In production environments, Java assertions are typically disabled by default, meaning this check will be skipped. If the assumption that 'nullsFiltered' implies the existence of a value is violated, the code will proceed to access invalid data or trigger an unexpected state. Use a standard runtime exception instead of an assertion for critical state validation.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/esql/compute/src/main/java/org/elasticsearch/compute/lucene/read/SingletonDoubleBuilder.java</path>
+<side>right</side>
+<from>69</from>
+<to>71</to>
+<note>The error message in the state check uses string concatenation. Using a parameterized message or a more descriptive constant would improve maintainability.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/esql/compute/src/main/java/org/elasticsearch/compute/lucene/read/SingletonLongBuilder.java</path>
+<side>right</side>
+<from>68</from>
+<to>70</to>
+<note>The error message uses inconsistent formatting (brackets vs no brackets) compared to other parts of the codebase. Standardizing the error message format improves readability.</note>
+</notesplit>

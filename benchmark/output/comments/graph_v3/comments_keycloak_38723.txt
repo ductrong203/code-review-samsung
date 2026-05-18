@@ -1,0 +1,30 @@
+<notesplit>
+<path>docs/maven-plugin/src/main/java/org/keycloak/guides/maven/GuideParser.java</path>
+<side>right</side>
+<from>79</from>
+<to>82</to>
+<note>The switch statement in setAttributes is missing 'break' statements for the new 'priority' and 'tileVisible' cases. This will cause fall-through behavior, leading to incorrect attribute assignment and potential logic errors.</note>
+</notesplit>
+<notesplit>
+<path>docs/maven-plugin/src/main/java/org/keycloak/guides/maven/GuideParser.java</path>
+<side>right</side>
+<from>85</from>
+<to>85</to>
+<note>The switch statement in setAttributes is missing a 'break' statement after the 'priority' case. This causes a fall-through where the 'tileVisible' logic is executed even when 'priority' is matched, potentially leading to incorrect state if both attributes are present or if the parser logic is misinterpreted.</note>
+</notesplit>
+<notesplit>
+<path>docs/maven-plugin/src/main/java/org/keycloak/guides/maven/GuideParser.java</path>
+<side>right</side>
+<from>79</from>
+<to>81</to>
+<note>**[Performance]** The switch statement in setAttributes is missing a 'break' statement for the 'priority' case. This causes fall-through to the 'tileVisible' case, leading to redundant parsing and potential incorrect assignment if the attribute values are malformed or if the logic expands.
+
+**[Security Vulnerability]** The switch statement in setAttributes is missing a 'break' statement after the 'priority' case. This causes a fall-through to the 'tileVisible' case, potentially leading to incorrect attribute assignment if a guide defines a priority.</note>
+</notesplit>
+<notesplit>
+<path>docs/maven-plugin/src/main/java/org/keycloak/guides/maven/Context.java</path>
+<side>right</side>
+<from>35</from>
+<to>44</to>
+<note>The logic inside the loop in Context.java is becoming deeply nested (4 levels). This reduces readability and makes the validation logic harder to follow. Consider extracting the guide validation and priority assignment into a private helper method.</note>
+</notesplit>

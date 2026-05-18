@@ -1,0 +1,30 @@
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANATable.java</path>
+<side>right</side>
+<from>142</from>
+<to>145</to>
+<note>**[Security Vulnerability]** The SQL query in prepareObjectsStatement uses string concatenation to build the query, which is vulnerable to SQL injection if table.getName() or table.getContainer().getName() contain malicious input. While these are likely internal model objects, they should be treated as untrusted input. Use parameterized queries for all identifiers.
+
+**[Maintainability and Readability]** The SQL query in prepareObjectsStatement uses string concatenation for the query definition. This makes the code harder to read and maintain. Use a single text block or a constant for the SQL string to improve readability.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANAPartition.java</path>
+<side>right</side>
+<from>163</from>
+<to>163</to>
+<note>The check 'if (dbResult == null)' is performed after 'JDBCUtils.safeGetInt(dbResult, "PART_ID")' has already been called on the same object. If dbResult were null, the previous call would have thrown a NullPointerException.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANAPartition.java</path>
+<side>right</side>
+<from>74</from>
+<to>74</to>
+<note>The check 'if (dbResult == null)' inside fetchObject is redundant because JDBCResultSet is typically managed by the framework and passed as a non-null object in this context. More importantly, it is performed after accessing 'dbResult' on the previous line, which would throw a NullPointerException if it were actually null.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.hana/src/org/jkiss/dbeaver/ext/hana/model/HANATable.java</path>
+<side>right</side>
+<from>142</from>
+<to>143</to>
+<note>The SQL query in prepareObjectsStatement selects all columns (*) from M_CS_TABLES and TABLE_PARTITIONS. This is inefficient as it fetches unnecessary data from the database, increasing network payload and memory usage. Only the required columns should be selected.</note>
+</notesplit>

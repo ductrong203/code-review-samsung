@@ -1,0 +1,25 @@
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/integration/resteasy/QuarkusHttpRequest.java</path>
+<side>right</side>
+<from>173</from>
+<to>174</to>
+<note>**[Code Defect]** The implementation of isProxyTrusted relies on a custom header 'X-Forwarded-Trusted-Proxy' to determine trust. This is insecure because an attacker can spoof this header to bypass the proxy trust check, effectively allowing any request to be treated as if it came from a trusted proxy.
+
+**[Security Vulnerability]** The isProxyTrusted method relies on a user-controlled HTTP header 'X-Forwarded-Trusted-Proxy' to determine if a proxy is trusted. An attacker can spoof this header to bypass security checks that rely on isProxyTrusted(), such as X.509 certificate lookup, leading to potential authentication bypass.
+
+**[Maintainability and Readability]** The isProxyTrusted implementation in QuarkusHttpRequest relies on a hardcoded header name 'X-Forwarded-Trusted-Proxy'. This magic string should be defined as a constant to improve maintainability and avoid potential typos across the codebase.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/integration/resteasy/QuarkusHttpRequest.java</path>
+<side>right</side>
+<from>172</from>
+<to>174</to>
+<note>The isProxyTrusted method performs a configuration lookup (Configuration.getOptionalKcValue) on every single request. Configuration lookups are typically expensive operations involving map lookups or property parsing. This should be cached or resolved once during initialization if the configuration is immutable for the application lifecycle.</note>
+</notesplit>
+<notesplit>
+<path>services/src/main/java/org/keycloak/services/x509/AbstractClientCertificateFromHttpHeadersLookup.java</path>
+<side>right</side>
+<from>134</from>
+<to>134</to>
+<note>The method buildChain is marked as protected but is only intended to be used by subclasses to override specific chain-building logic. While correct, it lacks Javadoc explaining its purpose and the expected behavior of the 'chain' list parameter, which is modified in-place.</note>
+</notesplit>

@@ -1,0 +1,18 @@
+<notesplit>
+<path>packages/tables/src/Commands/FileGenerators/Concerns/CanGenerateModelTables.php</path>
+<side>right</side>
+<from>143</from>
+<to>146</to>
+<note>**[Code Defect]** The 'time' column configuration sets $columnData['time'] = [] but does not set $columnData['format'] or $columnData['prefixIcon']. In contrast, the 'date' column sets $columnData['date'] = [] and the 'datetime' column (handled later) sets $columnData['format']. Without a format, the time column may not display correctly or may rely on default formatting which might be inconsistent with date/datetime columns. Check if TimeColumn requires a format configuration similar to DateColumn.
+
+**[Maintainability and Readability]** Inconsistent condition style: the code uses `in_array` for 'date' previously, but the new 'time' block uses strict equality `$type['name'] === 'time'`. For consistency and maintainability, use the same pattern as the surrounding code (either `in_array` for both or strict equality for both).
+
+The 'time' column configuration is duplicated logic from 'date'. If more time-related columns are added later, this pattern will repeat. Consider if a helper method or a more generic mapping would improve maintainability.</note>
+</notesplit>
+<notesplit>
+<path>packages/forms/src/Commands/FileGenerators/Concerns/CanGenerateModelForms.php</path>
+<side>right</side>
+<from>93</from>
+<to>93</to>
+<note>The TimePicker component is added to the form generation, but no specific configuration (like format, placeholder, or prefixIcon) is added. While TimePicker might have sensible defaults, it's worth verifying if the generated form component needs any specific setup to work correctly with the database 'time' type, similar to how DatePicker might need date formatting.</note>
+</notesplit>

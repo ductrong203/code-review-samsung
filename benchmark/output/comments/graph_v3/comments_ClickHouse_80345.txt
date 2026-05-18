@@ -1,0 +1,38 @@
+<notesplit>
+<path>src/Functions/array/arrayAggregation.cpp</path>
+<side>right</side>
+<from>449</from>
+<to>469</to>
+<note>**[Performance]** The registration logic for array functions creates multiple large `FunctionDocumentation` objects and their associated `std::vector` and `std::string` members inside the `REGISTER_FUNCTION` block. Since this block is executed during server startup, creating these objects repeatedly for every function registration increases startup time and memory overhead. These should be defined as `static const` or `constexpr` to avoid heap allocations and object construction at runtime.
+
+**[Maintainability and Readability]** The REGISTER_FUNCTION block has become a 'God function' containing massive amounts of boilerplate documentation code for multiple functions. This violates the Single Responsibility Principle and makes the registration logic hard to read. These documentation structures should be moved to separate static helper functions or dedicated metadata files.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayAggregation.cpp</path>
+<side>right</side>
+<from>482</from>
+<to>482</to>
+<note>**[Code Defect]** The returned_value_max documentation incorrectly states it returns the 'minimum' element instead of the 'maximum' element.
+
+**[Security Vulnerability]** The documentation for `arrayMax` incorrectly states that it returns the 'minimum' element in the `returned_value_max` field. This is a documentation error that could mislead users about the function's behavior.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayAggregation.cpp</path>
+<side>right</side>
+<from>498</from>
+<to>498</to>
+<note>**[Maintainability and Readability]** The syntax string for arraySum incorrectly references 'arrayMax' instead of 'arraySum'. This is a copy-paste error that will confuse users reading the documentation.
+
+**[Code Defect]** The syntax_sum documentation incorrectly uses 'arrayMax' instead of 'arraySum'.
+
+**[Security Vulnerability]** The syntax documentation for `arraySum` incorrectly lists the function name as `arrayMax` instead of `arraySum`.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayFirstLast.cpp</path>
+<side>right</side>
+<from>264</from>
+<to>264</to>
+<note>**[Maintainability and Readability]** The example for 'No match' in arrayLast documentation incorrectly references 'arrayFirst' instead of 'arrayLast'. This is a copy-paste error.
+
+**[Code Defect]** The example for 'No match' in arrayLast documentation incorrectly calls 'arrayFirst' instead of 'arrayLast'.</note>
+</notesplit>

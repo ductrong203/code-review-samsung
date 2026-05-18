@@ -1,0 +1,79 @@
+<notesplit>
+<path>server/src/repositories/album.repository.ts</path>
+<side>right</side>
+<from>141</from>
+<to>142</to>
+<note>**[Maintainability and Readability]** The SQL query logic in the TypeScript repository (`album.repository.ts`) duplicates the complex timezone conversion logic (`AT TIME ZONE 'UTC'::text`) found in the SQL file. This creates a maintenance burden: if the timezone strategy changes, it must be updated in two places. This violates the DRY principle and increases the risk of inconsistencies.
+
+**[Performance]** The SQL query now performs a timezone conversion and date casting for every row in the aggregation: `("assets"."localDateTime" AT TIME ZONE 'UTC'::text)::date`. This operation is executed for every asset row before grouping, which can be significantly slower than the previous query that simply selected the raw timestamp. If the column is already stored in UTC, this conversion is redundant and adds CPU overhead to the database.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/album.repository.ts</path>
+<side>right</side>
+<from>141</from>
+<to>141</to>
+<note>The SQL query uses `AT TIME ZONE 'UTC'` to convert timestamps to dates. If `assets.localDateTime` is already a `date` type (not `timestamp`), this conversion will fail or produce incorrect results. Additionally, the original query used `min/max` on `localDateTime` directly, which preserves time precision. The new query casts to `date`, which might lose precision if the application expects time-based sorting or filtering. Verify the column type in the database schema.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/album.repository.ts</path>
+<side>right</side>
+<from>142</from>
+<to>142</to>
+<note>Same issue as above: `max` aggregation on `localDateTime` with `AT TIME ZONE 'UTC'` conversion. This might cause runtime errors if the column type is incompatible or produce unexpected results due to timezone handling differences compared to the original query.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/album.service.ts</path>
+<side>right</side>
+<from>67</from>
+<to>68</to>
+<note>The comment '// lastModifiedAssetTimestamp is only used in mobile app, please remove if not need' is repeated in the service layer. This reinforces the lack of clarity regarding the feature's purpose and longevity.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/album.repository.ts</path>
+<side>right</side>
+<from>143</from>
+<to>143</to>
+<note>The code includes a comment '// lastModifiedAssetTimestamp is only used in mobile app, please remove if not need' which indicates this field is being added for a specific client. While not a direct vulnerability, exposing internal implementation details or unused fields in the API response can lead to information disclosure. Ensure this field is strictly validated and not exposing sensitive internal metadata.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/album.repository.ts</path>
+<side>right</side>
+<from>143</from>
+<to>144</to>
+<note>The comment '// lastModifiedAssetTimestamp is only used in mobile app, please remove if not need' is a TODO-style comment that pollutes the production code. It indicates uncertainty about the feature's lifecycle and suggests a lack of clear ownership or configuration for this field.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/album.service.ts</path>
+<side>right</side>
+<from>61</from>
+<to>61</to>
+<note>The `getAll` method in `album.service.ts` now uses `albums.map` instead of `Promise.all`. This means the mapping is synchronous and does not handle any potential async operations that might have been in the original closure (though the original closure only called an async function). However, the original code called `this.assetRepository.getLastUpdatedAssetForAlbumId` for each album, which was an async operation. By switching to `map`, if any future logic requires async processing per album, it will break. More importantly, the original code was `Promise.all(albums.map(...))` which returns a Promise. The new code returns an array directly. This is a functional change if the caller expects a Promise. Check the caller of `getAll` to ensure it handles the return type correctly.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/album.service.ts</path>
+<side>right</side>
+<from>61</from>
+<to>69</to>
+<note>The original code used `Promise.all` with an async function, which ensures all async operations are awaited. The new code uses synchronous `map`. If the caller of `getAll` (e.g., in `album.service.spec.ts` or other services) expects a `Promise<AlbumResponseDto[]>`, this change will break the contract. Check the return type of `getAll` in the interface and its usages.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/album.service.ts</path>
+<side>right</side>
+<from>67</from>
+<to>67</to>
+<note>The code includes a comment '// lastModifiedAssetTimestamp is only used in mobile app, please remove if not need' in the service layer. This exposes internal development notes and potential future deprecation plans to anyone with access to the source code or debug logs. It's best practice to keep such notes in commit messages or internal documentation rather than in the codebase.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/album.service.ts</path>
+<side>right</side>
+<from>68</from>
+<to>68</to>
+<note>Inconsistent handling of null/undefined values. The code uses `?? undefined` for `lastModifiedAssetTimestamp` but relies on implicit undefined for other fields in the spread. While functional, explicit consistency in mapping DTOs improves readability.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/album.repository.ts</path>
+<side>right</side>
+<from>138</from>
+<to>138</to>
+<note>The query now selects from the `assets` table as the primary table and joins `albums_assets_assets`. While this avoids the N+1 query issue in the service layer, starting from `assets` and filtering by album IDs via the join table might be less efficient than starting from `albums` if there are many assets but few albums. The previous query started from `albums` and joined assets, which is often more efficient for album-centric queries.</note>
+</notesplit>

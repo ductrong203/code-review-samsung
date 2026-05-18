@@ -1,0 +1,56 @@
+<notesplit>
+<path>packages/core/src/tools/mcp-client.ts</path>
+<side>right</side>
+<from>528</from>
+<to>528</to>
+<note>The invokeMcpPrompt function is incomplete and lacks a closing brace and return statement, which will cause a syntax error and runtime failure.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>85</from>
+<to>146</to>
+<note>The 'action' property in the generated SlashCommand is becoming a 'God function'. It handles argument parsing, configuration validation, server lookup, invocation, error handling, and response formatting. This should be extracted into a dedicated handler class or function to improve testability and readability.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>137</from>
+<to>137</to>
+<note>The application uses JSON.stringify to serialize the content of an MCP prompt response before submitting it to the LLM. If the MCP server returns malicious content (e.g., prompt injection payloads or crafted JSON structures), this could lead to unexpected behavior or injection attacks when the LLM processes the serialized string. Ensure the content is properly sanitized or validated before serialization.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>97</from>
+<to>97</to>
+<note>The parseArgs method is called in the action handler but is not defined in the class, which will cause a runtime TypeError when a user attempts to invoke an MCP prompt.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/prompts/prompt-registry.ts</path>
+<side>right</side>
+<from>49</from>
+<to>53</to>
+<note>The getPromptsByServer method iterates over the entire prompts map (O(n)) every time it is called. Since this is likely called frequently during UI rendering or command discovery, it should be optimized by maintaining a secondary index (Map<string, DiscoveredMCPPrompt[]>) to allow O(1) lookup by server name.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/services/McpPromptLoader.ts</path>
+<side>right</side>
+<from>153</from>
+<to>155</to>
+<note>The completion method uses a regular expression with the global flag inside a loop/completion trigger. Regex compilation and execution can be expensive if triggered frequently during typing. The regex should be hoisted to a constant outside the function scope.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/ui/hooks/slashCommandProcessor.ts</path>
+<side>right</side>
+<from>250</from>
+<to>330</to>
+<note>The 'handleSlashCommand' function in 'slashCommandProcessor.ts' has become excessively long and deeply nested due to the switch-case block handling various command results. This violates the Single Responsibility Principle. Consider using a strategy pattern or mapping result types to handler functions.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/tools/mcp-client.ts</path>
+<side>right</side>
+<from>525</from>
+<to>528</to>
+<note>The 'invokeMcpPrompt' function is incomplete (the diff ends abruptly). Ensure that the function is fully implemented and includes proper error handling for the 'prompts/get' request.</note>
+</notesplit>

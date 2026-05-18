@@ -1,0 +1,49 @@
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>right</side>
+<from>1133</from>
+<to>1144</to>
+<note>The template function 'valueFromLine' uses 'std::strtol' and 'std::strtof' on raw pointers derived from 'std::string_view'. This is unsafe as it does not guarantee null-termination, potentially leading to buffer overreads if the string_view does not point to a null-terminated buffer.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>right</side>
+<from>1137</from>
+<to>1137</to>
+<note>The function valueFromLine uses std::strtol on a string_view without verifying that the input string is null-terminated. std::strtol expects a null-terminated C-string. Passing a pointer to the middle of a string_view without ensuring a null terminator exists at the expected position can lead to an out-of-bounds read.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>right</side>
+<from>1143</from>
+<to>1143</to>
+<note>The function valueFromLine uses std::strtof on a string_view without verifying that the input string is null-terminated. std::strtof expects a null-terminated C-string. Passing a pointer to the middle of a string_view without ensuring a null terminator exists at the expected position can lead to an out-of-bounds read.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>right</side>
+<from>1147</from>
+<to>1157</to>
+<note>The addCell function creates a new vtkSmartPointer<T> and performs multiple virtual method calls (GetPointIds, SetNumberOfIds, SetId) inside a loop for every single cell. This is inefficient for large meshes. It is better to pre-allocate the cell array and use a single contiguous buffer or use vtkCellArray::InsertNextCell with a pre-allocated vtkIdList to reduce object overhead.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>right</side>
+<from>1160</from>
+<to>1215</to>
+<note>The 'fillCell' function uses a large switch-case block that manually maps 'ElementType' to 'vtkCellArray' insertions. This is highly repetitive and violates the DRY principle. It should be refactored into a lookup table or a factory pattern to improve maintainability.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>right</side>
+<from>1307</from>
+<to>1315</to>
+<note>The loop in readNodes performs string operations and repeated parsing inside a while loop reading from a file. Specifically, creating a std::string_view from a line and then calling substr/rfind repeatedly is redundant. The parsing logic should be optimized to avoid repeated string allocations or complex view slicing inside the hot loop.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>right</side>
+<from>1247</from>
+<to>1260</to>
+<note>The 'getDigits' function uses a switch statement that is incomplete (missing default case) and returns a hardcoded integer. This logic is fragile if new 'Indicator' types are added.</note>
+</notesplit>

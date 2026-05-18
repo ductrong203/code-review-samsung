@@ -15,7 +15,7 @@ frontend.
 
 - Multi-agent review pipeline for defects, security, performance, and
   maintainability.
-- LLM provider support for Ollama and Gemini.
+- LLM provider support for Ollama, Gemini, and Qwen/vLLM.
 - GitHub PR diff and metadata fetching.
 - Optional graph context from `code-review-graph`.
 - Persistent graph cache for local or server deployments.
@@ -57,9 +57,20 @@ OLLAMA_MODEL=llama3.1
 GEMINI_API_KEY=your_gemini_api_key_here
 GEMINI_MODEL=gemini-2.0-flash
 
+# Qwen / vLLM OpenAI-compatible endpoint
+QWEN_BASE_URL=https://kitchen-uneatable-shindig.ngrok-free.dev
+QWEN_API_KEY=dummy
+QWEN_MODEL=Qwen3.6-35B
+QWEN_TIMEOUT_SECONDS=120
+QWEN_ENABLE_THINKING=false
+
 # Optional, useful for private repos and GitHub rate limits
 GITHUB_TOKEN=
 ```
+
+Choose one provider by changing `LLM_PROVIDER` to `ollama`, `gemini`, or
+`qwen`. The Qwen option uses an OpenAI-compatible `/chat/completions` API, so it
+works with vLLM-hosted models.
 
 For Docker, root `.env.example` contains extension/runtime settings:
 

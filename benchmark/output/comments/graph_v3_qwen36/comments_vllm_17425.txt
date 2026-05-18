@@ -1,0 +1,102 @@
+<notesplit>
+<path>vllm/multimodal/profiling.py</path>
+<side>right</side>
+<from>224</from>
+<to>224</to>
+<note>**[Performance]** Inefficient string conversion in hot path: `str(self._get_mm_num_tokens(mm_inputs))` is called every time the warning is logged. Since `warning_once` is cached, this conversion happens repeatedly for the same input if the cache key doesn't match or if the warning is triggered frequently during initialization. It's better to pre-format the string or pass the integer directly to the logger to let it handle formatting efficiently.
+
+**[Security Vulnerability]** The `logger.warning_once` call now uses `%d` and `%s` format specifiers. The argument `str(self._get_mm_num_tokens(mm_inputs))` is passed as a string. While Python's logging module is generally forgiving, explicitly converting an integer to a string for a `%s` specifier is redundant but safe. However, if `_get_mm_num_tokens` returns a non-hashable type, it will fail. Ensure the return type is always hashable.
+
+Same issue as above. The `logger.warning_once` call uses `%d` and `%s` format specifiers. The argument `str(self._get_mm_num_tokens(mm_inputs))` is passed as a string. Ensure `_get_mm_num_tokens` always returns a hashable type to prevent runtime exceptions.</note>
+</notesplit>
+<notesplit>
+<path>vllm/logger.py</path>
+<side>right</side>
+<from>56</from>
+<to>58</to>
+<note>The function `_print_info_once` in `vllm/logger.py` uses `*args: Hashable` to accept format arguments. However, it passes these directly to `logger.info(msg, *args, stacklevel=2)`. In Python's logging, `stacklevel` must be a keyword argument. If `*args` is used, `stacklevel` is correctly placed as a kwarg, but the signature `*args: Hashable` is overly broad and doesn't enforce that arguments match the format specifiers. More importantly, this pattern is repeated in `_print_warning_once` and `_print_debug_once` (if present), creating a maintenance burden if the logging interface changes.</note>
+</notesplit>
+<notesplit>
+<path>vllm/logger.py</path>
+<side>right</side>
+<from>58</from>
+<to>58</to>
+<note>The function `_print_info_once` now accepts `*args: Hashable` and passes them to `logger.info`. If the caller provides a format string with more placeholders than arguments, or mismatched types, Python's logging module may raise a `TypeError` or `ValueError` at runtime. While not a direct exploit, this introduces a potential Denial of Service (DoS) vector if untrusted data triggers malformed logging calls in production. Ensure all callers strictly match format specifiers with arguments.</note>
+</notesplit>
+<notesplit>
+<path>vllm/logger.py</path>
+<side>right</side>
+<from>62</from>
+<to>64</to>
+<note>Similar to `_print_info_once`, `_print_warning_once` in `vllm/logger.py` accepts `*args: Hashable`. This duplication of the same pattern across multiple helper functions (`_print_info_once`, `_print_warning_once`, `_print_debug_once`) increases the surface area for potential issues if the logging API changes or if type constraints need tightening.</note>
+</notesplit>
+<notesplit>
+<path>vllm/logger.py</path>
+<side>right</side>
+<from>64</from>
+<to>64</to>
+<note>Similar to `_print_info_once`, `_print_warning_once` now accepts `*args`. Passing mismatched arguments to `logger.warning` can cause runtime exceptions. This affects the `warning_once` functionality, potentially causing log failures or crashes if called with incorrect arguments.</note>
+</notesplit>
+<notesplit>
+<path>vllm/logger.py</path>
+<side>right</side>
+<from>76</from>
+<to>81</to>
+<note>The method `info_once` in `_VllmLogger` class in `vllm/logger.py` now accepts `*args: Hashable`. This changes the public API of the logger. Callers must now be updated to pass arguments as positional args for formatting. This is a breaking change for any external code using this logger if it was relying on the previous signature (though the PR seems to be internal to vllm). The `Hashable` constraint is loose.</note>
+</notesplit>
+<notesplit>
+<path>vllm/logger.py</path>
+<side>right</side>
+<from>81</from>
+<to>81</to>
+<note>The `info_once` method now passes `*args` to `_print_info_once`. If called with a format string containing `%s` or `%d` but no corresponding arguments, or with too many arguments, it will raise an exception. This is a reliability issue that could crash the application if triggered by specific code paths.</note>
+</notesplit>
+<notesplit>
+<path>vllm/logger.py</path>
+<side>right</side>
+<from>83</from>
+<to>88</to>
+<note>The method `warning_once` in `_VllmLogger` class in `vllm/logger.py` now accepts `*args: Hashable`. Same concerns as `info_once` regarding API change and type looseness.</note>
+</notesplit>
+<notesplit>
+<path>vllm/logger.py</path>
+<side>right</side>
+<from>88</from>
+<to>88</to>
+<note>The `warning_once` method now passes `*args` to `_print_warning_once`. Similar to `info_once`, mismatched format strings and arguments can cause runtime exceptions, potentially disrupting warning logs or crashing the process.</note>
+</notesplit>
+<notesplit>
+<path>vllm/lora/punica_wrapper/punica_selector.py</path>
+<side>right</side>
+<from>18</from>
+<to>18</to>
+<note>Redundant string operation: `punica_wrapper_qualname.rsplit('.', 1)[1]` is computed every time `info_once` is called. Since `info_once` is cached based on the message string, if the message string changes (which it doesn't here, but if it did), or if the cache is bypassed, this split happens repeatedly. While minor, passing the full string and letting the logger handle it or pre-computing the suffix outside the logger call is slightly more efficient if this path is hot.</note>
+</notesplit>
+<notesplit>
+<path>vllm/multimodal/profiling.py</path>
+<side>right</side>
+<from>217</from>
+<to>225</to>
+<note>In `vllm/multimodal/profiling.py`, the `logger.warning_once` call uses multiple string literals for the format string, which are concatenated by the Python parser. While valid, it can be harder to read than a single string. The use of `%d` and `%s` is correct, but the split across multiple lines might be considered a style issue. However, it's not a major maintainability issue.</note>
+</notesplit>
+<notesplit>
+<path>vllm/multimodal/profiling.py</path>
+<side>right</side>
+<from>242</from>
+<to>250</to>
+<note>Similar to the previous issue, the `logger.warning_once` call in `vllm/multimodal/profiling.py` uses multiple string literals. This is a consistent pattern in the PR but reduces readability slightly.</note>
+</notesplit>
+<notesplit>
+<path>vllm/model_executor/model_loader/weight_utils.py</path>
+<side>right</side>
+<from>718</from>
+<to>722</to>
+<note>In `vllm/model_executor/model_loader/weight_utils.py`, the `logger.warning_once` call uses a format string with two `%s` placeholders. The arguments `name` and `remapped_name` are passed correctly. However, the format string is split across multiple lines with comments, which is fine, but the `# noqa: E501` comment is repeated. This is a minor style issue.</note>
+</notesplit>
+<notesplit>
+<path>vllm/model_executor/model_loader/weight_utils.py</path>
+<side>right</side>
+<from>740</from>
+<to>746</to>
+<note>In `vllm/model_executor/model_loader/weight_utils.py`, the `logger.warning_once` call uses a format string with four `%s` placeholders. The arguments `scale_name`, `name`, `remapped_name`, and `scale_name` are passed. Note that `scale_name` is passed twice. This is correct but could be confusing to a reader. Consider using a tuple or named arguments if the logging library supported them (it doesn't in Python's standard logging).</note>
+</notesplit>

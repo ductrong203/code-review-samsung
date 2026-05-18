@@ -1,0 +1,81 @@
+<notesplit>
+<path>crates/common_utils/src/macros.rs</path>
+<side>right</side>
+<from>557</from>
+<to>557</to>
+<note>**[Code Defect]** The macro `impl_enum_str` in `crates/common_utils/src/macros.rs` has its parameter renamed from `tag_delimeter` to `tag_delimiter` (lines 554-556). However, the internal usage of this parameter within the macro body (e.g., line 600, 606, 612, 618, 624, 630, 636, 642, 648, 654, 660, 666, 672, 678, 684, 690, 696) still uses the old name `tag_delimeter`. This causes a compilation error because `$tag_delim` is bound to the new name, but the macro body references the old name which is no longer in scope. All internal references to `tag_delimeter` inside the macro definition must be updated to `tag_delimiter`.
+
+**[Maintainability and Readability]** The macro `impl_enum_str` uses a parameter name `tag_delimiter` in the public API (the macro invocation syntax). Changing this parameter name is a breaking change for any code that calls this macro, as it forces all callers to update their code. This violates the principle of maintaining backward compatibility for public APIs.</note>
+</notesplit>
+<notesplit>
+<path>crates/common_utils/src/macros.rs</path>
+<side>right</side>
+<from>704</from>
+<to>704</to>
+<note>The test code in `crates/common_utils/src/macros.rs` at line 701 uses `tag_delimiter`, which matches the updated macro signature. However, since the macro body itself (lines 554+) still references `tag_delimeter` internally, this test will fail to compile. The root cause is the macro body not being updated.</note>
+</notesplit>
+<notesplit>
+<path>crates/common_utils/src/types.rs</path>
+<side>right</side>
+<from>1367</from>
+<to>1367</to>
+<note>**[Code Defect]** The call to `impl_enum_str!` in `crates/common_utils/src/types.rs` uses the new parameter name `tag_delimiter`, but the macro definition itself (in `crates/common_utils/src/macros.rs`) still expects the old name `tag_delimeter` in its signature (or vice versa, depending on which side is considered 'right'). Based on the diff, the macro definition was updated to `tag_delimiter`, but the internal macro body was not. This mismatch means the macro invocation at line 1364 will fail to compile because the macro expects `tag_delimiter` but the macro body (if fixed) or the macro signature (if not fixed) is inconsistent. Specifically, if the macro signature is `tag_delimiter`, the call is correct, but the macro body must also be fixed. If the macro signature remains `tag_delimeter` (not shown in diff but implied by the error), the call is wrong. Given the diff shows the macro signature changed to `tag_delimiter`, the call is correct, but the macro body is broken (see previous issue). However, if we look at the diff for `types.rs`, it changes the call to `tag_delimiter`. If the macro definition in `macros.rs` is NOT fully fixed (internal body), this call will fail. The primary defect is the macro definition. This call is correct relative to the new macro signature.
+
+**[Maintainability and Readability]** This file calls the macro `impl_enum_str` with the parameter `tag_delimiter`. Since the macro definition in `macros.rs` was also changed to use `tag_delimiter`, this is consistent. However, this change is part of the breaking API change in the macro. If this macro is public, this is a breaking change.</note>
+</notesplit>
+<notesplit>
+<path>crates/router/src/core/payments.rs</path>
+<side>right</side>
+<from>8796</from>
+<to>8799</to>
+<note>**[Maintainability and Readability]** Renaming the parameter `debit_routing_ouput` to `debit_routing_output` in another implementation of `set_co_badged_card_data`. This is part of the breaking change for the trait.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/payments.rs</path>
+<side>right</side>
+<from>1186</from>
+<to>1186</to>
+<note>Renaming the field `encypted_payload` to `encrypted_payload` in `CtpServiceDetails` is a breaking change for the API contract. Any client code or internal code relying on the old field name will break. This affects serialization/deserialization.</note>
+</notesplit>
+<notesplit>
+<path>crates/hyperswitch_domain_models/src/router_request_types/unified_authentication_service.rs</path>
+<side>right</side>
+<from>24</from>
+<to>24</to>
+<note>Renaming the field `encypted_payload` to `encrypted_payload` in `MerchantDetails` is a breaking change for the API contract. This affects serialization/deserialization and any code accessing this field.</note>
+</notesplit>
+<notesplit>
+<path>crates/router/src/core/unified_authentication_service.rs</path>
+<side>right</side>
+<from>78</from>
+<to>81</to>
+<note>This code accesses the `encrypted_payload` field. Since the field name was changed from `encypted_payload` to `encrypted_payload` in the struct definition, this code must be updated to use the new name. The diff shows this update, but it's a critical part of the breaking change.</note>
+</notesplit>
+<notesplit>
+<path>crates/router/src/core/payments.rs</path>
+<side>right</side>
+<from>8290</from>
+<to>8290</to>
+<note>Renaming the parameter `debit_routing_ouput` to `debit_routing_output` in the trait method `set_co_badged_card_data`. This is a breaking change for any code implementing this trait.</note>
+</notesplit>
+<notesplit>
+<path>crates/router/src/core/payments.rs</path>
+<side>right</side>
+<from>8541</from>
+<to>8544</to>
+<note>Renaming the parameter `debit_routing_ouput` to `debit_routing_output` in the implementation of `set_co_badged_card_data`. This is part of the breaking change for the trait.</note>
+</notesplit>
+<notesplit>
+<path>crates/router/src/core/payments/retry.rs</path>
+<side>right</side>
+<from>620</from>
+<to>620</to>
+<note>Renaming the parameter `setup_futture_usage_intent` to `setup_future_usage_intent` in the function `make_new_auto_retry_payment_attempt`. This is a breaking change for the function signature.</note>
+</notesplit>
+<notesplit>
+<path>crates/router/src/core/payments/retry.rs</path>
+<side>right</side>
+<from>691</from>
+<to>691</to>
+<note>Using the renamed parameter `setup_future_usage_intent` in the function `make_new_auto_retry_payment_attempt`. This is part of the breaking change for the function signature.</note>
+</notesplit>

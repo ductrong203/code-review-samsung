@@ -1,0 +1,77 @@
+<notesplit>
+<path>internal/ast/utilities.go</path>
+<side>right</side>
+<from>2365</from>
+<to>2369</to>
+<note>The function 'IsDefaultImport' now has a confusing structure. It checks for 'KindImportDeclaration' and 'KindJSImportDeclaration' in a switch, but then returns a boolean expression directly inside the case. This is inconsistent with the previous structure where it would set a variable and return at the end. More importantly, the comment 'ImportDeclaration | ImportEqualsDeclaration | ExportDeclaration' is now outdated as it no longer handles ImportEqualsDeclaration or ExportDeclaration. The logic is also hard to follow because of the early return inside the switch case.</note>
+</notesplit>
+<notesplit>
+<path>internal/ast/ast.go</path>
+<side>right</side>
+<from>3690</from>
+<to>3690</to>
+<note>The function name 'newTypeAliasOrJSTypeAliasDeclaration' is misleading. It does not handle 'TypeAliasDeclaration' generically; it specifically handles 'KindTypeAliasDeclaration' and 'KindJSTypeAliasDeclaration'. The 'Or' suggests a union type or generic handling, but it's just a factory for two specific kinds. A clearer name would be 'newTypeAliasDeclaration' or 'newTypeAliasOrJSTypeAliasDeclaration' -> 'newTypeAliasDeclaration' (since the other is JS-specific).</note>
+</notesplit>
+<notesplit>
+<path>internal/ast/ast.go</path>
+<side>right</side>
+<from>4047</from>
+<to>4047</to>
+<note>The function name 'newImportOrJSImportDeclaration' is misleading. It does not handle 'ImportDeclaration' generically; it specifically handles 'KindImportDeclaration' and 'KindJSImportDeclaration'. The 'Or' suggests a union type or generic handling, but it's just a factory for two specific kinds. A clearer name would be 'newImportDeclaration' or 'newImportOrJSImportDeclaration' -> 'newImportDeclaration' (since the other is JS-specific).</note>
+</notesplit>
+<notesplit>
+<path>internal/parser/reparser.go</path>
+<side>right</side>
+<from>122</from>
+<to>122</to>
+<note>The reparser converts JSDoc @import tags into synthetic type-only import declarations. It sets IsTypeOnly = true but does not validate the module specifier or import clause for malicious content. If an attacker can control the JSDoc comment (e.g., via user-generated content in a codebase), they could inject arbitrary module specifiers that get processed as type-only imports, potentially leading to SSRF or information disclosure if the compiler resolves these paths.</note>
+</notesplit>
+<notesplit>
+<path>internal/parser/reparser.go</path>
+<side>right</side>
+<from>120</from>
+<to>126</to>
+<note>In reparser.go, the new case for KindJSDocImportTag performs a full clone of the importClause (importClause.Clone(&p.factory)) and creates a new import declaration. Cloning AST nodes can be expensive if done repeatedly in hot paths. If this re-parsing happens frequently during compilation, the allocation overhead could impact performance. Consider if the clone is necessary or if a shallow copy/reference could suffice for type-only synthetic nodes.</note>
+</notesplit>
+<notesplit>
+<path>internal/ast/utilities.go</path>
+<side>right</side>
+<from>1666</from>
+<to>1668</to>
+<note>The function 'IsAnyImportSyntax' is growing with each new import type. This is a code smell for a 'God function' or 'Fat interface' as it requires updating multiple places when new node types are added. Consider using a map or a more scalable way to check if a node is an import syntax.</note>
+</notesplit>
+<notesplit>
+<path>internal/ast/utilities.go</path>
+<side>right</side>
+<from>1667</from>
+<to>1667</to>
+<note>The IsAnyImportSyntax function now includes KindJSImportDeclaration. This is a functional change that ensures JSDoc-imported declarations are treated as import syntax. While not a direct vulnerability, if this function is used for access control decisions (e.g., determining if a node should be exposed to certain APIs), missing this kind could lead to inconsistent behavior where JSDoc imports bypass security checks that apply to regular imports.</note>
+</notesplit>
+<notesplit>
+<path>internal/ast/utilities.go</path>
+<side>right</side>
+<from>2053</from>
+<to>2059</to>
+<note>The list of node kinds in 'IsDeclarationStatementKind' is growing with each new import/export type. This is a code smell for a 'God function' or 'Fat interface' as it requires updating multiple places when new node types are added. Consider using a map or a more scalable way to check if a node is a declaration statement.</note>
+</notesplit>
+<notesplit>
+<path>internal/checker/checker.go</path>
+<side>right</side>
+<from>5101</from>
+<to>5104</to>
+<note>The isExclusivelyTypeOnlyImportOrExport function now handles KindJSImportDeclaration but removed handling for KindJSDocImportTag. This could create an inconsistency where JSDoc import tags are not properly identified as type-only, potentially allowing value-only imports to be treated as type-only in certain contexts, which could bypass type-checking security measures.</note>
+</notesplit>
+<notesplit>
+<path>internal/ast/ast.go</path>
+<side>right</side>
+<from>3690</from>
+<to>3696</to>
+<note>The newTypeAliasOrJSTypeAliasDeclaration function in ast.go allocates a new TypeAliasDeclaration struct. Similar to the import declaration, if this is called frequently in hot paths, consider object pooling for TypeAliasDeclaration structs to reduce GC pressure.</note>
+</notesplit>
+<notesplit>
+<path>internal/ast/ast.go</path>
+<side>right</side>
+<from>4047</from>
+<to>4054</to>
+<note>The newImportOrJSImportDeclaration function in ast.go creates a new ImportDeclaration struct and populates it. This is a standard factory pattern. However, if this function is called in a tight loop (e.g., during parsing many imports), the repeated allocation of ImportDeclaration structs could be a minor memory pressure point. Consider if object pooling (sync.Pool) is beneficial for frequently allocated AST nodes.</note>
+</notesplit>

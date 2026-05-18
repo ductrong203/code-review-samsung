@@ -165,6 +165,21 @@ def fetch_pr_changed_files(owner: str, repo: str, pr_number: int) -> List[str]:
     return []
 
 
+def changed_files_from_diff_files(diff_files) -> List[str]:
+    """Derive changed file paths from parsed diff data."""
+    changed_files: List[str] = []
+    seen = set()
+    for df in diff_files or []:
+        if getattr(df, "is_deleted", False):
+            continue
+        path = getattr(df, "new_path", None) or getattr(df, "old_path", None)
+        if not path or path in seen:
+            continue
+        seen.add(path)
+        changed_files.append(path)
+    return changed_files
+
+
 def _safe_path_part(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]", "_", value)
 
@@ -664,6 +679,34 @@ async def build_pr_graph(request: BuildPRRequest):
             request.owner, request.name, request.pr_number,
         )
         if not changed_files:
+            try:
+                from app.services.github_service import GitHubService
+                from app.services.diff_parser import parse_diff
+
+                pr_url = (
+                    f"https://github.com/{request.owner}/"
+                    f"{request.name}/pull/{request.pr_number}"
+                )
+                raw_diff = GitHubService().fetch_pr_diff(pr_url)
+                changed_files = changed_files_from_diff_files(parse_diff(raw_diff))
+                if changed_files:
+                    logger.warning(
+                        "GitHub PR files API returned no files for %s/%s#%s; "
+                        "using %s file(s) parsed from diff",
+                        request.owner,
+                        request.name,
+                        request.pr_number,
+                        len(changed_files),
+                    )
+            except Exception as e:
+                logger.warning(
+                    "Could not derive changed files from PR diff for %s/%s#%s: %s",
+                    request.owner,
+                    request.name,
+                    request.pr_number,
+                    e,
+                )
+        if not changed_files:
             raise HTTPException(
                 status_code=400,
                 detail="No changed files found. Provide changed_files "
@@ -743,6 +786,17 @@ async def review_pr(request: ReviewRequest):
         if not lifecycle.pr_graph_ready(owner, repo, pr_number):
             if lifecycle.main_graph_ready(owner, repo) and reg:
                 changed_files = fetch_pr_changed_files(owner, repo, pr_number)
+                if not changed_files:
+                    changed_files = changed_files_from_diff_files(diff_files)
+                    if changed_files:
+                        logger.warning(
+                            "GitHub PR files API returned no files for %s/%s#%s; "
+                            "using %s file(s) parsed from diff",
+                            owner,
+                            repo,
+                            pr_number,
+                            len(changed_files),
+                        )
                 if changed_files:
                     try:
                         logger.info(f"Auto-building PR graph for {owner}/{repo}#{pr_number}")

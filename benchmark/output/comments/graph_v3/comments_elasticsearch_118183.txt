@@ -1,0 +1,28 @@
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/index/mapper/vectors/VectorEncoderDecoder.java</path>
+<side>right</side>
+<from>94</from>
+<to>104</to>
+<note>The method decodeMultiDenseVector was removed, but it was the only implementation of this logic. If this logic is still required by other components (like script fields or doc value decoders), its removal will cause runtime errors or missing functionality. Given the rename, this logic should likely have been updated to decode RankVectors instead of being deleted.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/index/mapper/vectors/RankVectorsScriptDocValues.java</path>
+<side>right</side>
+<from>20</from>
+<to>20</to>
+<note>The error message 'A document doesn't have a value for a rank-vectors field!' is slightly grammatically awkward. It should be 'A document does not have a value for a rank-vectors field.' to maintain professional tone.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/script/field/vectors/RankVectors.java</path>
+<side>right</side>
+<from>49</from>
+<to>50</to>
+<note>The error message 'rank-vectors value missing for a field, use isEmpty() to check for a missing value' is inconsistent with the naming convention used elsewhere in the class. It should be capitalized to match standard error message formatting.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/index/mapper/vectors/RankVectorsScriptDocValues.java</path>
+<side>right</side>
+<from>65</from>
+<to>71</to>
+<note>The size() method calls getInternal() which performs a potentially expensive operation (decoding/object creation) just to check if the vector exists. This is inefficient when called frequently in hot paths like aggregations or script execution.</note>
+</notesplit>

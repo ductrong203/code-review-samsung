@@ -1,0 +1,72 @@
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/testframework/database/AbstractContainerTestDatabase.java</path>
+<side>right</side>
+<from>90</from>
+<to>90</to>
+<note>**[Code Defect]** The code assumes that 'getExposedPorts()' returns a non-empty list. If the container has no exposed ports, 'getExposedPorts().get(0)' will throw an IndexOutOfBoundsException.
+
+**[Security Vulnerability]** The method getJdbcUrl(boolean internal) performs string replacement on a JDBC URL to swap the host/port with an internal IP. This is prone to errors if the original URL format is unexpected, potentially leading to connection string injection or misconfiguration that exposes internal database credentials to unintended network segments.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/tests/junit5/src/main/java/org/keycloak/it/utils/DockerKeycloakDistribution.java</path>
+<side>right</side>
+<from>138</from>
+<to>139</to>
+<note>The code block inside the 'else' branch is incomplete and leaves the method without a return value or a thrown exception when 'failIfDockerFileMissing' is true, leading to a potential NullPointerException or compilation error.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/tests/junit5/src/main/java/org/keycloak/it/utils/DockerKeycloakDistribution.java</path>
+<side>right</side>
+<from>129</from>
+<to>129</to>
+<note>The code constructs a Docker image build context using files from the host filesystem (ubi-null.sh, Dockerfile) based on paths derived from the project directory. If an attacker can influence the project structure or the contents of these files, they could achieve arbitrary code execution within the container build process or the resulting container image.</note>
+</notesplit>
+<notesplit>
+<path>tests/clustering/src/test/java/org/keycloak/tests/compatibility/MixedVersionClusterTest.java</path>
+<side>right</side>
+<from>40</from>
+<to>40</to>
+<note>The test uses 'Thread.sleep' for synchronization, which is a brittle anti-pattern in automated tests. It should be replaced with a polling mechanism or an explicit wait condition.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>right</side>
+<from>55</from>
+<to>55</to>
+<note>The variable name 'imagePeServer' is unclear and likely a typo for 'imagesPerServer'. This reduces code clarity.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>right</side>
+<from>63</from>
+<to>63</to>
+<note>The variable name 'imagePeServer' is unclear and likely a typo for 'imagesPerServer'. This reduces code clarity.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/tests/junit5/src/main/java/org/keycloak/it/utils/DockerKeycloakDistribution.java</path>
+<side>right</side>
+<from>114</from>
+<to>120</to>
+<note>The code contains commented-out logic explaining why a dependency is missing. This dead code and explanatory comment should be removed or replaced with a proper TODO/FIXME if the issue is temporary, as it clutters the production test code.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>right</side>
+<from>48</from>
+<to>49</to>
+<note>The constructor parameter 'mumServers' is a typo for 'numServers', which is confusing and inconsistent with the variable name 'numContainers' used in the supplier.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/tests/junit5/src/main/java/org/keycloak/it/utils/Maven.java</path>
+<side>right</side>
+<from>147</from>
+<to>153</to>
+<note>The bootstrapCurrentMavenContext method performs expensive filesystem and classpath operations (resolving URIs, searching project directories) every time it is called. Since this is used in multiple places to resolve artifacts and paths, it should be cached or computed once to avoid redundant I/O overhead during test execution.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>right</side>
+<from>48</from>
+<to>48</to>
+<note>The parameter name 'mumServers' is a typo and should be 'numServers' to improve readability and maintainability.</note>
+</notesplit>

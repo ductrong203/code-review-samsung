@@ -1,0 +1,28 @@
+<notesplit>
+<path>src/Mod/TechDraw/App/CosmeticExtension.cpp</path>
+<side>right</side>
+<from>69</from>
+<to>69</to>
+<note>The variable 'viewPart' is initialized via 'getOwner()', but 'getOwner()' returns an 'App::DocumentObject*'. The code then calls 'viewPart->isCosmeticVertex(name)', which requires 'viewPart' to be a 'DrawViewPart*'. This will cause a compilation error or a crash if the pointer is not cast correctly, as 'App::DocumentObject' does not have these methods.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/CosmeticExtension.cpp</path>
+<side>right</side>
+<from>70</from>
+<to>79</to>
+<note>The loop calls `viewPart->isCosmeticVertex`, `viewPart->isCosmeticEdge`, and `viewPart->isCenterLine` for every element in `removables`. These methods internally call `DrawUtil::getIndexFromName` or `getEdge`, which likely involve string parsing or map lookups. If `removables` is large, this repeated lookup is inefficient. Consider batching or pre-calculating the element types if possible.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/CosmeticExtension.cpp</path>
+<side>right</side>
+<from>71</from>
+<to>79</to>
+<note>The logic in deleteCosmeticElements performs redundant checks by calling getGeomTypeFromName followed by specific type checks (isCosmeticVertex/isCosmeticEdge). This creates a tight coupling between the string-based type identification and the object-specific methods. Consider refactoring to a polymorphic approach or a single dispatch method to improve maintainability.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawViewPart.cpp</path>
+<side>right</side>
+<from>1502</from>
+<to>1530</to>
+<note>The methods isCosmeticVertex, isCosmeticEdge, and isCenterLine in DrawViewPart perform very similar operations (retrieving an element and checking its properties). This duplication of retrieval logic (calling getEdge or getProjVertexByIndex) could be abstracted into a private helper method to reduce code duplication.</note>
+</notesplit>

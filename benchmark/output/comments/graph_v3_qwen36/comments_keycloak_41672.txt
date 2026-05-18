@@ -1,0 +1,35 @@
+<notesplit>
+<path>adapters/saml/wildfly/wildfly-subsystem/src/main/java/org/keycloak/subsystem/adapter/saml/extension/KeycloakDependencyProcessorWildFly.java</path>
+<side>right</side>
+<from>35</from>
+<to>35</to>
+<note>In KeycloakDependencyProcessorWildFly, the field KEYCLOAK_CORE_ADAPTER was removed (replaced by the inherited field from the parent class KeycloakDependencyProcessor). However, the method addCoreModules still references KEYCLOAK_CORE_ADAPTER. Since the field is no longer defined in this class, this will cause a compilation error. The code needs to either define the field again or use the parent's constant.</note>
+</notesplit>
+<notesplit>
+<path>adapters/saml/wildfly/wildfly-subsystem/src/main/java/org/keycloak/subsystem/adapter/saml/extension/KeycloakSubsystemDefinition.java</path>
+<side>right</side>
+<from>54</from>
+<to>54</to>
+<note>The code passes a String (KEYCLOAK_JBOSS_CORE_ADAPTER) to RuntimePackageDependency.required(). However, RuntimePackageDependency.required() expects a ModuleIdentifier object, not a String. This will cause a compilation error due to type mismatch.</note>
+</notesplit>
+<notesplit>
+<path>adapters/saml/wildfly/wildfly-subsystem/src/main/java/org/keycloak/subsystem/adapter/saml/extension/KeycloakSubsystemDefinition.java</path>
+<side>right</side>
+<from>25</from>
+<to>25</to>
+<note>The file KeycloakSubsystemDefinition.java imports a static field KEYCLOAK_JBOSS_CORE_ADAPTER from KeycloakDependencyProcessor. This creates a tight coupling between these two classes. If KeycloakDependencyProcessor changes the name or type of this constant, KeycloakSubsystemDefinition will break. It is better to define shared constants in a common location or use the string literal directly to avoid cross-file dependencies for simple constants.</note>
+</notesplit>
+<notesplit>
+<path>adapters/saml/wildfly/wildfly-subsystem/src/main/java/org/keycloak/subsystem/adapter/saml/extension/KeycloakDependencyProcessor.java</path>
+<side>right</side>
+<from>38</from>
+<to>41</to>
+<note>The constants KEYCLOAK_CORE_ADAPTER, KEYCLOAK_API_ADAPTER, and KEYCLOAK_COMMON are defined as static final Strings in the abstract class KeycloakDependencyProcessor. However, in KeycloakDependencyProcessorWildFly, KEYCLOAK_CORE_ADAPTER is redefined as a private static final String. This duplication of the same constant value in a subclass is confusing and violates DRY principles. It suggests that the subclass might not be using the parent's constant correctly or that the parent's constant is not accessible/visible where needed.</note>
+</notesplit>
+<notesplit>
+<path>adapters/saml/wildfly/wildfly-subsystem/src/main/java/org/keycloak/subsystem/adapter/saml/extension/KeycloakDependencyProcessor.java</path>
+<side>right</side>
+<from>38</from>
+<to>41</to>
+<note>The constants in KeycloakDependencyProcessor are package-private (default visibility). This allows KeycloakDependencyProcessorWildFly to access them, but it's not explicit. It's better to be explicit about visibility (e.g., protected) if they are intended for subclass use, or private if they are only for the class itself. The current default visibility is ambiguous.</note>
+</notesplit>

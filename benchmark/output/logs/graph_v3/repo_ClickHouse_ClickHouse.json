@@ -1,0 +1,228 @@
+{
+  "run_name": "graph_v3",
+  "repo": "ClickHouse/ClickHouse",
+  "dataset_path": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\dataset\\positive_samples.json",
+  "extension_base": "http://localhost:8100/api",
+  "backend_url": "",
+  "started_at": "2026-05-17T11:22:44",
+  "comments_output_dir": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3",
+  "results": [
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/80345",
+      "pr_id": "ClickHouse_80345",
+      "status": "success",
+      "num_comments": 4,
+      "elapsed_seconds": 103.61,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 1,
+        "overall_risk": 0.3,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ClickHouse_80345.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/73546",
+      "pr_id": "ClickHouse_73546",
+      "status": "success",
+      "num_comments": 9,
+      "elapsed_seconds": 89.57,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 16,
+        "overall_risk": 0.5,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ClickHouse_73546.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/75218",
+      "pr_id": "ClickHouse_75218",
+      "status": "success",
+      "num_comments": 5,
+      "elapsed_seconds": 85.2,
+      "graph": {
+        "changed_functions": 10,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 7,
+        "overall_risk": 0.4,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ClickHouse_75218.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/85266",
+      "pr_id": "ClickHouse_85266",
+      "status": "success",
+      "num_comments": 4,
+      "elapsed_seconds": 81.54,
+      "graph": {
+        "changed_functions": 2,
+        "affected_flows": 0,
+        "test_gaps": 2,
+        "review_priorities": 2,
+        "related_context": 8,
+        "overall_risk": 0.35,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ClickHouse_85266.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/74070",
+      "pr_id": "ClickHouse_74070",
+      "status": "success",
+      "num_comments": 6,
+      "elapsed_seconds": 65.14,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 9,
+        "overall_risk": 0.55,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ClickHouse_74070.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/85873",
+      "pr_id": "ClickHouse_85873",
+      "status": "success",
+      "num_comments": 3,
+      "elapsed_seconds": 73.5,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 5,
+        "overall_risk": 0.5,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ClickHouse_85873.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/82441",
+      "pr_id": "ClickHouse_82441",
+      "status": "success",
+      "num_comments": 6,
+      "elapsed_seconds": 87.7,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 18,
+        "overall_risk": 0.6,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ClickHouse_82441.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/80597",
+      "pr_id": "ClickHouse_80597",
+      "status": "success",
+      "num_comments": 3,
+      "elapsed_seconds": 56.75,
+      "graph": {
+        "changed_functions": 3,
+        "affected_flows": 0,
+        "test_gaps": 3,
+        "review_priorities": 3,
+        "related_context": 11,
+        "overall_risk": 0.35,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ClickHouse_80597.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/74715",
+      "pr_id": "ClickHouse_74715",
+      "status": "success",
+      "num_comments": 6,
+      "elapsed_seconds": 98.66,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 19,
+        "overall_risk": 0.5,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ClickHouse_74715.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/80391",
+      "pr_id": "ClickHouse_80391",
+      "status": "success",
+      "num_comments": 3,
+      "elapsed_seconds": 71.72,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 11,
+        "overall_risk": 0.4,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ClickHouse_80391.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/75474",
+      "pr_id": "ClickHouse_75474",
+      "status": "success",
+      "num_comments": 8,
+      "elapsed_seconds": 114.65,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 13,
+        "overall_risk": 0.6,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ClickHouse_75474.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/72920",
+      "pr_id": "ClickHouse_72920",
+      "status": "success",
+      "num_comments": 2,
+      "elapsed_seconds": 81.28,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 20,
+        "overall_risk": 0.6,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_ClickHouse_72920.txt"
+    }
+  ],
+  "initial_graph_status": {
+    "repo": "ClickHouse/ClickHouse",
+    "registered": true,
+    "local_path": "E:\\My_Project\\samsung\\ClickHouse",
+    "main_graph_ready": true
+  },
+  "finished_at": "2026-05-17T11:39:59",
+  "summary": {
+    "selected": 12,
+    "success": 12,
+    "skipped": 0,
+    "errors": 0
+  }
+}

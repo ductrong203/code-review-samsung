@@ -1,0 +1,44 @@
+<notesplit>
+<path>pkg/gofr/logging/logger.go</path>
+<side>right</side>
+<from>81</from>
+<to>81</to>
+<note>**[Code Defect]** The use of fmt.Sprintf(format, filteredArgs...) is unsafe if the format string contains user-controlled input or if the number of arguments does not match the format specifiers. This can lead to runtime panics or incorrect log formatting.
+
+**[Security Vulnerability]** The use of fmt.Sprintf(format, filteredArgs...) is vulnerable to format string injection if the 'format' string is controlled by user input. While this is a logging utility, if any part of the format string originates from an untrusted source, it could lead to information disclosure or application crashes.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/logging/logger.go</path>
+<side>right</side>
+<from>251</from>
+<to>267</to>
+<note>The function extractTraceIDAndFilterArgs performs an O(n) scan of log arguments on every log call. While necessary for filtering, it allocates a new slice for every log entry, increasing GC pressure in high-throughput logging paths. Pre-allocating the slice is good, but the repeated map type assertions and slice copying can be optimized by avoiding the allocation if no trace ID is present.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/logging/ctx_logger.go</path>
+<side>right</side>
+<from>37</from>
+<to>39</to>
+<note>The use of a hardcoded string key '__trace_id__' for metadata injection creates a hidden coupling between the logger and the log consumer. This magic string should be defined as a constant to ensure consistency and prevent typos across the codebase.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/logging/logger.go</path>
+<side>right</side>
+<from>255</from>
+<to>256</to>
+<note>The function extractTraceIDAndFilterArgs uses the same magic string '__trace_id__' as the ContextLogger. This reinforces the need for a shared constant. Additionally, the logic assumes the first occurrence of the key is the only one, which is fine, but the hardcoded key makes it fragile.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/logging/logger.go</path>
+<side>right</side>
+<from>256</from>
+<to>256</to>
+<note>The logic in extractTraceIDAndFilterArgs only extracts the first trace ID found in the arguments. If multiple maps containing '__trace_id__' are passed, subsequent ones are ignored, and the logic might behave unexpectedly if the map structure is nested or complex.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/handler.go</path>
+<side>right</side>
+<from>70</from>
+<to>71</to>
+<note>The assignment 'c.ContextLogger = *reqLogger' performs a shallow copy of the struct. Since ContextLogger contains a pointer to a base Logger, this is technically safe, but it is idiomatic in Go to use interfaces or pointers for such wrappers to avoid accidental struct copying issues if the struct grows in the future.</note>
+</notesplit>

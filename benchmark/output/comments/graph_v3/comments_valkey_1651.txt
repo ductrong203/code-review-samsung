@@ -1,0 +1,30 @@
+<notesplit>
+<path>src/config.c</path>
+<side>right</side>
+<from>545</from>
+<to>548</to>
+<note>**[Code Defect]** The logic for updating the command name is flawed. If cmd->current_name is the same as cmd->fullname (which is true for most commands), the code skips freeing the old current_name, but then overwrites cmd->current_name with a new sdsdup. This causes a memory leak of the original sds string.
+
+**[Security Vulnerability]** The logic for freeing the command name is potentially unsafe. If cmd->current_name is the same as cmd->fullname, and the code proceeds to free cmd->current_name, it may lead to a double-free or use-after-free if the pointer is not correctly managed or if the logic assumes they are always distinct when they are not. While the check 'if (cmd->current_name != cmd->fullname)' is added, ensure that the lifecycle of these pointers is strictly controlled across all command renaming paths.</note>
+</notesplit>
+<notesplit>
+<path>src/config.c</path>
+<side>right</side>
+<from>545</from>
+<to>547</to>
+<note>The logic for freeing `current_name` is fragile. It relies on a pointer comparison (`cmd->current_name != cmd->fullname`) to determine if the memory was previously allocated/renamed. This is error-prone and makes ownership unclear. It is better to ensure `current_name` is always a distinct allocated string or managed consistently.</note>
+</notesplit>
+<notesplit>
+<path>src/acl.c</path>
+<side>right</side>
+<from>260</from>
+<to>262</to>
+<note>The function ACLStringHasSpaces performs a linear scan of the input string. While O(n) is generally acceptable, this function is called during ACL parsing and configuration loading. If the input strings are long or this is called in a hot loop, consider if the input length is bounded or if this can be optimized using SIMD or word-at-a-time comparisons.</note>
+</notesplit>
+<notesplit>
+<path>src/server.c</path>
+<side>right</side>
+<from>522</from>
+<to>525</to>
+<note>The function `hashtableCommandGetCurrentName` performs a C-style cast of `element` to `struct serverCommand *`. While functional, this lacks type safety. Since this is a callback for a generic hashtable, consider using a more robust way to handle the type or adding a comment explaining the expected structure.</note>
+</notesplit>

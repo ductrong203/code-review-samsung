@@ -1,0 +1,28 @@
+<notesplit>
+<path>src/Storages/MergeTree/MergeTreeDataMergerMutator.cpp</path>
+<side>right</side>
+<from>337</from>
+<to>343</to>
+<note>The logging logic inside the switch case is verbose and duplicates the logic for retrieving storage identifiers. This increases the complexity of the switch block. It is better to extract the logging into a helper function or simplify the log message construction to keep the business logic clean.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/MergeTree/MergeTreeDataMergerMutator.cpp</path>
+<side>right</side>
+<from>338</from>
+<to>343</to>
+<note>The LOG_TRACE call performs string formatting and back-quoting operations inside a hot path (merge selection logic). Even if the log level is not enabled, the arguments are evaluated. In high-frequency merge scenarios, this creates unnecessary CPU overhead and memory allocations.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/MergeTree/MergeTreeDataMergerMutator.cpp</path>
+<side>right</side>
+<from>343</from>
+<to>343</to>
+<note>The code uses `toString()` on a `time_t` (or similar integer type) representing the next scheduled execution time. In ClickHouse, `toString()` for integer types often produces a raw number, but for logging timestamps, it is standard practice to use `DateTime` formatting or `toDateTimeString()` to ensure the output is human-readable. Logging a raw epoch integer makes debugging partition TTL schedules significantly harder for operators.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/MergeTree/MergeTreeDataMergerMutator.cpp</path>
+<side>right</side>
+<from>342</from>
+<to>342</to>
+<note>The partition_id variable is logged directly without sanitization. If partition_id contains user-controlled input or special characters, it could lead to log injection, allowing an attacker to forge log entries or disrupt log monitoring systems.</note>
+</notesplit>

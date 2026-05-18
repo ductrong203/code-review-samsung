@@ -223,7 +223,9 @@ async def run_evaluation(args):
     }
 
     # Save results
-    output_file = RESULTS_DIR / "evaluation_results.json"
+    output_dir = Path(args.output_dir or str(RESULTS_DIR))
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir / args.output_file
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
 
@@ -257,6 +259,8 @@ def main():
     parser.add_argument("--line-threshold", type=int, default=10, help="Line distance threshold (default: 10 for LLM accuracy)")
     parser.add_argument("--matcher", type=str, default="llm", choices=["llm", "embedding"], help="Semantic matcher")
     parser.add_argument("--no-semantic", action="store_true", help="Disable semantic matching")
+    parser.add_argument("--output-dir", type=str, default="", help="Directory for evaluation_results.json")
+    parser.add_argument("--output-file", type=str, default="evaluation_results.json", help="Evaluation JSON filename")
     args = parser.parse_args()
 
     asyncio.run(run_evaluation(args))

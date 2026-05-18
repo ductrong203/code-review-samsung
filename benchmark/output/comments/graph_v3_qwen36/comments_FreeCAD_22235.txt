@@ -1,0 +1,119 @@
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>610</from>
+<to>613</to>
+<note>The code is truncated at line 613. The call to qApp->translate is incomplete (missing closing parenthesis and arguments). This will cause a compilation error.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>71</from>
+<to>71</to>
+<note>The ellipsis character in the string literal was changed from ASCII '...' to Unicode '…'. While likely intentional for UI consistency, if the source file encoding or console output does not support UTF-8, this may render as garbage characters or cause encoding warnings. Ensure the file is saved as UTF-8.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>104</from>
+<to>104</to>
+<note>The ellipsis character in the string literal was changed from ASCII '...' to Unicode '…'. Ensure the file is saved as UTF-8 to prevent rendering issues.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>424</from>
+<to>424</to>
+<note>The ellipsis character in the string literal was changed from ASCII '...' to Unicode '…'. Ensure the file is saved as UTF-8 to prevent rendering issues.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>456</from>
+<to>456</to>
+<note>The ellipsis character in the string literal was changed from ASCII '...' to Unicode '…'. Ensure the file is saved as UTF-8 to prevent rendering issues.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>536</from>
+<to>536</to>
+<note>The ellipsis character in the string literal was changed from ASCII '...' to Unicode '…'. Ensure the file is saved as UTF-8 to prevent rendering issues.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>601</from>
+<to>601</to>
+<note>The ellipsis character in the string literal was changed from ASCII '...' to Unicode '…'. Ensure the file is saved as UTF-8 to prevent rendering issues.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/App/AppReverseEngineering.cpp</path>
+<side>right</side>
+<from>1002</from>
+<to>1002</to>
+<note>The ellipsis character in the log string was changed from ASCII '...' to Unicode '…'. Ensure the console/logging system supports UTF-8 to prevent garbled output.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/AppReverseEngineeringGui.cpp</path>
+<side>right</side>
+<from>85</from>
+<to>85</to>
+<note>The ellipsis character in the log string was changed from ASCII '...' to Unicode '…'. Ensure the console/logging system supports UTF-8 to prevent garbled output.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>71</from>
+<to>72</to>
+<note>Inconsistent capitalization in UI strings. 'B-Spline Curve' uses title case while 'Approximates a B-spline curve' uses sentence case. For maintainability, UI strings should follow a consistent casing convention (e.g., all title case for menu items, all sentence case for tooltips) to ensure a uniform user experience.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>104</from>
+<to>105</to>
+<note>Inconsistent capitalization in UI strings. 'B-Spline Surface' uses title case while 'Approximates a B-spline surface' uses sentence case. Consistency is key for maintainability.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>366</from>
+<to>367</to>
+<note>Inconsistent capitalization. 'Polynomial Surface' is title case, but 'Approximates a polynomial surface' is sentence case. This inconsistency makes the UI feel disjointed and harder to maintain.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>424</from>
+<to>425</to>
+<note>Inconsistent capitalization. 'Mesh Segmentation' is title case, but 'Creates separate mesh segments based on surface types' is sentence case. Maintain consistency across all UI strings.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>456</from>
+<to>457</to>
+<note>Inconsistent capitalization. 'Manual Segmentation' is title case, but 'Creates mesh segments manually' is sentence case.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>486</from>
+<to>487</to>
+<note>Inconsistent capitalization. 'From Components' is title case, but 'Creates mesh segments from components' is sentence case.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>536</from>
+<to>537</to>
+<note>Inconsistent capitalization. 'Wire From Mesh Boundary' is title case, but 'Creates a wire from mesh boundaries' is sentence case.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/ReverseEngineering/Gui/Command.cpp</path>
+<side>right</side>
+<from>601</from>
+<to>602</to>
+<note>Inconsistent capitalization. 'Poisson' is title case, but 'Performs Poisson surface reconstruction' is sentence case.</note>
+</notesplit>

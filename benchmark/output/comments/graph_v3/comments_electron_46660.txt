@@ -1,0 +1,16 @@
+<notesplit>
+<path>shell/browser/ui/file_dialog_linux.cc</path>
+<side>right</side>
+<from>53</from>
+<to>54</to>
+<note>**[Code Defect]** The `extension_description_overrides` vector and `extensions` vector in `ui::SelectFileDialog::FileTypeInfo` are expected to be parallel arrays. By moving the push_back of the description into the `else` block, the indices will no longer align when `has_all_files_wildcard` is true, causing the file dialog to display incorrect descriptions for the remaining filters.
+
+**[Maintainability and Readability]** The logic for adding extension descriptions is now split across branches, creating an implicit dependency between the description list and the extensions list. If the 'all files' wildcard is present, the description is skipped, which may lead to index mismatches if the UI component expects a 1:1 mapping between descriptions and extension groups.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/ui/file_dialog_linux.cc</path>
+<side>right</side>
+<from>47</from>
+<to>48</to>
+<note>The std::ranges::any_of call performs a linear scan over the extension_group vector for every filter entry. While likely small, if the number of filters or extensions per filter is large, this redundant iteration can be avoided by pre-calculating or using a more efficient lookup if the data structure allows.</note>
+</notesplit>

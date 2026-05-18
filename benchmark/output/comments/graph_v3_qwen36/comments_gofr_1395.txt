@@ -1,0 +1,62 @@
+<notesplit>
+<path>pkg/gofr/config/godotenv_test.go</path>
+<side>right</side>
+<from>94</from>
+<to>97</to>
+<note>**[Code Defect]** os.Setenv does not return an error. The code incorrectly checks the return value, which will always be nil. The if block will never execute, making the error handling dead code and potentially misleading. This is a logic error that should be removed.
+
+**[Maintainability and Readability]** The code checks the return value of os.Setenv, but os.Setenv does not return an error. This creates unreachable code and misleading error handling that suggests the operation can fail. This violates the principle of clear, accurate error handling.
+
+**[Security Vulnerability]** The code checks the return value of os.Setenv, but os.Setenv in Go does not return an error. This dead code suggests a misunderstanding of the API and may indicate a lack of attention to detail in error handling, though it poses no direct security risk.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/gofr_test.go</path>
+<side>right</side>
+<from>806</from>
+<to>806</to>
+<note>In pkg/gofr/gofr_test.go, the URL format string uses %s for the host but passes configs.HTTPHost which already includes 'http://'. This results in a malformed URL like 'http://localhost:1234/http://localhost:1234/.well-known/swagger'. The format specifier should be %d and use configs.HTTPPort, or the host should not include the scheme.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/gofr_test.go</path>
+<side>right</side>
+<from>881</from>
+<to>881</to>
+<note>In pkg/gofr/gofr_test.go, the host variable is assigned configs.HTTPHost which already contains 'http://'. Later, this host is used in URL construction. If the code expects just 'localhost:port', this will cause URL construction errors or incorrect requests.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/testutil/port.go</path>
+<side>right</side>
+<from>38</from>
+<to>59</to>
+<note>The NewServerConfigs function in pkg/gofr/testutil/port.go contains significant code duplication. The logic for setting environment variables and constructing host strings is repeated three times for HTTP, Metrics, and gRPC. This should be parameterized to reduce redundancy and make future changes (like adding a new service) easier.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/testutil/port.go</path>
+<side>right</side>
+<from>28</from>
+<to>35</to>
+<note>The NewServerConfigs function in pkg/gofr/testutil/port.go is responsible for managing HTTP, Metrics, and gRPC ports. It creates a ServiceConfigs struct that mixes integer ports with string hosts. This tight coupling of related but distinct data types (int vs string) in a single struct reduces clarity and makes the API harder to extend or modify independently.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/testutil/port.go</path>
+<side>right</side>
+<from>43</from>
+<to>45</to>
+<note>The NewServerConfigs function calls GetFreePort three times sequentially. Each call opens a network listener and closes it to find a free port. This creates 3 network sockets per test execution. For test suites with many tests, this adds up to significant overhead. Consider caching the ports or using a single port for all services if they don't need to run concurrently in the same test.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/testutil/port.go</path>
+<side>right</side>
+<from>47</from>
+<to>49</to>
+<note>**[Security Vulnerability]** The NewServerConfigs function sets environment variables for ports (HTTP_PORT, METRICS_PORT, GRPC_PORT) without any validation or cleanup. If tests run in parallel or if the environment is not isolated, this could lead to port conflicts or test interference. While not a direct exploit, it's a security misconfiguration in test infrastructure that could lead to denial of service in test suites.
+
+**[Performance]** The function calls t.Setenv three times to set HTTP_PORT, METRICS_PORT, and GRPC_PORT. Each Setenv call involves map operations and potential synchronization. While minor, in high-frequency test scenarios, this adds up. Consider setting them in a batch or using a single environment variable if the framework supports it.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/gofr_test.go</path>
+<side>right</side>
+<from>166</from>
+<to>167</to>
+<note>In pkg/gofr/gofr_test.go, the variable 're' is used for an HTTP request but has a non-descriptive name. This makes the code harder to read and understand. A more descriptive name like 'req' or 'httpReq' would improve clarity.</note>
+</notesplit>

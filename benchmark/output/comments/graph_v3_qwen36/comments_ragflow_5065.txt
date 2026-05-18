@@ -1,0 +1,48 @@
+<notesplit>
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>right</side>
+<from>56</from>
+<to>56</to>
+<note>**[Code Defect]** State mutation during render: `generateIframeSrc` is called directly in the component body (line 58) and reads `visibleAvatar` and `locale` state. This function is also used inside the template string for the iframe src. Calling a function that reads React state during the render phase causes the component to re-render immediately after rendering, leading to an infinite loop. The `iframeSrc` should be computed inside a `useMemo` or `useEffect` hook, or directly in the JSX/template using the state variables.
+
+**[Performance]** The function `generateIframeSrc` is called on every render of the `EmbedModal` component (line 56). This causes string concatenation and URL construction on every single render, even when the state (`visibleAvatar`, `locale`) hasn't changed. This is an unnecessary recomputation that should be memoized.</note>
+</notesplit>
+<notesplit>
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>right</side>
+<from>45</from>
+<to>54</to>
+<note>**[Security Vulnerability]** The generateIframeSrc function constructs a URL using user-controlled state variables (visibleAvatar, locale) without sanitization. While the current implementation uses hardcoded keys, the locale value is directly interpolated into the query string. If the backend does not strictly validate the 'locale' parameter, this could lead to Open Redirect or XSS if the locale value is reflected in the response or used in a way that allows script injection. Additionally, the 'auth' parameter is passed directly from props without validation, which could be a security risk if not properly secured server-side.
+
+**[Maintainability and Readability]** The function `generateIframeSrc` is defined inside the component body but outside any lifecycle hooks or memoization. This means it is recreated on every render, and more critically, `iframeSrc` is calculated synchronously during render (line 56). This causes the iframe source to update only on re-renders triggered by state changes, but the logic is tightly coupled with the render cycle. It should be wrapped in `useMemo` to ensure it only recalculates when dependencies change, improving performance and clarity.
+
+**[Performance]** The `generateIframeSrc` function performs string concatenation and conditional checks. While small, doing this inside the component body without memoization means it runs on every render. If this component renders frequently or is part of a large list, this adds up.</note>
+</notesplit>
+<notesplit>
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>right</side>
+<from>82</from>
+<to>85</to>
+<note>Incorrect Checkbox logic: The label is 'Hide avatar' (from en.ts), but the state variable is `visibleAvatar`. The checkbox is checked when `visibleAvatar` is true. This means checking the box (which says 'Hide avatar') will actually make the avatar VISIBLE. The logic is inverted. Either the label should be 'Show avatar' or the checked prop should be `!visibleAvatar`.</note>
+</notesplit>
+<notesplit>
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>right</side>
+<from>43</from>
+<to>43</to>
+<note>The variable `locale` is initialized with an empty string `''`. This is a magic value that serves as a 'null' or 'unset' state. It is unclear if an empty string is a valid locale or if it should be `null` or `undefined`. Using an empty string can lead to subtle bugs if the backend treats empty strings differently than missing parameters.</note>
+</notesplit>
+<notesplit>
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>right</side>
+<from>46</from>
+<to>46</to>
+<note>The 'auth' parameter is passed directly from props into the iframe source URL. If 'beta' (which seems to be the auth parameter) is not properly validated or secured, it could be manipulated. This is a potential security risk if the auth token is exposed or if it allows unauthorized access to shared content.</note>
+</notesplit>
+<notesplit>
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>right</side>
+<from>81</from>
+<to>86</to>
+<note>The `Checkbox` component's `checked` prop is bound to `visibleAvatar`, but the label says 'Hide avatar'. If `visibleAvatar` is true, the avatar is visible, but the label suggests hiding. This is a confusing naming convention for the state variable `visibleAvatar` combined with the label. It's better to name the state `hideAvatar` to match the UI label directly, or rename the label to 'Show avatar'.</note>
+</notesplit>

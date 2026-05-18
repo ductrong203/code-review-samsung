@@ -1,0 +1,44 @@
+<notesplit>
+<path>api/db/services/user_canvas_version.py</path>
+<side>right</side>
+<from>35</from>
+<to>36</to>
+<note>The loop range 'range(20, user_canvas_version.count())' is evaluated once at the start of the loop. If 'user_canvas_version.count()' changes during iteration (though not here) or if the logic relies on the initial count, it is safer to use the pre-calculated count. However, the primary issue is that 'user_canvas_version' is a Peewee query object; accessing it by index 'user_canvas_version[i]' inside a loop is highly inefficient as it executes a new SQL query for every iteration.</note>
+</notesplit>
+<notesplit>
+<path>api/apps/api_app.py</path>
+<side>right</side>
+<from>649</from>
+<to>652</to>
+<note>The code fetches all documents using DocumentService.get_by_ids(doc_ids) and then iterates through them to build a dictionary. This is redundant because the subsequent loop iterates over doc_ids and performs a dictionary lookup. If the goal is to validate existence, this can be done more efficiently by checking the length of the returned list or using a set for O(1) lookups, avoiding the creation of an intermediate dictionary.</note>
+</notesplit>
+<notesplit>
+<path>api/apps/api_app.py</path>
+<side>right</side>
+<from>631</from>
+<to>631</to>
+<note>The code retrieves document IDs based on user-provided names and IDs without verifying if the current user has authorization to access these specific documents. This creates an Insecure Direct Object Reference (IDOR) vulnerability where a user could potentially delete documents belonging to other tenants or users.</note>
+</notesplit>
+<notesplit>
+<path>api/db/services/user_canvas_version.py</path>
+<side>right</side>
+<from>34</from>
+<to>38</to>
+<note>**[Maintainability and Readability]** The loop logic for deleting records is inefficient. Instead of manually iterating to collect IDs and then calling a bulk delete, the query itself can be filtered to select the IDs directly, reducing memory usage and database round-trips.
+
+**[Performance]** The loop iterates through the query result to collect IDs for deletion. Since the query is already ordered, you can slice the query object directly using Peewee's slicing syntax instead of iterating manually, which is more idiomatic and potentially more efficient at the database level.</note>
+</notesplit>
+<notesplit>
+<path>api/db/services/common_service.py</path>
+<side>right</side>
+<from>276</from>
+<to>276</to>
+<note>The `delete_by_ids` method performs a bulk deletion without validating that the provided `pids` list is not empty or excessively large. If an attacker controls the input, they could trigger a denial-of-service (DoS) by passing a massive list of IDs, or delete unintended records if the input is not sanitized.</note>
+</notesplit>
+<notesplit>
+<path>api/apps/api_app.py</path>
+<side>right</side>
+<from>650</from>
+<to>652</to>
+<note>The manual construction of a dictionary from a list of objects is redundant. If the ORM or service layer supports it, consider using a dictionary comprehension or a built-in mapping utility to improve readability.</note>
+</notesplit>

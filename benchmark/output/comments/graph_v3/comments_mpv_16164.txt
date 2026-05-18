@@ -1,0 +1,55 @@
+<notesplit>
+<path>misc/random.c</path>
+<side>right</side>
+<from>53</from>
+<to>55</to>
+<note>The function mp_rand_seed returns an uninitialized mp_rand_state struct if av_random_bytes fails. The struct contains an array 'v' which is not zeroed out before returning, leading to undefined behavior when used by the PRNG.</note>
+</notesplit>
+<notesplit>
+<path>common/playlist.c</path>
+<side>right</side>
+<from>173</from>
+<to>173</to>
+<note>**[Security Vulnerability]** The playlist shuffle function initializes a new PRNG state with a constant seed of 0 every time it is called. This causes the shuffle to produce the exact same sequence of 'random' results every time the function is invoked, defeating the purpose of shuffling.
+
+**[Performance]** The PRNG state is re-seeded inside the playlist_shuffle loop. Seeding a PRNG is an expensive operation involving entropy collection and multiple state updates. This should be initialized once outside the loop.</note>
+</notesplit>
+<notesplit>
+<path>misc/io_utils.c</path>
+<side>right</side>
+<from>43</from>
+<to>43</to>
+<note>**[Security Vulnerability]** The temporary file generation logic initializes a new PRNG state with a constant seed of 0. This makes the generated temporary filenames predictable, which can lead to race conditions or symlink attacks where an attacker pre-creates the expected filename.
+
+**[Performance]** The PRNG state is re-seeded inside a loop that runs up to UINT32_MAX times. Seeding is an expensive operation; it should be initialized once before the loop starts.</note>
+</notesplit>
+<notesplit>
+<path>misc/io_utils.c</path>
+<side>right</side>
+<from>47</from>
+<to>47</to>
+<note>**[Maintainability and Readability]** The variable name 'fuckmess' is unprofessional and violates standard naming conventions.
+
+The variable name 'crap' is unprofessional and violates standard naming conventions.</note>
+</notesplit>
+<notesplit>
+<path>misc/io_utils.c</path>
+<side>right</side>
+<from>43</from>
+<to>43</to>
+<note>The variable name 'fuckshit' is unprofessional and violates standard naming conventions, making the code harder to maintain and read in a professional context.</note>
+</notesplit>
+<notesplit>
+<path>misc/random.c</path>
+<side>right</side>
+<from>56</from>
+<to>58</to>
+<note>The PRNG seeding mechanism uses `mp_raw_time_ns()` and memory addresses as fallback entropy when `av_random_bytes` fails. This is insufficient for cryptographic security and predictable in many environments, potentially leading to predictable PRNG sequences if the system entropy source is unavailable.</note>
+</notesplit>
+<notesplit>
+<path>misc/random.c</path>
+<side>right</side>
+<from>96</from>
+<to>96</to>
+<note>The bitmask rejection method used in mp_rand_in_range32 is only valid if the range is a power of 2 or if the mask covers the range correctly. However, mp_round_next_power_of_2(range) - 1 creates a mask that might be smaller than the range if not handled carefully, and the loop condition 'ret >= range' is correct, but the logic relies on the PRNG output being uniform. If the mask is not a power of 2 minus 1, this can bias the output.</note>
+</notesplit>

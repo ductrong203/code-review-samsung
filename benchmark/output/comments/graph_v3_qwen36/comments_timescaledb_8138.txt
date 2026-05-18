@@ -1,0 +1,49 @@
+<notesplit>
+<path>tsl/src/compression/compression_dml.c</path>
+<side>right</side>
+<from>526</from>
+<to>526</to>
+<note>The code now calls table_tuple_delete with GetCurrentCommandId(true) directly in the call site, but the BulkWriter struct is initialized with a CommandId (mycid) that is never populated. In the previous implementation, the decompressor's mycid was set during build_decompressor. The new BulkWriter struct has a mycid field, but it is not initialized in bulk_writer_build (which only takes Relation and insert_options). This means if any code path relies on writer->mycid for transaction visibility checks during delete operations, it will use an uninitialized/garbage value, potentially leading to transaction isolation violations or assertion failures.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression_dml.c</path>
+<side>right</side>
+<from>530</from>
+<to>542</to>
+<note>In hypercore_handler.c and recompress.c, the BulkWriter is created with bulk_writer_build(relation, 0) or bulk_writer_build(relation, HEAP_INSERT_FROZEN), but the mycid field is not set. In hypercore_handler.c, the code explicitly gets cid = GetCurrentCommandId(true) and uses it for table_tuple_delete, but this cid is local and not stored in the writer. If the writer's mycid is used elsewhere (e.g., in bulk_writer_close or internal logging), it will be uninitialized.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression.c</path>
+<side>right</side>
+<from>301</from>
+<to>301</to>
+<note>The BulkWriter is created in compress_chunk but mycid is not initialized. The previous code used mycid = GetCurrentCommandId(true) locally. The new BulkWriter struct has a mycid field that is never set. This could lead to issues if mycid is used for transaction visibility checks in bulk_writer_close or other internal operations.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/recompress.c</path>
+<side>right</side>
+<from>265</from>
+<to>265</to>
+<note>The BulkWriter is created in recompress_segment but mycid is not initialized. The previous code used row_compressor.index_oid and other fields that are now moved. The new BulkWriter struct has a mycid field that is never set.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/hypercore_handler.c</path>
+<side>right</side>
+<from>1930</from>
+<to>1932</to>
+<note>The BulkWriter is created in hypercore_handler.c but mycid is not initialized. The code gets cid = GetCurrentCommandId(true) locally but does not store it in the writer.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/hypercore_handler.c</path>
+<side>right</side>
+<from>2190</from>
+<to>2192</to>
+<note>The BulkWriter is created in hypercore_handler.c for recompression but mycid is not initialized.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/hypercore_handler.c</path>
+<side>right</side>
+<from>3795</from>
+<to>3797</to>
+<note>The BulkWriter is created in hypercore_handler.c for conversion but mycid is not initialized.</note>
+</notesplit>

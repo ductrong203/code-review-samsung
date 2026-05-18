@@ -1,0 +1,21 @@
+<notesplit>
+<path>src/api/providers/openai.ts</path>
+<side>right</side>
+<from>19</from>
+<to>24</to>
+<note>The condition to initialize AzureOpenAI now excludes DeepSeek models, but the else branch (which initializes the standard OpenAI client) is missing. This means if the URL includes 'azure.com' AND the model ID includes 'deepseek', neither AzureOpenAI nor OpenAI is initialized, leaving this.client undefined. This will cause a crash when the client is used.</note>
+</notesplit>
+<notesplit>
+<path>src/api/providers/openai.ts</path>
+<side>right</side>
+<from>21</from>
+<to>22</to>
+<note>The condition for detecting Azure endpoints now includes a hardcoded check for 'deepseek' in the model ID. This creates a magic string dependency and tightly couples the Azure detection logic to a specific model name, violating the Open/Closed principle. If another non-Azure provider uses 'azure.com' in their URL or if DeepSeek changes their model naming, this logic will break or require modification. Consider extracting this check into a named constant or a dedicated helper function with a clear name.</note>
+</notesplit>
+<notesplit>
+<path>src/api/providers/openai.ts</path>
+<side>right</side>
+<from>19</from>
+<to>21</to>
+<note>Calling toLowerCase() twice on openAiModelId and openAiBaseUrl in the constructor performs redundant string normalization. Since this constructor may be called frequently during model selection, consider caching the lowercased values or normalizing once at initialization to avoid repeated allocations and comparisons.</note>
+</notesplit>

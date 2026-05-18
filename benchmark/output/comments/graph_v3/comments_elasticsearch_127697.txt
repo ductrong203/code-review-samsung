@@ -1,0 +1,23 @@
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/cluster/ClusterChangedEvent.java</path>
+<side>right</side>
+<from>352</from>
+<to>356</to>
+<note>**[Code Defect]** The logic for skipping delta calculation when both states have only the default project is flawed. If the previous state had only the default project and the current state has only the default project, it returns EMPTY. However, if the default project metadata itself was updated (e.g., settings changed), this logic incorrectly reports no changes. The check should verify if the project metadata content is identical, not just the existence of the default project.
+
+**[Maintainability and Readability]** The logic for identifying the default project state is hardcoded and relies on magic numbers (size == 1) and specific knowledge of ProjectId.DEFAULT. This makes the code fragile if the definition of a 'default' project changes. It should be abstracted into a method on the Metadata or ProjectId class, such as 'isDefaultOnly()'.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/cluster/ClusterChangedEvent.java</path>
+<side>right</side>
+<from>56</from>
+<to>56</to>
+<note>The calculateProjectDelta method is called in the constructor of ClusterChangedEvent, which is instantiated frequently during cluster state updates. Performing set difference operations (Sets.difference) on every event creation adds unnecessary overhead if the metadata has not changed. While there is a check for identity equality, it does not account for cases where the metadata object is different but the content is identical.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/cluster/ClusterChangedEvent.java</path>
+<side>right</side>
+<from>372</from>
+<to>378</to>
+<note>The ProjectsDelta record is defined inside ClusterChangedEvent but is a generic utility. It should be moved to its own file or a more appropriate location (e.g., org.elasticsearch.cluster.metadata) to follow the Single Responsibility Principle and improve discoverability.</note>
+</notesplit>

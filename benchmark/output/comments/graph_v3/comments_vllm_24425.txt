@@ -1,0 +1,28 @@
+<notesplit>
+<path>vllm/distributed/kv_transfer/kv_connector/v1/multi_connector.py</path>
+<side>right</side>
+<from>91</from>
+<to>100</to>
+<note>The shutdown method swallows all but the last exception encountered. If multiple connectors fail during shutdown, the earlier exceptions are lost, making debugging difficult. Consider using ExceptionGroup (Python 3.11+) or collecting all exceptions into a list to raise a combined error.</note>
+</notesplit>
+<notesplit>
+<path>vllm/distributed/kv_transfer/kv_connector/v1/multi_connector.py</path>
+<side>right</side>
+<from>98</from>
+<to>98</to>
+<note>The shutdown method suppresses all but the last exception encountered during the shutdown of multiple connectors. If multiple connectors fail, the earlier exceptions are lost, which can hide critical diagnostic information about the state of the system during shutdown.</note>
+</notesplit>
+<notesplit>
+<path>vllm/distributed/kv_transfer/kv_connector/v1/multi_connector.py</path>
+<side>right</side>
+<from>90</from>
+<to>100</to>
+<note>The shutdown implementation performs sequential synchronous calls to each connector. If these connectors involve network I/O or heavy cleanup, this will block the main thread for the sum of all shutdown times. Consider using concurrent.futures.ThreadPoolExecutor to parallelize the shutdown process.</note>
+</notesplit>
+<notesplit>
+<path>vllm/distributed/kv_transfer/kv_connector/v1/multi_connector.py</path>
+<side>right</side>
+<from>92</from>
+<to>100</to>
+<note>The shutdown method catches and logs exceptions but re-raises only the last encountered exception. This can lead to 'exception masking', where critical failures in earlier connectors are suppressed if a later connector also fails, potentially hiding security-relevant state corruption or resource leaks during shutdown.</note>
+</notesplit>

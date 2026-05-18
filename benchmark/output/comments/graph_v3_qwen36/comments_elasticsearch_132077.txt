@@ -1,0 +1,37 @@
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestEntitlementsRule.java</path>
+<side>right</side>
+<from>107</from>
+<to>110</to>
+<note>The `addEntitledNodePaths` method in `TestEntitlementsRule.java` accepts a `configPath` parameter from the caller (e.g., `InternalTestCluster`). It then unwraps `FilterPath` instances in a loop. If the `configPath` is a chain of `FilterPath` wrappers that does not terminate in a concrete `Path` implementation (e.g., an infinite loop of wrappers or a custom wrapper that never exposes a delegate), this loop will hang indefinitely, causing a Denial of Service (DoS) against the test runner. Additionally, the `configPath` is derived from user/test-controlled settings without strict validation of its origin or structure, potentially allowing path traversal if the underlying path is not canonicalized.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestPathLookup.java</path>
+<side>right</side>
+<from>66</from>
+<to>68</to>
+<note>**[Security Vulnerability]** The `add` method in `TestPathLookup.java` allows adding arbitrary paths to the `baseDirPaths` map. If an attacker can control the `BaseDir` or `Path` arguments passed to this method (e.g., via a crafted test plugin or malicious test code), they could potentially grant entitlements to unauthorized directories, bypassing security restrictions. This is a potential privilege escalation path within the test environment.
+
+**[Performance]** In the `add` method, `baseDirPaths.compute` creates a new lambda and collection for every call. Since `add` is called frequently to register node paths, this creates unnecessary object allocation overhead. Consider optimizing the mutation logic to avoid creating new collections if the path already exists or using a more efficient update strategy.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestPathLookup.java</path>
+<side>right</side>
+<from>70</from>
+<to>72</to>
+<note>In the `remove` method, `baseDirPaths.compute` similarly creates new lambda and collection objects for every call. This repeated allocation in a hot path (node path management) can lead to GC pressure.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestEntitlementsRule.java</path>
+<side>right</side>
+<from>111</from>
+<to>113</to>
+<note>The `EntitledNodePaths` record in `TestEntitlementsRule.java` stores the `Settings` object and `Path` directly. If `Settings` contains sensitive information (e.g., passwords, API keys) that is logged or exposed via error messages during the entitlement check failure, this could lead to information disclosure. While this is a test utility, ensuring that sensitive settings are not logged in plain text during entitlement validation is critical.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestPathLookup.java</path>
+<side>right</side>
+<from>75</from>
+<to>87</to>
+<note>The `baseDirModifier` method creates a new `ArrayList` and an unmodifiable collection wrapper on every single call to `add` or `remove`. This is a significant allocation overhead in a test framework that may run many tests. This function is called repeatedly for every node path operation.</note>
+</notesplit>

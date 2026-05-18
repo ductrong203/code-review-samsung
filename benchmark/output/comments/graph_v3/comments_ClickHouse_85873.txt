@@ -1,0 +1,21 @@
+<notesplit>
+<path>src/Functions/base64URLDecode.cpp</path>
+<side>right</side>
+<from>45</from>
+<to>45</to>
+<note>The registration logic incorrectly registers FunctionBase64Decode instead of FunctionBase64URLDecode. This will cause the base64URLDecode function to behave exactly like base64Decode, which is incorrect as they use different alphabets.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/empty.cpp</path>
+<side>right</side>
+<from>197</from>
+<to>237</to>
+<note>The documentation variables for 'empty' and 'notEmpty' are defined as local variables within the REGISTER_FUNCTION block, leading to significant code bloat and poor readability. These should be moved to a static helper function or a dedicated documentation structure to keep the registration logic clean.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/concatWithSeparator.cpp</path>
+<side>right</side>
+<from>225</from>
+<to>258</to>
+<note>The documentation for 'concatWithSeparatorAssumeInjective' includes a very long SQL example block directly in the source code. This makes the registration function extremely difficult to read. Consider moving long examples to a separate constant or a dedicated documentation file.</note>
+</notesplit>

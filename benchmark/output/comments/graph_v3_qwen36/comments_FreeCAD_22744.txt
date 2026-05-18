@@ -1,0 +1,44 @@
+<notesplit>
+<path>src/Base/Parameter.cpp</path>
+<side>right</side>
+<from>1863</from>
+<to>1872</to>
+<note>**[Maintainability and Readability]** The class NoOpEntityResolver is defined inside the function LoadDocument. This is a local class, which makes it harder to test, reuse, and understand in isolation. It should be moved to file scope (namespace scope) to improve maintainability and follow standard C++ practices for helper classes.
+
+**[Performance]** The NoOpEntityResolver class is defined inside the function scope. While this is a local class and not instantiated in a loop, defining it here prevents potential compiler optimizations that might occur if it were a namespace-scope class. More importantly, the class definition itself is small, but if this function is called frequently in a hot path, the repeated definition (though likely optimized away) is unnecessary overhead. Consider moving the class definition to namespace scope.</note>
+</notesplit>
+<notesplit>
+<path>src/Base/Parameter.cpp</path>
+<side>right</side>
+<from>1893</from>
+<to>1893</to>
+<note>The error handling code prints exception messages directly to stderr. While this is standard for debugging, it may expose internal implementation details or stack traces to the user. In a production environment, consider sanitizing or generalizing these error messages to avoid information disclosure.</note>
+</notesplit>
+<notesplit>
+<path>src/Base/Parameter.cpp</path>
+<side>right</side>
+<from>1898</from>
+<to>1898</to>
+<note>The error handling code prints DOM exception codes to stderr. Similar to the previous issue, this might expose internal state or specific error codes that could be useful for an attacker to understand the system's behavior. Consider generalizing these messages.</note>
+</notesplit>
+<notesplit>
+<path>src/Base/Parameter.cpp</path>
+<side>right</side>
+<from>1893</from>
+<to>1901</to>
+<note>The catch blocks use inconsistent newline formatting. The first two use '\n' while the third uses '\n' followed by '\n' (effectively two newlines). This inconsistency in error message formatting reduces readability and may cause unexpected output spacing.</note>
+</notesplit>
+<notesplit>
+<path>src/Base/Parameter.cpp</path>
+<side>right</side>
+<from>1887</from>
+<to>1892</to>
+<note>The catch blocks for XMLException and DOMException use '\n' for newlines, but the original code used std::endl. While '\n' is more efficient, this inconsistency with the third catch block (which uses '\n' explicitly) and the potential loss of buffer flushing might be confusing. Consider standardizing on either std::endl or '\n' consistently across all catch blocks.</note>
+</notesplit>
+<notesplit>
+<path>src/Base/Parameter.cpp</path>
+<side>right</side>
+<from>1866</from>
+<to>1869</to>
+<note>The NoOpEntityResolver::resolveEntity method casts away const from the input parameters using (void) to suppress unused parameter warnings. This is a minor performance concern as it involves unnecessary type manipulation. While the impact is negligible, it's better practice to use the parameters in a meaningful way or use [[maybe_unused]] attribute if available.</note>
+</notesplit>

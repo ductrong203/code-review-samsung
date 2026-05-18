@@ -1,0 +1,77 @@
+<notesplit>
+<path>rag/utils/infinity_conn.py</path>
+<side>right</side>
+<from>78</from>
+<to>81</to>
+<note>The code uses string concatenation to build a filter query for 'filter_fulltext'. While it attempts to escape single quotes, this is insufficient to prevent SQL-like injection if the underlying database engine interprets other characters or if the escaping logic is bypassed. User-controlled input should be handled via parameterized queries provided by the database driver.</note>
+</notesplit>
+<notesplit>
+<path>rag/utils/infinity_conn.py</path>
+<side>right</side>
+<from>578</from>
+<to>578</to>
+<note>The code uses `ty.lower().find("cha")` to check if a column type is a character type. `find` returns the index (0 or greater) if found, or -1 if not. If the type is 'char' (index 0), the condition `if ty.lower().find("cha")` evaluates to `False` in Python, causing the logic to skip the intended character handling.</note>
+</notesplit>
+<notesplit>
+<path>rag/utils/infinity_conn.py</path>
+<side>right</side>
+<from>592</from>
+<to>594</to>
+<note>The update logic performs a full table scan using 'table_instance.output(...).filter(filter).to_df()' inside an update operation. This is an O(N) operation on the entire table for every update call, which will cause severe performance degradation as the table grows.</note>
+</notesplit>
+<notesplit>
+<path>rag/utils/infinity_conn.py</path>
+<side>right</side>
+<from>592</from>
+<to>604</to>
+<note>The update method in InfinityConnection has become a 'God method' that handles column inspection, filter generation, value transformation, and complex removal logic. This violates the Single Responsibility Principle.</note>
+</notesplit>
+<notesplit>
+<path>rag/utils/infinity_conn.py</path>
+<side>right</side>
+<from>609</from>
+<to>609</to>
+<note>The update query is constructed using string formatting with user-supplied 'id' values. If 'id' is not strictly validated as a safe identifier, this allows for injection into the update statement.</note>
+</notesplit>
+<notesplit>
+<path>api/db/services/document_service.py</path>
+<side>right</side>
+<from>107</from>
+<to>110</to>
+<note>The logic for fetching and checking graph sources is deeply nested and complex, making it hard to read. Extracting this into a helper method would improve readability.</note>
+</notesplit>
+<notesplit>
+<path>graphrag/utils.py</path>
+<side>right</side>
+<from>417</from>
+<to>427</to>
+<note>The loop in get_graph contains mixed logic (rebuilding vs returning) and nested try-except blocks that make the control flow difficult to follow.</note>
+</notesplit>
+<notesplit>
+<path>rag/utils/infinity_conn.py</path>
+<side>right</side>
+<from>593</from>
+<to>593</to>
+<note>The code accesses `row_to_opt[0]` without verifying if `row_to_opt` is non-empty. If the search returns no results, this will raise an IndexError.</note>
+</notesplit>
+<notesplit>
+<path>rag/utils/infinity_conn.py</path>
+<side>right</side>
+<from>607</from>
+<to>609</to>
+<note>The code executes a separate database update query for every unique set of values in a loop. This creates an N+1 query pattern where N is the number of unique update groups, significantly increasing network latency and database overhead.</note>
+</notesplit>
+<notesplit>
+<path>graphrag/utils.py</path>
+<side>right</side>
+<from>579</from>
+<to>585</to>
+<note>The rebuild_graph function iterates over a range of 1024*bs (256k) in chunks of 256, performing a synchronous search in each iteration. This is inefficient if the total number of records is small, and the hardcoded range limit may be insufficient or excessive depending on the data size.</note>
+</notesplit>
+<notesplit>
+<path>rag/utils/infinity_conn.py</path>
+<side>right</side>
+<from>47</from>
+<to>47</to>
+<note>The field_keyword function uses a hardcoded list of exceptions ('docnm_kwd', 'knowledge_graph_kwd'). This is fragile and should be defined as a constant or configuration to improve maintainability.</note>
+</notesplit>

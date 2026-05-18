@@ -1,0 +1,143 @@
+{
+  "run_name": "graph_v3",
+  "repo": "immich-app/immich",
+  "dataset_path": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\dataset\\positive_samples.json",
+  "extension_base": "http://localhost:8100/api",
+  "backend_url": "",
+  "started_at": "2026-05-17T16:47:22",
+  "comments_output_dir": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3",
+  "results": [
+    {
+      "pr_url": "https://github.com/immich-app/immich/pull/14777",
+      "pr_id": "immich_14777",
+      "status": "success",
+      "num_comments": 5,
+      "elapsed_seconds": 82.34,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 12,
+        "overall_risk": 0.35,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_immich_14777.txt"
+    },
+    {
+      "pr_url": "https://github.com/immich-app/immich/pull/17124",
+      "pr_id": "immich_17124",
+      "status": "success",
+      "num_comments": 7,
+      "elapsed_seconds": 65.46,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 15,
+        "overall_risk": 0.5,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_immich_17124.txt"
+    },
+    {
+      "pr_url": "https://github.com/immich-app/immich/pull/17535",
+      "pr_id": "immich_17535",
+      "status": "success",
+      "num_comments": 7,
+      "elapsed_seconds": 58.54,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 20,
+        "overall_risk": 0.5,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_immich_17535.txt"
+    },
+    {
+      "pr_url": "https://github.com/immich-app/immich/pull/18043",
+      "pr_id": "immich_18043",
+      "status": "success",
+      "num_comments": 7,
+      "elapsed_seconds": 56.08,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 7,
+        "overall_risk": 0.55,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_immich_18043.txt"
+    },
+    {
+      "pr_url": "https://github.com/immich-app/immich/pull/14874",
+      "pr_id": "immich_14874",
+      "status": "success",
+      "num_comments": 3,
+      "elapsed_seconds": 50.55,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 7,
+        "review_priorities": 5,
+        "related_context": 14,
+        "overall_risk": 0.4,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_immich_14874.txt"
+    },
+    {
+      "pr_url": "https://github.com/immich-app/immich/pull/16893",
+      "pr_id": "immich_16893",
+      "status": "success",
+      "num_comments": 8,
+      "elapsed_seconds": 46.19,
+      "graph": {
+        "changed_functions": 10,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 11,
+        "overall_risk": 0.4,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_immich_16893.txt"
+    },
+    {
+      "pr_url": "https://github.com/immich-app/immich/pull/17879",
+      "pr_id": "immich_17879",
+      "status": "success",
+      "num_comments": 5,
+      "elapsed_seconds": 85.16,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 9,
+        "overall_risk": 0.5,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3\\comments_immich_17879.txt"
+    }
+  ],
+  "initial_graph_status": {
+    "repo": "immich-app/immich",
+    "registered": true,
+    "local_path": "E:\\My_Project\\samsung\\immich",
+    "main_graph_ready": true
+  },
+  "finished_at": "2026-05-17T16:55:03",
+  "summary": {
+    "selected": 7,
+    "success": 7,
+    "skipped": 0,
+    "errors": 0
+  }
+}

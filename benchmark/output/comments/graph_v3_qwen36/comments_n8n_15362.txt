@@ -1,0 +1,98 @@
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1724951148974-AddApiKeysTable.ts</path>
+<side>right</side>
+<from>39</from>
+<to>42</to>
+<note>The migration file `1724951148974-AddApiKeysTable.ts` in the common directory is missing the `// @ts-expect-error Tech debt` comment that was added to the SQLite version. This inconsistency suggests the common migration was not updated with the same suppression comment, which may lead to TypeScript errors if the type checking is strict. The SQLite version has the comment on line 39, but the common version does not have it on the corresponding line.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1724951148974-AddApiKeysTable.ts</path>
+<side>right</side>
+<from>97</from>
+<to>100</to>
+<note>The migration file `1724951148974-AddApiKeysTable.ts` in the common directory is missing the `// @ts-expect-error Tech debt` comment that was added to the SQLite version. This inconsistency suggests the common migration was not updated with the same suppression comment, which may lead to TypeScript errors if the type checking is strict. The SQLite version has the comment on line 97, but the common version does not have it on the corresponding line.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/sqlite/1724951148974-AddApiKeysTable.ts</path>
+<side>right</side>
+<from>30</from>
+<to>33</to>
+<note>The migration file `1724951148974-AddApiKeysTable.ts` in the sqlite directory is missing the `// @ts-expect-error Tech debt` comment that was added to the common directory version. This inconsistency suggests the sqlite migration was not updated with the same suppression comment, which may lead to TypeScript errors if the type checking is strict. The common version has the comment on line 39, but the sqlite version does not have it on the corresponding line.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/sqlite/1724951148974-AddApiKeysTable.ts</path>
+<side>right</side>
+<from>115</from>
+<to>118</to>
+<note>The migration file `1724951148974-AddApiKeysTable.ts` in the sqlite directory is missing the `// @ts-expect-error Tech debt` comment that was added to the common directory version. This inconsistency suggests the sqlite migration was not updated with the same suppression comment, which may lead to TypeScript errors if the type checking is strict. The common version has the comment on line 97, but the sqlite version does not have it on the corresponding line.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1724951148974-AddApiKeysTable.ts</path>
+<side>right</side>
+<from>42</from>
+<to>43</to>
+<note>The `// @ts-expect-error Tech debt` comment is added to suppress TypeScript errors. While it documents the intent, it hides type mismatches that should ideally be fixed. The variable `user` is typed as `{ id: string; apiKey: string }` but `runQuery` likely expects a different structure. This reduces type safety.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1724951148974-AddApiKeysTable.ts</path>
+<side>right</side>
+<from>100</from>
+<to>101</to>
+<note>Another `// @ts-expect-error Tech debt` comment is added to suppress TypeScript errors. This hides type mismatches that should ideally be fixed. The variable `user` is typed as `{ userId: string; apiKey: string }` but `runQuery` likely expects a different structure. This reduces type safety.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/sqlite/1724951148974-AddApiKeysTable.ts</path>
+<side>right</side>
+<from>33</from>
+<to>34</to>
+<note>The `// @ts-expect-error Tech debt` comment is added to suppress TypeScript errors. While it documents the intent, it hides type mismatches that should ideally be fixed. The variable `user` is typed as `{ id: string; apiKey: string }` but `runQuery` likely expects a different structure. This reduces type safety.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/sqlite/1724951148974-AddApiKeysTable.ts</path>
+<side>right</side>
+<from>118</from>
+<to>119</to>
+<note>Another `// @ts-expect-error Tech debt` comment is added to suppress TypeScript errors. This hides type mismatches that should ideally be fixed. The variable `user` is typed as `{ userId: string; apiKey: string }` but `runQuery` likely expects a different structure. This reduces type safety.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/migration-helpers.ts</path>
+<side>right</side>
+<from>37</from>
+<to>39</to>
+<note>The catch block in `loadSurveyFromDisk` has an empty body. This swallows errors silently, making debugging difficult if the survey file fails to load. It should at least log the error or rethrow it.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/permissions/src/public-api-permissions.ee.ts</path>
+<side>right</side>
+<from>76</from>
+<to>81</to>
+<note>The `getOwnerOnlyApiKeyScopes` function creates a new `Set` and iterates through `MAP_ROLE_SCOPES['global:member']` on every call. If this function is called frequently (e.g., in a loop or high-throughput API path), it creates unnecessary garbage. Since `MAP_ROLE_SCOPES` is a constant, the result of `getOwnerOnlyApiKeyScopes` is also constant and should be memoized or cached as a module-level constant to avoid repeated Set creation and iteration.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1711390882123-MoveSshKeysToDatabase.ts</path>
+<side>right</side>
+<from>72</from>
+<to>75</to>
+<note>The error handling block now logs the error message using a template expression. While the code attempts to sanitize by checking `e instanceof Error`, the `error.message` is still user-controllable if the error originates from external input (e.g., filesystem paths or content). This could lead to log injection if an attacker can influence the error message. Ensure that logged messages are sanitized or use structured logging to prevent log injection attacks.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/migration-helpers.ts</path>
+<side>right</side>
+<from>45</from>
+<to>45</to>
+<note>The `logMigrationStart` and `logMigrationEnd` functions now check `process.env.NODE_ENV === 'test'` instead of using `inTest` from `@n8n/backend-common`. While this is a functional change, accessing `process.env` directly in hot paths can be slightly slower than a cached boolean or imported utility. More importantly, the removal of `inTest` means the Logger container lookup (`Container.get(Logger)`) still happens on every migration start/end. If migrations are run frequently in tests, this container lookup overhead is unnecessary. Consider caching the logger or skipping the lookup entirely when in test mode.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1724951148974-AddApiKeysTable.ts</path>
+<side>right</side>
+<from>40</from>
+<to>43</to>
+<note>The migration uses raw SQL queries to insert and update API keys. The `apiKey` value is directly interpolated into the SQL string via `:apiKey` parameter binding, which is safe against SQL injection if the ORM handles parameterization correctly. However, the `label` field is also passed directly. Ensure that the `runQuery` method properly parameterizes all inputs to prevent SQL injection. If `runQuery` does not parameterize, this is a critical SQL injection vulnerability.</note>
+</notesplit>
+<notesplit>
+<path>packages/@n8n/db/src/migrations/common/1724951148974-AddApiKeysTable.ts</path>
+<side>right</side>
+<from>98</from>
+<to>101</to>
+<note>Similar to the previous issue, this raw SQL query updates API keys. The `apiKey` value is directly interpolated. Ensure that the `runQuery` method properly parameterizes all inputs to prevent SQL injection. If `runQuery` does not parameterize, this is a critical SQL injection vulnerability.</note>
+</notesplit>

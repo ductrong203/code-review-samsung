@@ -1,0 +1,56 @@
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>right</side>
+<from>238</from>
+<to>240</to>
+<note>The code in createRequestedInstance is incomplete and will cause a compilation error. The block for the 'else' branch is missing the closing braces and the return statement, leading to a syntax error.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>right</side>
+<from>102</from>
+<to>103</to>
+<note>The code calls extensions.findSupplierByType(typeClass) and immediately invokes .getAnnotationClass() on the result without checking if the supplier is null. This will cause a NullPointerException if a requested type is not found, potentially leading to a denial of service in the test framework.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>right</side>
+<from>236</from>
+<to>239</to>
+<note>The code in createRequestedInstance is truncated/incomplete, leading to a syntax error. The logic for handling the 'else' block (when annotations are null) is missing its closing braces and return statement.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Extensions.java</path>
+<side>right</side>
+<from>42</from>
+<to>42</to>
+<note>The findSupplierByType method performs a linear scan (O(n)) over the suppliers list every time it is called. If this is called frequently during dependency resolution, it will cause performance degradation. This should be cached in a Map<Class<?>, Supplier<?, ?>>.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Extensions.java</path>
+<side>right</side>
+<from>47</from>
+<to>47</to>
+<note>The findSupplierByAnnotation method performs a linear scan (O(n)) over the suppliers list. This is called during field injection and instance creation. It should be cached in a Map<Class<? extends Annotation>, Supplier<?, ?>>.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>right</side>
+<from>125</from>
+<to>131</to>
+<note>The logic for 'alwaysEnabledValueTypes' is mixed directly into the 'beforeEach' flow. This adds complexity to the registry initialization and makes the lifecycle of these instances less transparent.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>right</side>
+<from>126</from>
+<to>131</to>
+<note>The loop iterates over alwaysEnabledValueTypes and calls createRequestedInstance for each. If createRequestedInstance performs expensive operations or lookups, this could be inefficient. Ensure that the logic inside createRequestedInstance is optimized.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Extensions.java</path>
+<side>right</side>
+<from>67</from>
+<to>78</to>
+<note>The loadSuppliers method contains deeply nested loops and conditional logic (3 levels of nesting). This reduces readability and makes the supplier resolution logic harder to test in isolation.</note>
+</notesplit>

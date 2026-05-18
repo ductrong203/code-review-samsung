@@ -1,0 +1,165 @@
+<notesplit>
+<path>src/services/posthog/telemetry/TelemetryService.ts</path>
+<side>right</side>
+<from>181</from>
+<to>181</to>
+<note>**[Maintainability and Readability]** In TelemetryService.ts, the function captureTaskCreated has removed the taskId parameter but the JSDoc comment still references it. This creates a contradiction between the documentation and the actual function signature, confusing developers about the API contract.
+
+In TelemetryService.ts, the function captureTaskRestarted has removed the taskId parameter but the JSDoc comment still references it. This creates a contradiction between the documentation and the actual function signature, confusing developers about the API contract.</note>
+</notesplit>
+<notesplit>
+<path>src/services/posthog/telemetry/TelemetryService.ts</path>
+<side>right</side>
+<from>205</from>
+<to>205</to>
+<note>**[Maintainability and Readability]** In TelemetryService.ts, the function captureTaskCompleted has removed the taskId parameter but the JSDoc comment still references it. This creates a contradiction between the documentation and the actual function signature, confusing developers about the API contract.
+
+In TelemetryService.ts, the function captureConversationTurnEvent has removed the taskId parameter but the JSDoc comment still references it. This creates a contradiction between the documentation and the actual function signature, confusing developers about the API contract.
+
+In TelemetryService.ts, the function captureTokenUsage has removed the taskId parameter but the JSDoc comment still references it. This creates a contradiction between the documentation and the actual function signature, confusing developers about the API contract.
+
+In TelemetryService.ts, the function captureModeSwitch has removed the taskId parameter but the JSDoc comment still references it. This creates a contradiction between the documentation and the actual function signature, confusing developers about the API contract.
+
+In TelemetryService.ts, the function captureTaskFeedback has removed the taskId parameter but the JSDoc comment still references it. This creates a contradiction between the documentation and the actual function signature, confusing developers about the API contract.
+
+In TelemetryService.ts, the function captureToolUsage has removed the taskId parameter but the JSDoc comment still references it. This creates a contradiction between the documentation and the actual function signature, confusing developers about the API contract.
+
+In TelemetryService.ts, the function captureCheckpointUsage has removed the taskId parameter but the JSDoc comment still references it. This creates a contradiction between the documentation and the actual function signature, confusing developers about the API contract.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>296</from>
+<to>302</to>
+<note>In src/core/task/index.ts, the calls to telemetryService.captureTaskCreated and captureTaskRestarted have changed signatures. The old signature was captureTaskCreated(taskId, ulid, apiProvider) and captureTaskRestarted(taskId, ulid, apiProvider). The new signature is captureTaskCreated(ulid, apiProvider) and captureTaskRestarted(ulid, apiProvider). The code at lines 296-302 still passes this.taskId as the first argument, which is now interpreted as ulid. Since this.taskId is no longer being updated to the new ulid value (or is undefined), the telemetry will receive undefined or the old taskId as ulid, causing incorrect telemetry data. The fix is to remove this.taskId from the arguments.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>2105</from>
+<to>2105</to>
+<note>In src/core/task/index.ts, the call to telemetryService.captureConversationTurnEvent at line 2105 still passes this.taskId as the first argument. The new signature is captureConversationTurnEvent(ulid, provider, model, source, tokenUsage). Passing this.taskId (which is likely undefined or the old value) as ulid will result in incorrect telemetry. The fix is to remove this.taskId from the arguments.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>2170</from>
+<to>2183</to>
+<note>In src/core/task/index.ts, the call to telemetryService.captureConversationTurnEvent at lines 2170-2183 still passes this.taskId as the first argument. The new signature is captureConversationTurnEvent(ulid, provider, model, source, tokenUsage). Passing this.taskId (which is likely undefined or the old value) as ulid will result in incorrect telemetry. The fix is to remove this.taskId from the arguments.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>2345</from>
+<to>2345</to>
+<note>In src/core/task/index.ts, the call to telemetryService.captureConversationTurnEvent at line 2345 still passes this.taskId as the first argument. The new signature is captureConversationTurnEvent(ulid, provider, model, source, tokenUsage). Passing this.taskId (which is likely undefined or the old value) as ulid will result in incorrect telemetry. The fix is to remove this.taskId from the arguments.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/ToolExecutor.ts</path>
+<side>right</side>
+<from>695</from>
+<to>695</to>
+<note>**[Performance]** The `captureToolUsage` telemetry call is executed synchronously in a hot path (tool execution loop). This involves I/O or serialization which can block the main thread during rapid tool execution. Consider batching or making this call asynchronous to avoid blocking the task loop.
+
+The `captureToolUsage` telemetry call is executed synchronously in a hot path. This can block the main thread during rapid tool execution. Consider batching or making this call asynchronous.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/ToolExecutor.ts</path>
+<side>right</side>
+<from>730</from>
+<to>730</to>
+<note>**[Performance]** The `captureToolUsage` telemetry call is executed synchronously in a hot path. This can block the main thread during rapid tool execution. Consider batching or making this call asynchronous.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/ToolExecutor.ts</path>
+<side>right</side>
+<from>743</from>
+<to>743</to>
+<note>**[Performance]** The `captureToolUsage` telemetry call is executed synchronously in a hot path. This can block the main thread during rapid tool execution. Consider batching or making this call asynchronous.</note>
+</notesplit>
+<notesplit>
+<path>src/services/browser/BrowserSession.ts</path>
+<side>right</side>
+<from>175</from>
+<to>175</to>
+<note>In BrowserSession.ts, the JSDoc comment for setUlid still says 'Set the ULID for telemetry tracking' but the @param description says 'The task ID to associate with browser actions'. This is misleading because the parameter is now ulid, not taskId. The comment should be updated to reflect that ulid is the identifier.</note>
+</notesplit>
+<notesplit>
+<path>src/api/providers/cline.ts</path>
+<side>right</side>
+<from>54</from>
+<to>54</to>
+<note>The X-Task-ID header is now populated with a ULID. While ULIDs are less predictable than sequential IDs, they are still user-controlled identifiers sent in HTTP headers. If the server logs these headers or uses them in SQL queries without sanitization, it could lead to information disclosure or injection. Ensure the backend validates and sanitizes this header value.</note>
+</notesplit>
+<notesplit>
+<path>src/api/providers/litellm.ts</path>
+<side>right</side>
+<from>233</from>
+<to>233</to>
+<note>The litellm_session_id is constructed using string interpolation with the ULID. If the ULID is not strictly validated, an attacker could inject malicious content into the session ID, potentially affecting logging or session tracking mechanisms. Ensure the ULID is validated against a strict regex before use.</note>
+</notesplit>
+<notesplit>
+<path>src/services/browser/BrowserSession.ts</path>
+<side>right</side>
+<from>201</from>
+<to>201</to>
+<note>**[Performance]** The `captureBrowserToolStart` telemetry call is executed synchronously in a hot path (browser tool execution). This can block the main thread during browser automation. Consider batching or making this call asynchronous.
+
+The `captureBrowserToolStart` telemetry call is executed synchronously in a hot path. This can block the main thread during browser automation. Consider batching or making this call asynchronous.</note>
+</notesplit>
+<notesplit>
+<path>src/services/browser/BrowserSession.ts</path>
+<side>right</side>
+<from>210</from>
+<to>214</to>
+<note>The `captureBrowserError` telemetry call is executed synchronously in a hot path. This can block the main thread during browser error handling. Consider batching or making this call asynchronous.</note>
+</notesplit>
+<notesplit>
+<path>src/services/browser/BrowserSession.ts</path>
+<side>right</side>
+<from>289</from>
+<to>293</to>
+<note>The `captureBrowserError` telemetry call is executed synchronously in a hot path. This can block the main thread during browser error handling. Consider batching or making this call asynchronous.</note>
+</notesplit>
+<notesplit>
+<path>src/services/browser/BrowserSession.ts</path>
+<side>right</side>
+<from>341</from>
+<to>345</to>
+<note>The `captureBrowserError` telemetry call is executed synchronously in a hot path. This can block the main thread during browser error handling. Consider batching or making this call asynchronous.</note>
+</notesplit>
+<notesplit>
+<path>src/services/browser/BrowserSession.ts</path>
+<side>right</side>
+<from>399</from>
+<to>399</to>
+<note>The `captureBrowserToolEnd` telemetry call is executed synchronously in a hot path. This can block the main thread during browser tool execution. Consider batching or making this call asynchronous.</note>
+</notesplit>
+<notesplit>
+<path>src/services/browser/BrowserSession.ts</path>
+<side>right</side>
+<from>470</from>
+<to>470</to>
+<note>The `captureBrowserError` telemetry call is executed synchronously in a hot path. This can block the main thread during browser error handling. Consider batching or making this call asynchronous.</note>
+</notesplit>
+<notesplit>
+<path>src/services/browser/BrowserSession.ts</path>
+<side>right</side>
+<from>515</from>
+<to>515</to>
+<note>The `captureBrowserError` telemetry call is executed synchronously in a hot path. This can block the main thread during browser error handling. Consider batching or making this call asynchronous.</note>
+</notesplit>
+<notesplit>
+<path>src/services/posthog/telemetry/TelemetryService.ts</path>
+<side>right</side>
+<from>296</from>
+<to>299</to>
+<note>The captureTaskFeedback function logs the ULID to the console via console.info. If ULIDs are considered sensitive or if the logging mechanism is not secure, this could lead to information disclosure. Ensure that logging is appropriate for the environment and does not expose sensitive data in production logs.</note>
+</notesplit>
+<notesplit>
+<path>src/api/providers/gemini.ts</path>
+<side>right</side>
+<from>272</from>
+<to>272</to>
+<note>In GeminiHandler.ts, the console.warn message still references 'taskId' in the string literal. While the code now uses ulid, the warning message is outdated and confusing. It should say 'ulid' instead of 'taskId' to match the current implementation.</note>
+</notesplit>

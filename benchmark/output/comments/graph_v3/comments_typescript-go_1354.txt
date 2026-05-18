@@ -1,0 +1,30 @@
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>147</from>
+<to>147</to>
+<note>**[Performance]** The code uses repeated string concatenation with `+` inside a loop or slice construction. In Go, this creates multiple intermediate string objects. Using `strings.Builder` or pre-allocating the slice capacity is more efficient for building output buffers.
+
+**[Maintainability and Readability]** Hardcoded newline character '\n' is used repeatedly throughout the file. This replaces the previous abstraction (sys.NewLine()) with a magic string, reducing maintainability if the newline strategy needs to change again.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>261</from>
+<to>261</to>
+<note>The logic for ensuring a blank line at the end of output is broken. By hardcoding "\n" instead of using the system's newline preference, the code may produce inconsistent line endings on Windows (where "\r\n" was previously used). Furthermore, comparing against "\n" specifically will fail if the system expects "\r\n", potentially leading to double-newlines or incorrect formatting.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>right</side>
+<from>66</from>
+<to>66</to>
+<note>The code uses a hardcoded '\n' string literal for formatting settings. This creates a magic string dependency that is harder to update globally than a constant or a configuration value.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>261</from>
+<to>263</to>
+<note>The check `lines[len(lines)-2] != "\n"` performs a string comparison on every call to `generateGroupOptionOutput`. While minor, this is executed frequently during help generation. If performance becomes a concern, consider tracking the last character or using a buffer.</note>
+</notesplit>

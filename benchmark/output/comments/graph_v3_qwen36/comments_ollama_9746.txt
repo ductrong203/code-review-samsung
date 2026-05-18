@@ -1,0 +1,37 @@
+<notesplit>
+<path>server/internal/client/ollama/registry.go</path>
+<side>right</side>
+<from>499</from>
+<to>499</to>
+<note>**[Security Vulnerability]** SSRF/Path Traversal via chunk URL: The code uses cs.URL directly from the registry response to make HTTP requests. If the registry returns a malicious URL (e.g., pointing to internal services or local files), it could lead to SSRF or unauthorized access to internal resources.
+
+Missing URL validation for chunk downloads: The code does not validate the URL scheme or host before making requests. This could allow access to file:// URLs or internal services.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/cache/blob/cache.go</path>
+<side>right</side>
+<from>450</from>
+<to>450</to>
+<note>Insecure file permissions: The file is created with mode 0o666 (world-readable/writable). This exposes cached blobs to other users on the system, potentially allowing unauthorized access to model data or cache poisoning.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/cache/blob/cache.go</path>
+<side>right</side>
+<from>538</from>
+<to>541</to>
+<note>Information disclosure via panic: The absJoin function panics on filepath.Abs errors. In a production server, this can expose internal paths or cause a crash, leading to DoS. While filepath.Abs rarely fails, relying on panic for error handling in server code is risky.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/cache/blob/cache.go</path>
+<side>right</side>
+<from>425</from>
+<to>428</to>
+<note>Missing input validation for hash writer: The checkWriter's Write method calls w.h.Write(p) without validating if w.h is nil. If the writer is improperly initialized, this causes a nil pointer dereference (DoS).</note>
+</notesplit>
+<notesplit>
+<path>server/internal/cache/blob/cache.go</path>
+<side>right</side>
+<from>450</from>
+<to>450</to>
+<note>Missing input validation for underlying writer: The checkWriter's Write method calls w.w.Write(p) without validating if w.w is nil. If the writer is improperly initialized, this causes a nil pointer dereference (DoS).</note>
+</notesplit>

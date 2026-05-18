@@ -1,0 +1,30 @@
+<notesplit>
+<path>src/bitcoin-cli.cpp</path>
+<side>right</side>
+<from>466</from>
+<to>476</to>
+<note>**[Maintainability and Readability]** The function ServicesList duplicates the logic found in FormatServices (which is likely already present in the codebase). This violates the DRY (Don't Repeat Yourself) principle. If the existing FormatServices does not meet the requirements, it should be updated or overloaded rather than creating a near-identical function.
+
+**[Security Vulnerability]** The ServicesList function iterates over UniValue array elements and calls get_str() without verifying that the elements are actually strings. If the JSON input contains non-string types (e.g., objects or arrays), get_str() will throw an exception, leading to a potential denial-of-service (crash) of the bitcoin-cli tool when processing malformed or malicious RPC responses.</note>
+</notesplit>
+<notesplit>
+<path>src/bitcoin-cli.cpp</path>
+<side>right</side>
+<from>469</from>
+<to>471</to>
+<note>The string concatenation inside the loop causes repeated reallocations and copying of the string buffer. For a list of services, this is inefficient. Using a std::ostringstream or pre-calculating the required size and using reserve() is more performant.</note>
+</notesplit>
+<notesplit>
+<path>src/bitcoin-cli.cpp</path>
+<side>right</side>
+<from>472</from>
+<to>474</to>
+<note>The loop iterates over the string 'str' and modifies it in-place using 'c = ...'. However, 'str' contains the comma-separated list of services (e.g., 'NODE_NETWORK, NODE_BLOOM'). The logic 'c == '_' ? ' ' : ToLower(c)' will replace the comma separator with a lowercase 'c' (since ',' is not '_'), effectively corrupting the string format by turning ', ' into 'c ' or similar, and potentially mangling the service names themselves.</note>
+</notesplit>
+<notesplit>
+<path>src/bitcoin-cli.cpp</path>
+<side>right</side>
+<from>569</from>
+<to>570</to>
+<note>The construction of the 'result' string is becoming overly complex with multiple nested ternary operators and strprintf calls. This reduces readability. It is better to build the string in parts or use a more readable formatting approach.</note>
+</notesplit>

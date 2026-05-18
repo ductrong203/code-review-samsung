@@ -1,0 +1,16 @@
+<notesplit>
+<path>src/Storages/MergeTree/MergeTreeDataMergerMutator.cpp</path>
+<side>right</side>
+<from>337</from>
+<to>343</to>
+<note>**[Maintainability and Readability]** The LOG_TRACE call uses backQuote() for table and database names, but the quoteString.h include suggests quoteString might be the intended utility. If backQuote is not defined in this scope or is inconsistent with the new include, it creates a maintenance risk. Verify that backQuote is available and consistent with the project's quoting standards.
+
+**[Performance]** The LOG_TRACE call uses backQuote() on storage.table_name and storage.database_name. If these are std::string objects, backQuote likely performs string concatenation or formatting. In a hot path like merge scheduling (called during part selection), this adds unnecessary string allocation and formatting overhead for trace-level logging which is often disabled. Consider using a more efficient logging macro or checking if the log level is enabled before constructing the message.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/MergeTree/MergeTreeDataMergerMutator.cpp</path>
+<side>right</side>
+<from>6</from>
+<to>6</to>
+<note>The include for quoteString.h is placed between other includes, breaking the logical grouping of headers. It should be grouped with other Common includes or in the appropriate section.</note>
+</notesplit>

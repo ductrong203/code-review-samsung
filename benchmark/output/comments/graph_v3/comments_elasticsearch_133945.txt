@@ -1,0 +1,20 @@
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/index/codec/vectors/DefaultIVFVectorsReader.java</path>
+<side>right</side>
+<from>117</from>
+<to>117</to>
+<note>**[Code Defect]** The calculation of centroidOversampling uses fieldEntry.numCentroids() / (2 * numParents). If numParents is 0, this will cause an ArithmeticException (division by zero). While there is an 'if (numParents > 0)' check, the logic inside the block is susceptible to integer division truncation before the cast to float, potentially resulting in an incorrect oversampling ratio.
+
+**[Maintainability and Readability]** The magic number '2' in the calculation of centroidOversampling lacks context. It is unclear why the number of centroids per parent cluster is halved. This should be defined as a named constant (e.g., OVERSAMPLING_DIVISOR) to explain the business logic behind this heuristic.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/index/codec/vectors/DefaultIVFVectorsReader.java</path>
+<side>right</side>
+<from>197</from>
+<to>197</to>
+<note>**[Performance]** The calculation of bufferSize involves floating-point multiplication (centroidRatio * numCentroids) inside a method that is likely called frequently during vector search. While not critical, casting to int after multiplication can be slightly optimized by ensuring the order of operations minimizes precision loss or redundant conversions.
+
+**[Maintainability and Readability]** The calculation for bufferSize is complex and contains a nested Math.min/Math.max call. This logic is difficult to parse at a glance. It should be extracted into a descriptive local variable or a private helper method to improve readability.
+
+**[Security Vulnerability]** The calculation of bufferSize uses centroidRatio * numCentroids. If centroidRatio is derived from user-controlled input (visitRatio), this could lead to an integer overflow or an excessively large allocation if not properly bounded, potentially causing an OutOfMemoryError (OOM) which can be used for Denial of Service (DoS).</note>
+</notesplit>

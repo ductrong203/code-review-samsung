@@ -1,0 +1,96 @@
+{
+  "run_name": "graph_v3_qwen36",
+  "repo": "ClickHouse/ClickHouse",
+  "dataset_path": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\dataset\\positive_samples.json",
+  "extension_base": "http://localhost:8100/api",
+  "backend_url": "",
+  "started_at": "2026-05-17T12:00:36",
+  "comments_output_dir": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36",
+  "results": [
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/80345",
+      "pr_id": "ClickHouse_80345",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_ClickHouse_80345.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/73546",
+      "pr_id": "ClickHouse_73546",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_ClickHouse_73546.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/75218",
+      "pr_id": "ClickHouse_75218",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_ClickHouse_75218.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/85266",
+      "pr_id": "ClickHouse_85266",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_ClickHouse_85266.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/74070",
+      "pr_id": "ClickHouse_74070",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_ClickHouse_74070.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/85873",
+      "pr_id": "ClickHouse_85873",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_ClickHouse_85873.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/82441",
+      "pr_id": "ClickHouse_82441",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_ClickHouse_82441.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/80597",
+      "pr_id": "ClickHouse_80597",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_ClickHouse_80597.txt"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/74715",
+      "pr_id": "ClickHouse_74715",
+      "status": "error",
+      "error": "HTTP 400: {\"detail\":\"Graph not ready for PR #74715. Build it via /api/build-pr or ensure repo is registered.\"}"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/80391",
+      "pr_id": "ClickHouse_80391",
+      "status": "error",
+      "error": "HTTP 400: {\"detail\":\"Graph not ready for PR #80391. Build it via /api/build-pr or ensure repo is registered.\"}"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/75474",
+      "pr_id": "ClickHouse_75474",
+      "status": "error",
+      "error": "HTTP 400: {\"detail\":\"Graph not ready for PR #75474. Build it via /api/build-pr or ensure repo is registered.\"}"
+    },
+    {
+      "pr_url": "https://github.com/ClickHouse/ClickHouse/pull/72920",
+      "pr_id": "ClickHouse_72920",
+      "status": "error",
+      "error": "HTTP 400: {\"detail\":\"Graph not ready for PR #72920. Build it via /api/build-pr or ensure repo is registered.\"}"
+    }
+  ],
+  "initial_graph_status": {
+    "repo": "ClickHouse/ClickHouse",
+    "registered": true,
+    "local_path": "E:\\My_Project\\samsung\\ClickHouse",
+    "main_graph_ready": true
+  },
+  "finished_at": "2026-05-17T12:01:00",
+  "summary": {
+    "selected": 12,
+    "success": 0,
+    "skipped": 8,
+    "errors": 4
+  }
+}

@@ -1,0 +1,50 @@
+<notesplit>
+<path>test/language.c</path>
+<side>right</side>
+<from>92</from>
+<to>92</to>
+<note>**[Code Defect]** Syntax error: '00' is not a valid integer literal in C. This will cause a compilation failure. It should be '0'.
+
+**[Security Vulnerability]** Syntax error in test code: '00' is not a valid integer literal in C. This will cause a compilation failure, preventing the test suite from running. While not a runtime security vulnerability, it indicates a lack of build verification. The fix is to change '00' to '0'.</note>
+</notesplit>
+<notesplit>
+<path>test/language.c</path>
+<side>right</side>
+<from>84</from>
+<to>85</to>
+<note>**[Code Defect]** Incorrect test expectation: The filename 'foo.en-US.forced.sdh.srt' contains both 'forced' and 'sdh' tags. The code sets both TRACK_FORCED and TRACK_HEARING_IMPAIRED. The test expects only TRACK_HEARING_IMPAIRED, which will cause the test to fail.
+
+Incorrect test expectation: The filename 'foo.en-US.sdh.forced.srt' contains both 'sdh' and 'forced' tags. The code sets both TRACK_HEARING_IMPAIRED and TRACK_FORCED. The test expects only TRACK_HEARING_IMPAIRED, which will cause the test to fail.</note>
+</notesplit>
+<notesplit>
+<path>test/language.c</path>
+<side>right</side>
+<from>91</from>
+<to>92</to>
+<note>**[Code Defect]** Incorrect test expectation: The filename 'foo[en-US][forced][sdh].srt' contains both 'forced' and 'sdh' tags. The code sets both TRACK_FORCED and TRACK_HEARING_IMPAIRED. The test expects only TRACK_HEARING_IMPAIRED, which will cause the test to fail.
+
+Incorrect test expectation: The filename 'foo[en-US][sdh][forced].srt' contains both 'sdh' and 'forced' tags. The code sets both TRACK_HEARING_IMPAIRED and TRACK_FORCED. The test expects only TRACK_HEARING_IMPAIRED, which will cause the test to fail.</note>
+</notesplit>
+<notesplit>
+<path>test/language.c</path>
+<side>right</side>
+<from>98</from>
+<to>99</to>
+<note>**[Code Defect]** Incorrect test expectation: The filename 'foo(en-US)(forced)(sdh).srt' contains both 'forced' and 'sdh' tags. The code sets both TRACK_FORCED and TRACK_HEARING_IMPAIRED. The test expects only TRACK_HEARING_IMPAIRED, which will cause the test to fail.
+
+Incorrect test expectation: The filename 'foo(en-US)(sdh)(forced).srt' contains both 'sdh' and 'forced' tags. The code sets both TRACK_HEARING_IMPAIRED and TRACK_FORCED. The test expects only TRACK_HEARING_IMPAIRED, which will cause the test to fail.</note>
+</notesplit>
+<notesplit>
+<path>misc/language.c</path>
+<side>right</side>
+<from>335</from>
+<to>349</to>
+<note>The loop in mp_guess_lang_from_filename now performs multiple string comparisons per iteration. For each segment, it iterates over the 'sdh', 'hi', 'cc' suffixes (3 comparisons) and then performs an additional comparison for 'forced'. This increases the constant factor of the loop's complexity. While still O(n), the repeated calls to bstrcasecmp0 and array iteration inside the tight loop could be optimized by checking for the specific delimiter and length first or using a more direct lookup.</note>
+</notesplit>
+<notesplit>
+<path>player/command.c</path>
+<side>right</side>
+<from>6308</from>
+<to>6308</to>
+<note>The code adds a new flag check `t->forced_track ? TRACK_FORCED : 0`. This is a simple bitwise operation and is not a performance issue, but it's part of a sequence of similar checks. If this pattern is repeated excessively in hot paths, it could be optimized. However, in this specific context, it's negligible.</note>
+</notesplit>

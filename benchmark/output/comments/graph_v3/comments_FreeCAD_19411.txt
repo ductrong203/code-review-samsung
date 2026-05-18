@@ -1,0 +1,30 @@
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawProjGroup.cpp</path>
+<side>right</side>
+<from>1114</from>
+<to>1122</to>
+<note>**[Code Defect]** The loop logic in updateSecondaryDirs was simplified to remove the switch statement, but it now incorrectly attempts to process 'Front' as a special case while treating all other types via getDirsFromFront. The original code had specific handling for multiple projection types (Rear, Left, Right, etc.). By removing the switch, the logic for these specific types is now handled by a generic call, which may not be functionally equivalent to the previous explicit mapping.
+
+**[Maintainability and Readability]** The switch statement was replaced by a series of if-else blocks. While this is necessary for the enum class conversion, the logic for the 'default' case (which previously logged an error) has been completely removed. This makes the code fail silently for invalid projection types.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawProjGroup.cpp</path>
+<side>right</side>
+<from>1108</from>
+<to>1123</to>
+<note>The loop iterates over all views and performs a map insertion/lookup for every item. While the map size is small (MAXPROJECTIONCOUNT = 10), using a std::map (which is a balanced tree) for such a small, fixed-size collection is less efficient than a flat array or a small vector. Given this is called during recompute cycles, replacing std::map with a fixed-size array or std::vector would reduce heap allocations and improve cache locality.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawViewPart.cpp</path>
+<side>right</side>
+<from>1385</from>
+<to>1393</to>
+<note>The 'else' block that handled unknown projection types was removed. This function now returns an uninitialized or default-constructed pair when an invalid enum value is passed, which is dangerous.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawViewPart.cpp</path>
+<side>right</side>
+<from>1392</from>
+<to>1399</to>
+<note>The function getDirsFromFront previously had a fallback case that logged an error and returned the current direction/rotation when an unknown projection type was encountered. This safety mechanism was removed, meaning an invalid or unhandled ProjDirection will now likely result in undefined behavior or an empty pair being returned, potentially causing crashes in callers.</note>
+</notesplit>

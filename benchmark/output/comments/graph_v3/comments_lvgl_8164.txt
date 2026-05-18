@@ -1,0 +1,14 @@
+<notesplit>
+<path>src/widgets/animimage/lv_animimage.c</path>
+<side>right</side>
+<from>46</from>
+<to>46</to>
+<note>The function lv_animimg_set_src_inner is defined after the static function declarations but is missing from the header or internal scope if used elsewhere. More importantly, the logic in lv_animimg_set_src_inner modifies the animation object's values directly without ensuring the animation is initialized or stopped, which can lead to inconsistent state if called while an animation is running.</note>
+</notesplit>
+<notesplit>
+<path>src/widgets/animimage/lv_animimage.c</path>
+<side>right</side>
+<from>258</from>
+<to>270</to>
+<note>The function lv_animimg_set_src_inner is defined at the end of the file but used in functions defined earlier. While this works in C, it requires a forward declaration. It is cleaner to group related internal helper functions together or place them before their callers to avoid unnecessary forward declarations.</note>
+</notesplit>

@@ -1,0 +1,40 @@
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/integration/resteasy/QuarkusHttpRequest.java</path>
+<side>right</side>
+<from>170</from>
+<to>175</to>
+<note>**[Code Defect]** Potential NullPointerException in `isProxyTrusted()`. The method calls `this.getHttpHeaders().getHeaderString(...)` without checking if `getHttpHeaders()` returns null. If `context` is null, `getHttpHeaders()` returns null (as seen in the diff at line 132), causing a crash when accessing `getHeaderString`.
+
+**[Security Vulnerability]** The `isProxyTrusted()` method allows an attacker to bypass proxy trust validation by setting the `X-Forwarded-Trusted-Proxy` header to `true`. If `proxy-trusted-addresses` is configured, requests from untrusted IPs should be rejected regardless of headers. This header is user-controlled and can be spoofed by any client, effectively disabling the security control intended to prevent certificate injection from untrusted sources.
+
+**[Maintainability and Readability]** The method `isProxyTrusted` in `QuarkusHttpRequest` calls `getHeaderString` on `getHttpHeaders()` without a null check. If `getHttpHeaders()` returns null (which is possible given other methods in this class check for null context), this will throw a NullPointerException. This is a critical maintainability and robustness issue.
+
+**[Performance]** The `isProxyTrusted` method performs a configuration lookup (`Configuration.getOptionalKcValue`) and parses a header string on every request. Since this method is likely called frequently during request processing, this adds unnecessary overhead. The configuration lookup should be cached or the result should be pre-computed if possible.</note>
+</notesplit>
+<notesplit>
+<path>services/src/main/java/org/keycloak/services/x509/AbstractClientCertificateFromHttpHeadersLookup.java</path>
+<side>right</side>
+<from>118</from>
+<to>123</to>
+<note>**[Code Defect]** Logic error in `AbstractClientCertificateFromHttpHeadersLookup.getCertificateChain`. The method checks `httpRequest.isProxyTrusted()` and returns `null` if false. However, the caller (e.g., in authentication flows) might expect an empty array `[]` or a valid chain object rather than `null`. Returning `null` can cause NullPointerExceptions in downstream code that iterates over the result or checks its length. It is safer to return an empty array `new X509Certificate[0]` to indicate 'no certificates' rather than 'error/null'.
+
+**[Security Vulnerability]** The `getCertificateChain` method in `AbstractClientCertificateFromHttpHeadersLookup` relies on `httpRequest.isProxyTrusted()` to decide whether to process X.509 certificates from HTTP headers. Because `isProxyTrusted()` in `QuarkusHttpRequest` can be bypassed via the `X-Forwarded-Trusted-Proxy` header (see issue above), an attacker can inject forged client certificates. This leads to authentication bypass or impersonation.
+
+**[Maintainability and Readability]** In `AbstractClientCertificateFromHttpHeadersLookup.getCertificateChain`, the method checks `httpRequest.isProxyTrusted()` and logs a warning if false. However, it returns `null` instead of an empty array. This is inconsistent with the rest of the method which returns `chain.toArray(new X509Certificate[0])`. Returning `null` can cause NullPointerExceptions in callers expecting an array.
+
+**[Performance]** The `getCertificateChain` method now calls `httpRequest.isProxyTrusted()` which involves configuration lookup and header parsing. While this is a one-time check per request, if this method is called multiple times per request (e.g., for different certificate chains), it could lead to redundant work. Consider caching the result of `isProxyTrusted` if it's called multiple times.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/runtime/src/main/java/org/keycloak/quarkus/runtime/integration/resteasy/QuarkusHttpRequest.java</path>
+<side>right</side>
+<from>57</from>
+<to>63</to>
+<note>The formatting change in `getHttpMethod` from a single-line if-return to a multi-line block is purely stylistic. While consistent with the rest of the file, it increases verbosity without adding clarity. This is a minor readability/style issue.</note>
+</notesplit>
+<notesplit>
+<path>services/src/main/java/org/keycloak/services/x509/AbstractClientCertificateFromHttpHeadersLookup.java</path>
+<side>right</side>
+<from>71</from>
+<to>75</to>
+<note>The formatting change in `trimDoubleQuotes` from a single-line if-return to a multi-line block is purely stylistic. While consistent with the rest of the file, it increases verbosity without adding clarity. This is a minor readability/style issue.</note>
+</notesplit>

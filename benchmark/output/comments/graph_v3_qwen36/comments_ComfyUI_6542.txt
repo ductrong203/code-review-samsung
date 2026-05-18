@@ -1,0 +1,34 @@
+<notesplit>
+<path>comfy/model_management.py</path>
+<side>right</side>
+<from>993</from>
+<to>998</to>
+<note>**[Code Defect]** The function `is_directml_enabled` accesses the global variable `directml_enabled` but does not declare it as `global` within the function scope. This will result in an `UnboundLocalError` when the function is called, crashing the application. The variable is used in other functions (like `should_use_fp16`) which correctly declare `global directml_enabled`, but this new function is missing that declaration.
+
+**[Maintainability and Readability]** The new function `is_directml_enabled` in `comfy/model_management.py` is a 'God function' candidate for a simple check. It accesses a global variable `directml_enabled` directly without any type hints or documentation. More critically, it lacks a guard against the variable being undefined (if the module is imported before the global is initialized), which will cause a NameError. This makes the code fragile and hard to maintain.
+
+**[Performance]** Global variable access in `is_directml_enabled` is not thread-safe and may cause race conditions if `directml_enabled` is modified concurrently. Additionally, accessing global variables repeatedly in hot paths can be slower than local caching if the value is constant after initialization. If `directml_enabled` is set once at startup, consider caching the result or using a thread-safe flag.</note>
+</notesplit>
+<notesplit>
+<path>comfy/clip_model.py</path>
+<side>right</side>
+<from>107</from>
+<to>110</to>
+<note>**[Code Defect]** The DirectML branch uses `.triu_(1)` which modifies the tensor in-place. However, `torch.full` creates a new tensor, so this is safe. The non-DirectML branch uses `.fill_()` then `.triu_(1)`. The issue is that `torch.empty` creates uninitialized memory. While `.fill_()` initializes it, relying on the order of operations is slightly less robust than `torch.full`. More importantly, the DirectML branch uses `torch.full` which is generally safer and more consistent. However, the real defect is that `torch.empty` followed by `fill_` is not atomic. If `x.device` is not CPU, `torch.empty` might leave garbage if `fill_` fails (unlikely). The main issue is consistency. But looking closer, `torch.full` is preferred. The code is functionally correct but the `else` branch is less robust. Wait, `torch.empty` is fine if immediately filled. Is there a bug? No, it's just style. Let's look for a real bug. Ah, `torch.finfo(x.dtype).max` vs `float("-inf")`. `torch.finfo` is correct for dtype. `float("-inf")` is also correct. No logic error here. The `is_directml_enabled` bug is the critical one. Is there another? In `math.py`, the condition is just added. No bug there. The `clip_model.py` change: `torch.full` vs `torch.empty`. `torch.full` is better. No crash. I will stick to the critical bug in `model_management.py`. Are there any other issues? In `clip_model.py`, `mask.to(torch.bool)` might be slow but not a bug. The `triu_` is in-place. `torch.full` returns a new tensor, so `.triu_()` modifies it. `torch.empty` returns a new tensor, `.fill_()` modifies it, `.triu_()` modifies it. It works. The only real defect is the missing `global` keyword.
+
+**[Maintainability and Readability]** In `comfy/clip_model.py`, the logic for creating `causal_mask` is duplicated and split between two branches. The `torch.empty(...).fill_()` pattern is replaced by `torch.full(...)` for DirectML, but the subsequent `.triu_(1)` call is repeated. This creates a slight code duplication and inconsistency in how the tensor is initialized (one uses `fill_` with a computed max, the other uses `full` with a literal `-inf`).</note>
+</notesplit>
+<notesplit>
+<path>comfy/clip_model.py</path>
+<side>right</side>
+<from>108</from>
+<to>108</to>
+<note>Inefficient tensor initialization for DirectML: `torch.full` creates a dense matrix of shape (x.shape[1], x.shape[1]) and then applies `triu_`. For large sequence lengths, this allocates O(N^2) memory unnecessarily. The original code used `torch.empty` + `fill_` which is slightly more efficient, but both are suboptimal compared to using `torch.ones` with a diagonal mask or sparse representation if supported. However, the primary issue is that `torch.full` is generally slower than `torch.empty` followed by `fill_` for dense initialization.</note>
+</notesplit>
+<notesplit>
+<path>comfy/ldm/flux/math.py</path>
+<side>right</side>
+<from>25</from>
+<to>25</to>
+<note>In `comfy/ldm/flux/math.py`, the condition `comfy.model_management.is_device_mps(pos.device) or comfy.model_management.is_intel_xpu() or comfy.model_management.is_directml_enabled()` is becoming long and hard to read. Adding more device checks will make this line unwieldy. Consider extracting this into a helper function like `is_cpu_fallback_device(device)`.</note>
+</notesplit>

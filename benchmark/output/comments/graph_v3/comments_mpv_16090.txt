@@ -1,0 +1,44 @@
+<notesplit>
+<path>video/out/gpu/video.c</path>
+<side>right</side>
+<from>3755</from>
+<to>3756</to>
+<note>**[Code Defect]** The code calls mp_image_vflip(mpi) on the input image buffer before uploading it to the GPU. This modifies the image data in-place. If the same image buffer is used by other filters or components later in the pipeline, this will cause data corruption or unexpected behavior because the buffer is now permanently flipped.
+
+**[Performance]** The call to mp_image_vflip(mpi) inside the upload loop performs a full CPU-based image transformation on every frame. This is an expensive memory-copy operation that should be avoided in the hot path. Since the GPU renderer supports vflip (as indicated by VO_CAP_VFLIP), this transformation should be handled via shader/texture coordinates or GPU-side matrix transformations instead of CPU-side pixel manipulation.</note>
+</notesplit>
+<notesplit>
+<path>filters/f_output_chain.c</path>
+<side>right</side>
+<from>656</from>
+<to>661</to>
+<note>The code uses `abort()` if `mp_autovflip_create` fails. In a media player, this causes an immediate Denial of Service (DoS) for the entire application when encountering a specific video file or filter configuration, rather than gracefully handling the error or disabling the filter.</note>
+</notesplit>
+<notesplit>
+<path>video/mp_image.c</path>
+<side>right</side>
+<from>1111</from>
+<to>1112</to>
+<note>The calculation of the vflip flag using the determinant of the display matrix is complex and lacks documentation. It should be extracted into a helper function with a descriptive name to improve readability.</note>
+</notesplit>
+<notesplit>
+<path>filters/f_auto_filters.c</path>
+<side>right</side>
+<from>363</from>
+<to>369</to>
+<note>The vflip_process function performs a manual check for vflip and imgfmt equality. This logic is repeated and could be abstracted or simplified to reduce cognitive load.</note>
+</notesplit>
+<notesplit>
+<path>video/out/vo_dmabuf_wayland.c</path>
+<side>right</side>
+<from>688</from>
+<to>690</to>
+<note>The transform_enum_lut table uses magic numbers for indices and values. It is unclear what these indices represent without documentation or named constants.</note>
+</notesplit>
+<notesplit>
+<path>video/out/vo_dmabuf_wayland.c</path>
+<side>right</side>
+<from>884</from>
+<to>885</to>
+<note>The addition of '0x0' in the caps bitmask is redundant and adds unnecessary noise to the code.</note>
+</notesplit>

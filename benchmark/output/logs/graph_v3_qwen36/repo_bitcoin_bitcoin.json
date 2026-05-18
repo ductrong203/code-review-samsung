@@ -1,0 +1,75 @@
+{
+  "run_name": "graph_v3_qwen36",
+  "repo": "bitcoin/bitcoin",
+  "dataset_path": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\dataset\\positive_samples.json",
+  "extension_base": "http://localhost:8100/api",
+  "backend_url": "",
+  "started_at": "2026-05-19T02:21:20",
+  "comments_output_dir": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36",
+  "results": [
+    {
+      "pr_url": "https://github.com/bitcoin/bitcoin/pull/31886",
+      "pr_id": "bitcoin_31886",
+      "status": "success",
+      "num_comments": 8,
+      "elapsed_seconds": 53.18,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 9,
+        "review_priorities": 5,
+        "related_context": 7,
+        "overall_risk": 0.6,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_bitcoin_31886.txt"
+    },
+    {
+      "pr_url": "https://github.com/bitcoin/bitcoin/pull/31405",
+      "pr_id": "bitcoin_31405",
+      "status": "success",
+      "num_comments": 15,
+      "elapsed_seconds": 71.47,
+      "graph": {
+        "changed_functions": 8,
+        "affected_flows": 0,
+        "test_gaps": 7,
+        "review_priorities": 5,
+        "related_context": 20,
+        "overall_risk": 0.5,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_bitcoin_31405.txt"
+    },
+    {
+      "pr_url": "https://github.com/bitcoin/bitcoin/pull/32425",
+      "pr_id": "bitcoin_32425",
+      "status": "success",
+      "num_comments": 2,
+      "elapsed_seconds": 174.58,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 8,
+        "overall_risk": 0.5,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_bitcoin_32425.txt"
+    }
+  ],
+  "initial_graph_status": {
+    "repo": "bitcoin/bitcoin",
+    "registered": true,
+    "local_path": "E:\\My_Project\\samsung\\bitcoin",
+    "main_graph_ready": true
+  },
+  "finished_at": "2026-05-19T02:26:28",
+  "summary": {
+    "selected": 3,
+    "success": 3,
+    "skipped": 0,
+    "errors": 0
+  }
+}

@@ -49,7 +49,7 @@ def print_table(headers, rows, col_widths=None):
     print(f"└{'┴'.join('─' * w for w in col_widths)}┘")
 
 
-def generate_report(results: dict):
+def generate_report(results: dict, report_path: Path | None = None):
     """Generate and print a comprehensive evaluation report."""
     details = results.get("details", [])
 
@@ -170,7 +170,7 @@ def generate_report(results: dict):
     print("═" * 60)
 
     # Save markdown report
-    report_path = RESULTS_DIR / "evaluation_report.md"
+    report_path = report_path or (RESULTS_DIR / "evaluation_report.md")
     save_markdown_report(results, report_path)
     print(f"\n📄 Markdown report saved to: {report_path}")
 
@@ -204,6 +204,12 @@ def main():
         default=str(RESULTS_DIR / "evaluation_results.json"),
         help="Path to evaluation results JSON"
     )
+    parser.add_argument(
+        "--report",
+        type=str,
+        default="",
+        help="Markdown report output path. Default: evaluation_report.md next to --results",
+    )
     args = parser.parse_args()
 
     if not Path(args.results).exists():
@@ -212,7 +218,8 @@ def main():
         sys.exit(1)
 
     results = load_results(args.results)
-    generate_report(results)
+    report_path = Path(args.report) if args.report else Path(args.results).with_name("evaluation_report.md")
+    generate_report(results, report_path=report_path)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,36 @@
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/navigator/fs/DBNPathBase.java</path>
+<side>right</side>
+<from>292</from>
+<to>302</to>
+<note>**[Code Defect]** The code attempts to copy a file using an InputStream adapter, but the destination path is constructed using `node.getNodeDisplayName()`. This method typically returns the display name (e.g., 'file.txt') rather than the full path or a path object suitable for `Files.copy`. If `node.getNodeDisplayName()` returns just the filename, `folder.resolve()` creates a valid path, but if it returns a path-like string or if the node is a directory (which this block handles when `resource == null`), it might fail or create incorrect structures. More critically, `Files.copy(InputStream, Path)` does not handle directories. If `node` represents a directory, `getAdapter(InputStream.class)` might return null (handled) or throw an exception if not handled, but the logic assumes it's a file. The primary issue is that `node.getNodeDisplayName()` is likely not the correct way to derive the target filename for a copy operation in this context, potentially leading to `IllegalArgumentException` or incorrect file names.
+
+**[Performance]** Resource leak: InputStream obtained from node.getAdapter(InputStream.class) is not closed if Files.copy throws an exception. The try-with-resources block only covers the copy operation, but if an exception occurs during copy, the stream remains open. This can lead to file descriptor exhaustion when copying many files.
+
+**[Maintainability and Readability]** Resource leak: The InputStream obtained from node.getAdapter(InputStream.class) is not closed. Although try-with-resources is used, if getAdapter returns null, the stream is not opened. However, if it returns a non-null stream, it is closed. The issue is that if getAdapter throws an exception or returns null, the logic is fine, but if it returns a stream that needs closing, it is handled. Wait, the code is: `try (InputStream inputStream = node.getAdapter(InputStream.class))`. This is correct try-with-resources. The real issue is that `monitor.worked(1)` is in the `finally` block, which is good. However, if `Files.copy` throws an exception, the stream is closed, but the error is not handled or logged, potentially swallowing the exception or failing silently without proper feedback. More importantly, if `node.getAdapter` returns null, the block is skipped. The `finally` block executes regardless. If an exception occurs in `Files.copy`, it propagates up. This might be acceptable, but typically copy operations should handle exceptions gracefully or log them. A more significant issue is that if `inputStream` is null, the `finally` block still runs `monitor.worked(1)`, which might be incorrect if no work was actually done. This is a logic error in progress tracking.
+
+The code handles the case where `resource` (Path) is null by trying to get an InputStream. However, if `node` is a directory, `getAdapter(InputStream.class)` will likely return null (as directories don't have content streams). The code checks `if (inputStream != null)`, so it won't crash there. But if `node` is a directory, it should probably be handled recursively or with a different copy mechanism (like `Files.walk` or `FileUtils.copyDirectory`). The current logic silently skips directories if `inputStream` is null, which might be incorrect behavior for a 'Copy/Paste' operation that is supposed to work for directories as per the PR title.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/navigator/fs/DBNPathBase.java</path>
+<side>right</side>
+<from>296</from>
+<to>296</to>
+<note>**[Security Vulnerability]** Path Traversal / Unsafe File Copy: The code copies an InputStream to a destination path constructed using `folder.resolve(node.getNodeDisplayName())`. `getNodeDisplayName()` is derived from the user-controlled node name without sanitization. An attacker could craft a node name containing path traversal sequences (e.g., `../../etc`) to overwrite arbitrary files on the filesystem.
+
+**[Maintainability and Readability]** Missing error handling: `Files.copy` can throw `IOException` (e.g., if the file already exists, permissions issues, etc.). The current code does not catch or handle this exception, which will cause the copy operation to fail abruptly. This makes the code less robust and harder to debug.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model.rcp/src/org/jkiss/dbeaver/model/navigator/DBNResource.java</path>
+<side>right</side>
+<from>423</from>
+<to>428</to>
+<note>Inconsistent error handling: The `getAdapter` method now catches `CoreException` when getting file contents but only logs the error. It does not rethrow or handle the exception in a way that allows the caller to know the operation failed. This can lead to silent failures where `getAdapter` returns `null` without clear indication of why, making debugging difficult.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/navigator/fs/DBNPathBase.java</path>
+<side>right</side>
+<from>293</from>
+<to>301</to>
+<note>Inefficient error handling: The code catches exceptions from Files.copy implicitly by not handling them, but if an exception occurs, the loop continues without proper error reporting or handling. This can lead to silent failures during bulk copy operations, making debugging difficult and potentially leaving the system in an inconsistent state.</note>
+</notesplit>

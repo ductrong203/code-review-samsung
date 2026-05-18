@@ -1,0 +1,51 @@
+<notesplit>
+<path>src/backend/base/langflow/api/v1/chat.py</path>
+<side>right</side>
+<from>353</from>
+<to>353</to>
+<note>The variable 'vertex_build_response' is assigned after 'await build_task'. If the task is cancelled, the code enters the except block and returns, which is correct. However, if the task completes successfully, the result is retrieved. The issue is that if the task fails (raises an exception other than CancelledError), the code will crash because the exception is not caught, and the result is never retrieved. The assignment should be inside the try block, but the error handling needs to be robust.</note>
+</notesplit>
+<notesplit>
+<path>src/backend/base/langflow/graph/vertex/base.py</path>
+<side>right</side>
+<from>635</from>
+<to>645</to>
+<note>**[Maintainability and Readability]** The method _log_transaction_async contains commented-out code that is dead and confusing. Dead code should be removed to maintain clarity and prevent future developers from wondering if it should be uncommented.
+
+**[Code Defect]** The method _log_transaction_async is now defined as 'async' but the implementation is commented out, and it performs no actual logging. Furthermore, the callers in base.py and vertex_types.py now 'await' this method. If this method is intended to be a no-op, it should not be awaited, or it should be a proper async function that performs the logging. Currently, it is an async function that does nothing, which is misleading.</note>
+</notesplit>
+<notesplit>
+<path>src/backend/base/langflow/graph/vertex/base.py</path>
+<side>right</side>
+<from>662</from>
+<to>662</to>
+<note>The call to _log_transaction_async is now awaited inside _get_result. Since _get_result is called frequently during graph traversal, awaiting this logging operation synchronously blocks the execution of the vertex build process, potentially increasing latency for chat responses.</note>
+</notesplit>
+<notesplit>
+<path>src/backend/base/langflow/graph/vertex/base.py</path>
+<side>right</side>
+<from>668</from>
+<to>668</to>
+<note>The call to _log_transaction_async is now awaited inside _get_result. This introduces synchronous blocking behavior for a logging operation, which can degrade performance in high-throughput graph execution scenarios.</note>
+</notesplit>
+<notesplit>
+<path>src/backend/base/langflow/graph/vertex/vertex_types.py</path>
+<side>right</side>
+<from>110</from>
+<to>110</to>
+<note>Awaiting _log_transaction_async inside the vertex result retrieval path introduces unnecessary latency. Logging should ideally be non-blocking to ensure the graph execution remains performant.</note>
+</notesplit>
+<notesplit>
+<path>src/backend/base/langflow/graph/vertex/vertex_types.py</path>
+<side>right</side>
+<from>149</from>
+<to>149</to>
+<note>Awaiting _log_transaction_async inside the vertex result retrieval path introduces unnecessary latency. Logging should ideally be non-blocking to ensure the graph execution remains performant.</note>
+</notesplit>
+<notesplit>
+<path>src/backend/base/langflow/graph/vertex/base.py</path>
+<side>right</side>
+<from>623</from>
+<to>623</to>
+<note>The method _log_transaction_async is now defined as an async function but is called in multiple locations (e.g., _get_result) without proper await handling in the original codebase, potentially leading to unawaited coroutines. While the diff adds 'await' in some places, if any caller fails to await this, the logging task may never execute or cause silent failures in security auditing.</note>
+</notesplit>

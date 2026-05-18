@@ -1,0 +1,32 @@
+<notesplit>
+<path>packages/cli/src/utils/commentJson.ts</path>
+<side>right</side>
+<from>41</from>
+<to>67</to>
+<note>**[Security Vulnerability]** The `applyUpdates` function performs a recursive merge of user-provided settings into the existing configuration object. Because it uses `Object.getOwnPropertyNames(updates)` and directly assigns properties to the `result` object (which is a reference to the parsed JSON), it is vulnerable to Prototype Pollution. An attacker who can influence the `updates` object (e.g., via a malicious settings input) could inject properties like `__proto__`, `constructor`, or `prototype`, potentially leading to RCE or application-wide logic bypass.
+
+**[Performance]** The `applyUpdates` function performs a deep recursive merge on every settings update. While functional, it uses `Object.getOwnPropertyNames` and manual recursion which can be inefficient for large settings objects. Given that settings files are typically small, this is acceptable, but it should be noted that this implementation does not handle circular references or complex prototype chains, which could lead to stack overflows if the input `updates` object is malformed.
+
+**[Maintainability and Readability]** The `applyUpdates` function performs deep mutation on the `current` object passed as an argument. This side effect makes the function harder to reason about and debug, as it modifies the input object directly rather than returning a new, updated structure. It should be refactored to treat the input as immutable or explicitly document the mutation.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/utils/commentJson.ts</path>
+<side>right</side>
+<from>45</from>
+<to>45</to>
+<note>The `applyUpdates` function performs a shallow copy of the `current` object into `result` (`const result = current;`). Because objects in JavaScript are passed by reference, modifying `result[key]` directly mutates the original `parsed` object structure. This can lead to unintended side effects if the original object is reused or if the update logic fails midway.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/settings.ts</path>
+<side>right</side>
+<from>621</from>
+<to>626</to>
+<note>The use of `structuredClone` on the settings objects before resolution is a performance bottleneck. `structuredClone` is a deep-copy operation that traverses the entire object tree. Since this happens during the initialization of the settings module, it adds unnecessary latency to the CLI startup time. If the settings objects are not extremely large, a shallow copy or a more targeted cloning strategy would be more performant.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/settings.ts</path>
+<side>right</side>
+<from>629</from>
+<to>632</to>
+<note>The `loadAndMigrate` function returns a raw JSON string alongside the parsed settings object. This creates a dual-source-of-truth scenario where the `rawJson` might become desynchronized from the `settings` object if the latter is modified in memory. It would be cleaner to rely solely on the `comment-json` AST or a single source of truth for both state and formatting.</note>
+</notesplit>

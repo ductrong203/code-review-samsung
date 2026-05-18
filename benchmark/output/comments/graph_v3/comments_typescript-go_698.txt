@@ -1,0 +1,32 @@
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>376</from>
+<to>379</to>
+<note>**[Security Vulnerability]** The code uses `panic` to handle an unexpected state in `getValueCandidate`. In a compiler or CLI tool, panicking on user-provided input or configuration can lead to a Denial of Service (DoS) if the tool is invoked in a way that triggers this path.
+
+**[Maintainability and Readability]** The use of panic for flow control in 'getValueCandidate' is an anti-pattern. It makes the function unsafe to call and forces the caller to handle potential crashes rather than errors. Replace with an error return value.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>418</from>
+<to>426</to>
+<note>The function getPossibleValues contains an infinite recursion. When option.Kind is tsoptions.CommandLineOptionTypeList or tsoptions.CommandLineOptionTypeListOrElement, it calls getPossibleValues(option.Elements()). If option.Elements() returns the same option or an option that eventually leads back to the same kind, it will cause a stack overflow.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>334</from>
+<to>338</to>
+<note>**[Performance]** In formatDefaultValue, the loop iterates over all entries in the EnumMap to find a match for the defaultValue. This is an O(n) operation where n is the number of enum entries. If this is called frequently during help generation, it should be optimized by pre-calculating a reverse lookup map (value to name) instead of iterating on every call.
+
+**[Maintainability and Readability]** The loop in 'formatDefaultValue' performs a linear search over the EnumMap entries. If the map is large, this is inefficient. Consider if the EnumMap can provide a reverse lookup or if the logic can be simplified.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>282</from>
+<to>282</to>
+<note>The variable 'terminalWidth' is initialized to 0 and never updated, making the conditional logic 'if terminalWidth >= 80' effectively constant. This dead code path reduces readability and suggests incomplete implementation.</note>
+</notesplit>

@@ -1,0 +1,102 @@
+<notesplit>
+<path>web/src/service-worker/broadcast-channel.ts</path>
+<side>right</side>
+<from>11</from>
+<to>11</to>
+<note>**[Security Vulnerability]** SSRF via unvalidated BroadcastChannel message. The code constructs a URL using `event.origin` (line 11) but does not validate that `event.origin` is a trusted internal domain. An attacker controlling the page context or injecting a message into the 'immich' channel could direct the service worker to fetch arbitrary internal or external URLs, potentially bypassing CORS or accessing internal resources.
+
+**[Code Defect]** In `installBroadcastChannelListener`, `new URL(urlstring, event.origin)` is called. If `urlstring` is not a valid URL, this will throw a `TypeError`. This exception is not caught, which will cause the message handler to fail silently or throw, potentially disrupting the service worker's message handling. The fix should wrap this in a try-catch block.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/fetch-event.ts</path>
+<side>right</side>
+<from>32</from>
+<to>37</to>
+<note>In `handleFetchEvent`, if the request is for an asset (`isAssetRequest`), it calls `getCachedOrFetch(event.request, true)`. If the request is for an ignored file or path, it returns early without calling `event.respondWith()`. This is correct for ignored paths. However, for all other requests, it calls `event.respondWith(getCachedOrFetch(slash))`. This means any request that is not an asset, not an app resource, and not ignored will be served from the root URL `/`. This is likely the intended behavior for SPA routing, but if `getCachedOrFetch` fails or returns a 499, the user sees a generic error. The critical issue is that `getCachedOrFetch` can return a `Response` with status 499, which is then passed to `event.respondWith()`. This is valid, but the error message is leaked. More importantly, if `getCachedOrFetch` throws an error that is not caught (e.g., if `checkCache` throws), the promise rejection will be unhandled. The `catch` block in `getCachedOrFetch` handles this, so it's safe. However, the logic for `isIgnoredPath` might be too broad or too narrow. The regex `/^\/(src|api)(\/.)?$/` matches `/src` and `/api` but also `/src/anything` and `/api/anything`. This seems correct for ignoring dev assets. The main bug is that `getCachedOrFetch` is called with `slash` (a URL object) for fallback, but `getCachedOrFetch` expects `URL | Request | string`. Passing a `URL` is fine. The issue is that `getCachedOrFetch` might return a 499 response for the root URL, which is then served to the user. This is acceptable for SPAs.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>14</from>
+<to>20</to>
+<note>The deleteOldCaches function iterates over all cache keys and performs an asynchronous delete operation sequentially. This creates an O(n) chain of awaits where n is the number of caches. For large numbers of caches, this significantly delays the 'activate' event, blocking the service worker from becoming active and claiming clients. This should be parallelized.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>22</from>
+<to>25</to>
+<note>The addFilesToCache function uses cache.addAll() which fetches and caches all resources sequentially or in a batched manner. If APP_RESOURCES is large, this blocks the 'install' event for a long time, delaying the service worker activation. Additionally, if any single fetch fails, the entire batch might fail or leave the cache in an inconsistent state depending on browser implementation. This is a heavy synchronous operation in the install handler.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>51</from>
+<to>56</to>
+<note>The `getCachedOrFetch` function has a catch block that returns a `Response` with status 499. In a Service Worker, `event.respondWith()` expects a valid Response or a Promise resolving to one. However, if `fetch` throws (e.g., network error), returning a 499 Response might not be handled correctly by the browser or might leak sensitive error messages ('Instructions unclear...'). More critically, if `checkCache` or `fetch` throws before returning a response, the function returns a Response object directly, but the caller `handleFetchEvent` passes this to `event.respondWith`. While technically valid, the error message is a security/logic leak. A more significant issue is that `fetch` can throw `TypeError` for network errors, which is caught and converted to a 499 response. This masks the actual error. The fix should handle errors more gracefully or let them propagate if appropriate for the service worker strategy.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>54</from>
+<to>54</to>
+<note>The error message in the catch block of getCachedOrFetch is confusing and unhelpful for debugging. 'Instructions unclear, accidentally interrupted myself' does not explain the actual cause of the cancellation (e.g., network error, abort signal). This makes debugging difficult when issues arise.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>37</from>
+<to>57</to>
+<note>**[Performance]** getCachedOrFetch performs a cache lookup (cache.match) which is an I/O operation. If the cache is not found, it proceeds to fetch. In the 'cancelable' path, it creates a new AbortController and adds it to pendingLoads. However, if multiple requests for the same URL are made concurrently before the first completes, multiple AbortControllers are created and stored, potentially leading to memory leaks if not cleaned up properly or if the map grows unbounded with unique URLs. The pendingLoads map is unbounded.
+
+**[Maintainability and Readability]** The getCachedOrFetch function has a complex signature with a boolean flag cancelable that changes behavior significantly. This makes the function harder to understand and use correctly. It's better to have separate functions for cached fetch and cancellable fetch.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>59</from>
+<to>75</to>
+<note>fetchWithCancellation creates a new AbortController for every request. If many requests are made, this creates many AbortController objects. While they are cleaned up in the finally block, high concurrency could lead to temporary memory pressure. More importantly, if the same URL is requested multiple times concurrently, multiple fetches are initiated, wasting network resources.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>98</from>
+<to>106</to>
+<note>The `getCacheKey` function in `cache.ts` handles `URL`, `Request`, and `string` types. However, `isURL` and `isRequest` checks rely on property existence (`href` and `url`). If a `Request` object is passed that doesn't have a `url` property (unlikely in standard environments but possible in mocks or non-standard implementations), it falls through to returning the request object itself as a string, which might not be a valid cache key. Additionally, `isURL` checks `(request as URL).href !== undefined`. If `request` is a string, `request.href` is undefined, so it falls through. This logic is generally safe for standard inputs but could be brittle. The main issue is that `getCacheKey` is used in `fetchWithCancellation` and `checkCache`. If `request` is a string, it is used directly. If it's a `Request`, `request.url` is used. If it's a `URL`, `request.toString()` is used. This seems correct.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/broadcast-channel.ts</path>
+<side>right</side>
+<from>10</from>
+<to>11</to>
+<note>Missing URL protocol validation. The code uses `new URL(urlstring, event.origin)` without checking if `urlstring` is a valid URL or if it contains dangerous protocols (e.g., `javascript:`, `data:`). If `urlstring` is malformed or contains a dangerous protocol, it could lead to unexpected behavior or XSS if the URL is later rendered.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>11</from>
+<to>12</to>
+<note>The type guard functions isURL and isRequest in cache.ts use a fragile check for property existence. isURL checks for .href and isRequest checks for .url. This is not robust against prototype pollution or unexpected objects that happen to have these properties. It's better to use instanceof checks or a more robust type guard.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>37</from>
+<to>38</to>
+<note>Cache Poisoning via unvalidated request. The `getCachedOrFetch` function accepts a `request` parameter which can be a string, URL, or Request object. If called with a user-controlled string (e.g., from the BroadcastChannel), it is used directly in `cache.match()` and `fetch()`. An attacker could craft a URL that matches a cached response or fetches sensitive internal resources, poisoning the cache.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/fetch-event.ts</path>
+<side>right</side>
+<from>11</from>
+<to>13</to>
+<note>Path Traversal/Information Disclosure via insufficient path filtering. The `isIgnoredPath` function uses regex to ignore certain paths, but the regex `/^\/(src|api)(\/.*)?$/` might not cover all sensitive paths. Additionally, `isAssetRequest` uses a regex that could be bypassed with encoding or case variations. If an attacker can craft a request that bypasses these checks, they might access sensitive internal resources.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/fetch-event.ts</path>
+<side>right</side>
+<from>3</from>
+<to>13</to>
+<note>The helper functions isAssetRequest, isIgnoredFileType, and isIgnoredPath are short and could be inlined or combined for better readability. However, they are currently separate, which is fine for maintainability. No immediate action needed, but consider if they can be simplified.</note>
+</notesplit>

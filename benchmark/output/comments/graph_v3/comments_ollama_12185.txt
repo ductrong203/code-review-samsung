@@ -1,0 +1,18 @@
+<notesplit>
+<path>runner/ollamarunner/runner.go</path>
+<side>right</side>
+<from>1067</from>
+<to>1067</to>
+<note>**[Code Defect]** The previous implementation initialized batch.Outputs with sequential indices (0, 1, 2...). The new code uses ctx.Input().Empty(), which creates an uninitialized tensor. This will cause downstream logic to read garbage data or zeros instead of the expected indices, leading to incorrect sampling or model output selection.
+
+**[Maintainability and Readability]** The initialization of batch.Outputs using ctx.Input().Empty(ml.DTypeI32, s.parallel) creates an uninitialized tensor. While this matches the previous slice-based logic, it is prone to runtime errors if the model expects valid indices. It is safer to explicitly populate or validate this tensor.
+
+**[Performance]** The code initializes a tensor with `ctx.Input().Empty` but does not populate it with the expected indices. Previously, this loop explicitly set values for `batch.Outputs`. If the downstream model logic expects these indices to be valid (e.g., for gathering specific rows), an empty tensor will cause incorrect results or runtime errors in the compute graph.</note>
+</notesplit>
+<notesplit>
+<path>runner/ollamarunner/runner.go</path>
+<side>right</side>
+<from>709</from>
+<to>709</to>
+<note>The use of activeBatch.batch.Outputs.Dim(0) is a good improvement for readability over len(outputs) / len(slice), but the variable name 'outputs' in the surrounding scope is now ambiguous as it refers to both a tensor and a slice of logits. Consider renaming the logits variable to 'logits' to avoid confusion.</note>
+</notesplit>

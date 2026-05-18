@@ -1,0 +1,25 @@
+<notesplit>
+<path>shell/browser/api/electron_api_web_contents.cc</path>
+<side>right</side>
+<from>3025</from>
+<to>3034</to>
+<note>**[Maintainability and Readability]** The refactored code for custom margins uses a chained method call on a temporary `base::Value::Dict` object. While concise, this creates a deeply nested expression that is harder to debug or modify than the original sequential assignments. If one value needs different logic, the entire chain must be unwound.
+
+**[Performance]** The new chained Set() calls create a temporary base::Value::Dict object. While concise, this creates a temporary object on the heap for each print call. In the old code, custom_margins was also a temporary but was moved. The new code does not move, potentially causing an extra copy. However, this is a minor issue given the small size.</note>
+</notesplit>
+<notesplit>
+<path>shell/common/gin_helper/persistent_dictionary.h</path>
+<side>right</side>
+<from>46</from>
+<to>51</to>
+<note>**[Performance]** The ValueOrDefault method creates a default-constructed object of type T (e.g., std::string, base::Value::Dict) on every call, even if the key exists. For expensive types like std::string or base::Value::Dict, this adds unnecessary allocation and construction overhead in hot paths. Consider using std::optional or a reference-based approach to avoid default construction when the key is present.
+
+**[Maintainability and Readability]** The `ValueOrDefault` function uses a local variable `value` initialized with `T{}` to check if the key exists. This is a clever trick but might be confusing to readers unfamiliar with this pattern. A more explicit check using `Get`'s return value or a separate existence check might be clearer.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/api/electron_api_web_contents.cc</path>
+<side>right</side>
+<from>3043</from>
+<to>3046</to>
+<note>The ternary operator for `ColorModel` is nested inside the `settings.Set` call. This makes the line very long and obscures the logic of choosing between color and grayscale models. It reduces readability compared to the original explicit variable assignment.</note>
+</notesplit>

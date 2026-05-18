@@ -1,0 +1,7 @@
+<notesplit>
+<path>src/valkey-benchmark.c</path>
+<side>right</side>
+<from>129</from>
+<to>129</to>
+<note>The struct definition for 'serverConfig' is missing the 'redis_config' field that was present in the original code. The diff shows the field 'redis_config' being renamed to 'server_config' in the 'config' struct (line 126) and 'clusterNode' struct (line 183), but the 'serverConfig' struct definition itself (around line 129) appears to have lost its internal field or the diff context is misleading. If 'serverConfig' no longer contains the 'redis_config' pointer, then all accesses like 'config.redis_config->save' (which are also changed to 'config.server_config->save') will fail to compile or access invalid memory if the struct layout changed unexpectedly. Based on the diff, line 129 is the only line shown for 'serverConfig' definition, implying the struct body might be empty or the field was removed. This is a structural break.</note>
+</notesplit>

@@ -1,0 +1,74 @@
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>298</from>
+<to>348</to>
+<note>The `create` method in `SubAgentScope` duplicates the logic for validating and registering tools. It creates a new `ToolRegistry` instance, iterates through tools to register them, and then checks for interactivity. This same logic (or very similar logic) is repeated in `runNonInteractive` to prepare the `toolsList`. This violates DRY (Don't Repeat Yourself) and Single Responsibility, making maintenance harder as changes to tool validation must be applied in two places.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>368</from>
+<to>523</to>
+<note>The `runNonInteractive` method is excessively long and complex (over 150 lines in the diff). It handles chat creation, tool preparation, the main execution loop, message streaming, goal checking, and function call processing. This violates the Single Responsibility Principle and makes the code difficult to read, test, and maintain. It should be broken down into smaller, focused methods like `prepareTools`, `executeLoop`, `processResponse`, etc.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>308</from>
+<to>314</to>
+<note>The `create` method now accepts `AnyDeclarativeTool` objects directly in the tool config. It registers them into a new `ToolRegistry` instance. If an attacker can control the tool configuration passed to `SubAgentScope.create`, they could inject malicious tools that execute arbitrary code or access sensitive data. The validation only checks for `shouldConfirmExecute`, which might be bypassed if the malicious tool does not require confirmation.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>445</from>
+<to>448</to>
+<note>**[Performance]** String concatenation in a loop using `+=` is inefficient for large streams. In a streaming context where `textResponse` can grow significantly, this creates many intermediate string objects. Use a `StringBuilder` or array join pattern for better performance.
+
+**[Security Vulnerability]** The code accumulates text responses from the model into `textResponse` and streams it via `onMessage`. If the model generates a very long response, this string accumulation could lead to high memory usage (DoS). Additionally, if the text contains sensitive information, it is exposed to the client. There is no rate limiting or size cap on the streamed text chunks.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>544</from>
+<to>559</to>
+<note>**[Security Vulnerability]** The code serializes tool arguments using JSON.stringify and includes them in streamed messages via onMessage. While there is a length truncation (250 chars), this exposes internal tool execution details and arguments to the client. If tool arguments contain sensitive data (PII, tokens, secrets), this information is leaked through the streaming channel. This is an information disclosure vulnerability.
+
+**[Maintainability and Readability]** The `onMessage` callback is invoked with a formatted string that includes newlines and markdown-like formatting (e.g., `**Executing tool...**`). This formatting logic is embedded directly in the streaming handler. If the consumer of `onMessage` expects raw text or a different format, this will break. It's better to pass structured data (tool name, args) and let the consumer format it, or provide a separate callback for structured events.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.test.ts</path>
+<side>right</side>
+<from>529</from>
+<to>535</to>
+<note>The test 'should execute internal tools and provide the response to the model' expects `mockSendMessageStream` to be called only once, and checks the first call's message. Previously, it was called twice, and the second call was checked. This change reflects the new streaming behavior where the 'Emitted variable result successfully' message might be handled differently or not streamed in the same way. However, the test assertion `expect(scope.output.emitted_vars).toEqual({ result: 'Success!' })` is still present. Ensure that the test accurately reflects the new streaming behavior and that the 'Emitted variable' message is either not streamed or handled in a way that doesn't affect the `emitted_vars` check.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>451</from>
+<to>453</to>
+<note>Calling `this.onMessage(textResponse)` sends the entire accumulated text string on every chunk. This is inefficient for large outputs as it sends redundant data. Consider sending only the new chunk or using a delta-based approach.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.test.ts</path>
+<side>right</side>
+<from>176</from>
+<to>210</to>
+<note>The test case 'should throw an error if a tool requires confirmation' uses a mock tool with `name: 'risky_tool'` and `schema: { parametersJsonSchema: ... }`. However, the assertion checks for the error message `Tool "risky_tool" requires user confirmation...`. The code now uses `tool.name` in the error message, which is correct. But the mock tool definition in the test might not fully align with the new `SubAgentOptions` structure if other tests rely on the old `toolConfig` object directly. The test is updated to use `SubAgentOptions`, which is good, but ensure all similar tests are updated consistently.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>544</from>
+<to>559</to>
+<note>JSON serialization of tool arguments happens inside the loop for every function call. If `functionCall.args` is large, `JSON.stringify` is expensive. Additionally, string concatenation for the message is inefficient.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>547</from>
+<to>547</to>
+<note>The magic number `250` is used for truncating tool arguments. This should be a named constant (e.g., `MAX_TOOL_ARGS_LENGTH`) to improve readability and allow easy configuration if needed.</note>
+</notesplit>

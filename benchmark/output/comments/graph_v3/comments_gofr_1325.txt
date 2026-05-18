@@ -1,0 +1,25 @@
+<notesplit>
+<path>pkg/gofr/http/responder_test.go</path>
+<side>right</side>
+<from>75</from>
+<to>75</to>
+<note>**[Code Defect]** The test file uses the 'bytes' package but fails to import it, which will cause a compilation error.
+
+**[Performance]** The test uses bytes.TrimSpace on both expected and actual byte slices. While functional, this is inefficient for large payloads as it creates new byte slices in memory. Since the expected output is static, it should be pre-trimmed or compared using bytes.Equal to avoid unnecessary allocations in the test loop.
+
+**[Maintainability and Readability]** The test uses 'bytes' package but it is not imported in the file. This will cause a compilation error.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/responder.go</path>
+<side>right</side>
+<from>31</from>
+<to>32</to>
+<note>The `response` struct uses `interface{}` for the `Error` field. When serializing this to JSON, if the error object contains sensitive internal information (like stack traces, database connection strings, or internal paths), it will be leaked to the client. Always ensure that error objects are sanitized or mapped to safe, user-facing error messages before being passed to the responder.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/responder.go</path>
+<side>right</side>
+<from>32</from>
+<to>32</to>
+<note>The variable 'errorObj' is used in the 'case resTypes.Response' block but is not defined within the scope of the 'Respond' function. This will cause a compilation error.</note>
+</notesplit>

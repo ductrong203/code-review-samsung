@@ -1,0 +1,109 @@
+<notesplit>
+<path>quarkus/tests/junit5/src/main/java/org/keycloak/it/utils/DockerKeycloakDistribution.java</path>
+<side>right</side>
+<from>138</from>
+<to>139</to>
+<note>In DockerKeycloakDistribution.createImage(), when the Dockerfile exists, the method returns the ImageFromDockerfile but then executes toString() on the result. This call is unreachable and effectively does nothing, but more importantly, the else branch (when dockerFile does not exist) has no return statement. If dockerFile.exists() is false, the method falls off the end without returning a value, causing a compilation error or runtime failure depending on how the compiler handles it. The 'return' statement is missing in the else block.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>right</side>
+<from>48</from>
+<to>48</to>
+<note>**[Maintainability and Readability]** Typo in parameter name 'mumServers' in ClusteredKeycloakServer constructor. This should be 'numServers' for clarity and correctness.
+
+**[Code Defect]** In ClusteredKeycloakServer constructor, the parameter name 'mumServers' is a typo and should be 'numServers'. This is a code quality issue that could lead to confusion.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/tests/junit5/src/main/java/org/keycloak/it/utils/DockerKeycloakDistribution.java</path>
+<side>right</side>
+<from>114</from>
+<to>120</to>
+<note>The method createImage in DockerKeycloakDistribution.java contains a large block of commented-out code (lines 120-130). This dead code clutters the method and should be removed to improve readability and maintainability.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/tests/junit5/src/main/java/org/keycloak/it/utils/DockerKeycloakDistribution.java</path>
+<side>right</side>
+<from>115</from>
+<to>130</to>
+<note>The createImage method constructs file paths using Maven module resolution and resolves them to File objects. If the Maven build structure is manipulated or if an attacker can influence the classpath resolution (e.g., via a crafted JAR in the classpath), they could potentially cause the code to reference unintended files. While this is test code, the use of file paths derived from classpath resources without strict validation can lead to path traversal or unintended file inclusion if the build environment is compromised. The code resolves 'dist/target/keycloak-*.tar.gz' and 'container/Dockerfile' relative to the quarkus module path.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/tests/junit5/src/main/java/org/keycloak/it/utils/DockerKeycloakDistribution.java</path>
+<side>right</side>
+<from>115</from>
+<to>150</to>
+<note>The `createImage` method in `DockerKeycloakDistribution` performs expensive file system checks and Maven resolution. This method is called by `ClusteredKeycloakServer` for every container in a cluster (see `startContainersWithMixedImage` and `startContainersWithSameImage`). In a cluster of N nodes, this results in N redundant expensive operations. The `defaultImage()` helper creates a new `LazyFuture` each time, but if the underlying image building logic is triggered multiple times or if the resolution is not cached globally, it wastes resources. More critically, `createImage` resolves the module path and checks file existence repeatedly.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/tests/junit5/src/main/java/org/keycloak/it/utils/DockerKeycloakDistribution.java</path>
+<side>right</side>
+<from>143</from>
+<to>147</to>
+<note>In DockerKeycloakDistribution.createImage(), the line 'toString();' on line 147 is a no-op that does nothing useful. It appears to be leftover debug code. While not causing a crash, it's dead code that should be removed.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/testframework/database/AbstractContainerTestDatabase.java</path>
+<side>right</side>
+<from>89</from>
+<to>89</to>
+<note>In AbstractContainerTestDatabase.getJdbcUrl(boolean internal), when internal is true, the code attempts to get the internal IP by iterating over network settings. However, if container.getContainerInfo().getNetworkSettings().getNetworks() returns an empty map or null, the iterator().next() call will throw NoSuchElementException or NullPointerException. This is a potential crash in edge cases where the container has no network configuration.</note>
+</notesplit>
+<notesplit>
+<path>quarkus/tests/junit5/src/main/java/org/keycloak/it/utils/DockerKeycloakDistribution.java</path>
+<side>right</side>
+<from>135</from>
+<to>135</to>
+<note>The method createImage in DockerKeycloakDistribution.java has a potential issue where the 'image' variable is declared but might not be initialized in all code paths before being returned. Specifically, if dockerFile.exists() is false and failIfDockerFileMissing is false, the method returns without setting 'image', leading to a compilation error or uninitialized variable usage.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>right</side>
+<from>55</from>
+<to>55</to>
+<note>Inconsistent variable naming: 'imagePeServer' is used in ClusteredKeycloakServer.java. This should be 'imagePerServer' for clarity.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>right</side>
+<from>63</from>
+<to>88</to>
+<note>Code duplication between startContainersWithMixedImage and startContainersWithSameImage methods in ClusteredKeycloakServer.java. Both methods have similar logic for creating containers and setting up log consumers. This should be refactored to reduce duplication.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>right</side>
+<from>64</from>
+<to>64</to>
+<note>The method startContainersWithMixedImage in ClusteredKeycloakServer.java has an assertion that is not properly handled. If the assertion fails, it will throw an AssertionError which might not be caught or handled gracefully.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>right</side>
+<from>70</from>
+<to>87</to>
+<note>In `startContainersWithMixedImage`, the loop iterates over all containers. For each container, it calls `copyProvidersAndConfigs` which iterates over `configBuilder.toDependencies()` and `configBuilder.toConfigFiles()`. If the number of dependencies/configs is large, this is repeated N times (once per container). This is an O(N*M) operation where N is cluster size and M is config size. These operations should be hoisted out of the loop if they don't depend on the specific container index.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>right</side>
+<from>95</from>
+<to>103</to>
+<note>Similar to the mixed image case, `startContainersWithSameImage` calls `copyProvidersAndConfigs` and `container.run(configBuilder.toArgs())` inside the loop for each container. If these operations are identical for all containers (which they likely are for a standard cluster setup), this results in redundant work. The loop should be optimized to perform these shared operations once, or the method should be refactored to separate shared setup from per-container setup.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/testframework/database/AbstractContainerTestDatabase.java</path>
+<side>right</side>
+<from>87</from>
+<to>92</to>
+<note>**[Security Vulnerability]** The getJdbcUrl method with internal=true retrieves the internal IP address of the database container and constructs a JDBC URL. If the network settings are manipulated or if the container's network configuration is changed, an attacker could potentially redirect database connections to a malicious host. The code assumes the first network interface's IP is the correct internal address, which might not always be secure if multiple networks are present.
+
+**[Maintainability and Readability]** In AbstractContainerTestDatabase.java, the getJdbcUrl method with internal parameter has complex logic for URL replacement that could be simplified. The current implementation directly manipulates the URL string which might be error-prone.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/clustering/src/main/java/org/keycloak/testframework/server/ClusteredKeycloakServer.java</path>
+<side>right</side>
+<from>55</from>
+<to>60</to>
+<note>The startContainersWithMixedImage method splits the images string by comma and uses the resulting array to configure containers. If an attacker can control the 'images' parameter (e.g., via environment variables or configuration files), they could inject malicious Docker image names or manipulate the cluster configuration. The code does not validate that the image names are properly formatted or come from a trusted source.</note>
+</notesplit>

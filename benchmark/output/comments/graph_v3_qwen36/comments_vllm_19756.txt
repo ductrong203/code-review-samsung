@@ -1,0 +1,35 @@
+<notesplit>
+<path>vllm/multimodal/profiling.py</path>
+<side>right</side>
+<from>265</from>
+<to>265</to>
+<note>Typo in log message: 'wosrt-case' should be 'worst-case'. This makes the warning message confusing and unprofessional.</note>
+</notesplit>
+<notesplit>
+<path>vllm/multimodal/profiling.py</path>
+<side>right</side>
+<from>268</from>
+<to>268</to>
+<note>Typo in warning message: 'wosrt-case' should be 'worst-case'. This is a string literal error in the logger.warning_once call that makes the warning message unprofessional and potentially confusing.</note>
+</notesplit>
+<notesplit>
+<path>vllm/multimodal/profiling.py</path>
+<side>right</side>
+<from>256</from>
+<to>257</to>
+<note>Inconsistent parameter naming in function call. The method `get_max_tokens_per_item` is defined with `seq_len` and `mm_counts` as positional arguments in the base class (processing.py), but here they are passed as keyword arguments. While valid, this inconsistency between the definition and usage can cause confusion. More importantly, the base class signature in processing.py uses positional args, but the call here uses kwargs. If the base class signature changes to positional-only or vice versa, this breaks. It's better to align with the definition.</note>
+</notesplit>
+<notesplit>
+<path>vllm/multimodal/profiling.py</path>
+<side>right</side>
+<from>262</from>
+<to>264</to>
+<note>Potential KeyError or incorrect calculation: The code iterates over `max_tokens_per_item.keys() & mm_counts.keys()`. If `mm_counts` contains keys not in `max_tokens_per_item`, those are ignored. However, if `max_tokens_per_item` has keys not in `mm_counts`, they are also ignored. The logic assumes `mm_counts` is a subset of `max_tokens_per_item` keys or vice versa. More critically, if `mm_counts` is provided but doesn't match the expected modalities, the sum might be incomplete. The original code used `mm_counts` directly for iteration. This change assumes `max_tokens_per_item` is the source of truth for keys. If `mm_counts` has extra keys, they are silently dropped, which might be intentional but could hide bugs if modalities are mismatched.</note>
+</notesplit>
+<notesplit>
+<path>vllm/multimodal/processing.py</path>
+<side>right</side>
+<from>1103</from>
+<to>1106</to>
+<note>Inconsistent parameter alignment. The parameters `seq_len` and `mm_counts` are split across two lines with different indentation styles compared to surrounding code. This reduces readability.</note>
+</notesplit>

@@ -1,0 +1,43 @@
+<notesplit>
+<path>packages/actions/src/Exports/Jobs/PrepareCsvExport.php</path>
+<side>right</side>
+<from>153</from>
+<to>153</to>
+<note>**[Code Defect]** Accessing $query->getQuery()->orders[0] without checking if the orders array is empty will cause an 'Undefined array key 0' error (or similar index error) if no orders are defined. This is a crash bug when the query has no ORDER BY clause.
+
+**[Maintainability and Readability]** Accessing `$query->getQuery()->orders[0]` without checking if the `orders` array is empty will cause an 'Undefined array key 0' error if no orders are defined. This is a direct crash risk.
+
+**[Performance]** Accessing $query->getQuery()->orders[0] without checking if the orders array is empty will cause an 'Undefined array key 0' error or warning. This is a potential crash or performance hit due to error handling. The code checks for the column name but doesn't verify the existence of the first element.
+
+**[Security Vulnerability]** Potential ArrayIndexOutOfBoundsException when accessing $query->getQuery()->orders[0] without checking if the orders array is empty. If no orders are defined, this will throw an error.</note>
+</notesplit>
+<notesplit>
+<path>packages/actions/src/Exports/Jobs/PrepareCsvExport.php</path>
+<side>right</side>
+<from>72</from>
+<to>72</to>
+<note>**[Code Defect]** The condition for rejecting orders was changed from checking if the column is in [$keyName, $qualifiedKeyName] to only checking === $qualifiedKeyName. This means if the query is ordered by $keyName (e.g., 'id'), it will NOT be rejected. Consequently, $originalOrders will contain the 'id' order, and the code will attempt to reorder by 'id' again, potentially causing duplicate ordering or unexpected behavior if the intention was to strip all default ordering. The original logic was likely intended to remove all default primary key ordering.
+
+**[Maintainability and Readability]** The condition `($order['column'] ?? null) === $qualifiedKeyName` is stricter than the previous `in_array(..., [$keyName, $qualifiedKeyName])`. It ignores `$keyName`. If the logic intended to filter out both, this is a logic regression. If it intentionally changed, it should be clearer. Given the context of 'fixing' distinct/ordering, this ambiguity hurts maintainability.</note>
+</notesplit>
+<notesplit>
+<path>packages/actions/src/Exports/Jobs/PrepareCsvExport.php</path>
+<side>right</side>
+<from>79</from>
+<to>79</to>
+<note>The code accesses `$originalOrders[0]` without checking if the collection is empty. If `$originalOrders` is empty, this will throw an 'Undefined array key 0' error. The subsequent `if (! empty($originalOrders->all()))` check happens too late to prevent this crash.</note>
+</notesplit>
+<notesplit>
+<path>packages/actions/src/Exports/Jobs/PrepareCsvExport.php</path>
+<side>right</side>
+<from>72</from>
+<to>73</to>
+<note>The unique() call on the collection is O(n) but acceptable. However, the subsequent loop over $originalOrders iterates through all remaining orders. If there are many orders, this loop runs on the filtered collection. The logic itself is fine, but the collection creation and unique call adds overhead. More importantly, the access to $originalOrders[0] later assumes the collection is not empty, which is checked, but the collection is modified with forget(0) which shifts indices. This is a potential logical bug that could cause issues, but from a pure perf standpoint, the collection operations are minimal.</note>
+</notesplit>
+<notesplit>
+<path>packages/actions/src/Exports/Jobs/PrepareCsvExport.php</path>
+<side>right</side>
+<from>78</from>
+<to>81</to>
+<note>Potential ArrayIndexOutOfBoundsException when accessing $originalOrders[0] without checking if the collection is empty. If $originalOrders is empty, accessing index 0 will throw an error, causing a denial of service or exposing stack traces. The code checks !empty($originalOrders->all()) but then accesses index 0 directly.</note>
+</notesplit>

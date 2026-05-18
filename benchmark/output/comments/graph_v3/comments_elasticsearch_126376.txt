@@ -1,0 +1,35 @@
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/CertGenUtils.java</path>
+<side>right</side>
+<from>178</from>
+<to>178</to>
+<note>The method signature for generateSignedCertificate was truncated in the diff, but the implementation logic in the file is missing the actual application of the 'keyUsage' parameter to the certificate extensions. Without adding the keyUsage to the ExtensionsGenerator, the parameter is ignored, resulting in certificates without the requested key usage extension.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/CertGenUtils.java</path>
+<side>right</side>
+<from>105</from>
+<to>105</to>
+<note>The method generateCACertificate now accepts a KeyUsage object but does not validate that the provided KeyUsage is appropriate for a CA (e.g., ensuring keyCertSign is set). This could allow the generation of CA certificates that are technically invalid or insecure for their intended purpose.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/HttpCertificateCommand.java</path>
+<side>right</side>
+<from>760</from>
+<to>768</to>
+<note>The interactive prompt for key usage is verbose and manually iterates over the map keys. This logic is duplicated in spirit with the CLI argument help text. Consider centralizing the display logic for key usage options to ensure consistency between the CLI help and the interactive terminal prompt.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/CertificateTool.java</path>
+<side>right</side>
+<from>330</from>
+<to>332</to>
+<note>The `getCaKeyUsage` method uses a filter `v -> false == Strings.isNullOrEmpty(v)` which is non-idiomatic. In Java, it is standard to use `!Strings.isNullOrEmpty(v)` for readability.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/CertGenUtils.java</path>
+<side>right</side>
+<from>84</from>
+<to>98</to>
+<note>The KEY_USAGE_MAPPINGS map is initialized using Map.ofEntries inside a TreeMap constructor. While functional, this creates multiple intermediate objects (Map.ofEntries, then the Map, then the TreeMap). Since this is a static constant, it should be initialized more efficiently to avoid overhead during class loading.</note>
+</notesplit>

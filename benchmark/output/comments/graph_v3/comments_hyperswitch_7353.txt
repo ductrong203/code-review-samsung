@@ -1,0 +1,28 @@
+<notesplit>
+<path>crates/api_models/src/payments.rs</path>
+<side>right</side>
+<from>1</from>
+<to>2</to>
+<note>The import of `std::fmt` was moved under `#[cfg(feature = "v1")]`. If any code outside of `v1` blocks (e.g., in `v2` or common code) uses `fmt::Result` or `fmt::Display`, this will cause a compilation error.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/payments.rs</path>
+<side>right</side>
+<from>30</from>
+<to>31</to>
+<note>The imports `de` and `Deserializer` were moved under `#[cfg(feature = "v1")]`. If `v2` code relies on these for custom deserialization (e.g., `PaymentIdType` or other types), it will fail to compile.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/payments.rs</path>
+<side>right</side>
+<from>8583</from>
+<to>8587</to>
+<note>The method 'get_payment_token_for_api_request' performs a struct instantiation that involves cloning fields. If this method is called frequently in a hot path (e.g., during payment processing loops), the repeated allocation and cloning of strings or secret data can lead to memory pressure and increased latency.</note>
+</notesplit>
+<notesplit>
+<path>crates/api_models/src/payments.rs</path>
+<side>right</side>
+<from>7785</from>
+<to>7785</to>
+<note>The function 'deserialize_option' is marked with #[allow(dead_code)]. If this function is truly unused, it should be removed to reduce code clutter. If it is intended for future use or external access, it should be documented or integrated into the public API.</note>
+</notesplit>

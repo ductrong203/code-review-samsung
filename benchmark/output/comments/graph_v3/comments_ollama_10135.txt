@@ -1,0 +1,51 @@
+<notesplit>
+<path>parser/parser.go</path>
+<side>right</side>
+<from>148</from>
+<to>148</to>
+<note>The code calls filepath.EvalSymlinks(f) inside a loop, but the variable 'f' is shadowed by the loop variable 'f' from 'for _, f := range fs'. This means the original file path is lost and the logic operates on the evaluated path, which may cause issues if the original path was required for relative path calculation or error reporting.</note>
+</notesplit>
+<notesplit>
+<path>parser/parser.go</path>
+<side>right</side>
+<from>158</from>
+<to>158</to>
+<note>The code uses filepath.IsLocal(rel) to check for path traversal, but this function is not a security boundary. It only checks if the path is relative; it does not prevent directory traversal attacks (e.g., '..') if the base path is not properly anchored or if the OS handles path resolution differently. An attacker could potentially access files outside the intended model directory.</note>
+</notesplit>
+<notesplit>
+<path>parser/parser.go</path>
+<side>right</side>
+<from>147</from>
+<to>163</to>
+<note>**[Performance]** The loop performs redundant I/O operations by calling filepath.EvalSymlinks and potentially other filesystem checks inside a loop over all files. If the model directory contains many files, this will cause significant latency. These operations should be minimized or cached if possible.
+
+**[Maintainability and Readability]** The loop logic for processing files is becoming complex and nested. The logic for evaluating symlinks, calculating relative paths, and performing security checks should be extracted into a dedicated helper function (e.g., `validateAndResolvePath`) to improve readability and testability.</note>
+</notesplit>
+<notesplit>
+<path>cmd/cmd.go</path>
+<side>right</side>
+<from>126</from>
+<to>138</to>
+<note>The parallel execution logic for files and adapters is duplicated. This violates the DRY principle. Both blocks perform identical operations (creating blobs, storing in a syncmap, handling errors). This should be abstracted into a single helper function that accepts the map and the operation to perform.</note>
+</notesplit>
+<notesplit>
+<path>progress/progress.go</path>
+<side>right</side>
+<from>118</from>
+<to>118</to>
+<note>The loop condition 'i < len(p.states)-1' inside the render function is now potentially incorrect because the loop range has been modified to start from 'len(p.states) - maxHeight'. If the loop only renders a subset of states, the newline logic will fail to print correctly for the last rendered item if it is not the last item in the slice.</note>
+</notesplit>
+<notesplit>
+<path>progress/progress.go</path>
+<side>right</side>
+<from>94</from>
+<to>97</to>
+<note>The render loop calls term.GetSize on every render cycle. Since terminal size rarely changes during execution, this syscall is redundant and adds unnecessary overhead to the progress rendering hot path.</note>
+</notesplit>
+<notesplit>
+<path>progress/progress.go</path>
+<side>right</side>
+<from>118</from>
+<to>120</to>
+<note>The logic for calculating the slice range `len(p.states) - maxHeight` is prone to off-by-one errors if `maxHeight` exceeds `len(p.states)`. While `min` handles the upper bound, the logic is slightly opaque. Adding a comment explaining the intent of showing only the tail of the progress list would improve maintainability.</note>
+</notesplit>

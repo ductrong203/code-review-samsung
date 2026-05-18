@@ -1,0 +1,71 @@
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/SearchService.java</path>
+<side>right</side>
+<from>594</from>
+<to>599</to>
+<note>**[Code Defect]** The logging logic uses ExceptionsHelper.status(e).getStatus() to determine log level. However, if 'e' is null (which can happen in some listener failure paths or if the exception is wrapped in a way that the outer exception is null), this will throw a NullPointerException. Additionally, ExceptionsHelper.status() might return null if the exception doesn't have an associated status, leading to another NPE. The code should check for null 'e' or handle the case where status is null before calling .getStatus().
+
+The condition `ExceptionsHelper.status(e).getStatus() < 500 || ExceptionsHelper.isNodeOrShardUnavailableTypeException(e)` has a potential logic error due to operator precedence. The `||` operator has lower precedence than `<`, so it is parsed as `(ExceptionsHelper.status(e).getStatus() < 500) || (ExceptionsHelper.isNodeOrShardUnavailableTypeException(e))`. This seems correct for the intent (log debug if status < 500 OR if it's a node/shard unavailable exception). However, if `ExceptionsHelper.status(e)` is null, it will throw NPE. If the status is >= 500 and it's not a node/shard unavailable exception, it logs warn. This logic seems mostly correct but the NPE risk is the primary defect.
+
+**[Maintainability and Readability]** The logging logic in SearchService.maybeWrapListenerForStackTrace duplicates the condition `ExceptionsHelper.status(e).getStatus() < 500 || ExceptionsHelper.isNodeOrShardUnavailableTypeException(e)` which is also present in RestResponse. This violates DRY principles. If the logic for determining log levels changes, it must be updated in multiple places, increasing maintenance burden.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/test/MockLog.java</path>
+<side>right</side>
+<from>343</from>
+<to>345</to>
+<note>In the `match` method of `PatternAndExceptionSeenEventExpectation`, `event.getThrown()` can be null. If it is null, `event.getThrown().getClass()` will throw a NullPointerException. The code checks `event.getThrown() != null` but then proceeds to call `.getClass()` on it in the same boolean expression without short-circuiting properly if the first part is false. Wait, `event.getThrown() != null && event.getThrown().getClass() == clazz` is safe because of short-circuiting. However, `event.getThrown().getMessage()` can throw NPE if `getMessage()` returns null. The code should check for null message.</note>
+</notesplit>
+<notesplit>
+<path>qa/smoke-test-http/src/internalClusterTest/java/org/elasticsearch/http/SearchErrorTraceIT.java</path>
+<side>right</side>
+<from>133</from>
+<to>143</to>
+<note>**[Maintainability and Readability]** The test method testDataNodeDoesNotLogStackTraceWhenErrorTraceTrue contains a large JSON string embedded directly in the code. This makes the test hard to read and maintain. If the query structure changes, the test code becomes cluttered. Extracting this into a helper method or a constant would improve readability.
+
+The test method testDataNodeLogsStackTraceWhenErrorTraceFalseOrEmpty contains a large JSON string embedded directly in the code, similar to the previous issue. This reduces readability and makes maintenance harder.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/async-search/src/internalClusterTest/java/org/elasticsearch/xpack/search/AsyncSearchErrorTraceIT.java</path>
+<side>right</side>
+<from>160</from>
+<to>170</to>
+<note>**[Maintainability and Readability]** The test method testDataNodeDoesNotLogStackTraceWhenErrorTraceTrue contains a large JSON string embedded directly in the code. This makes the test hard to read and maintain. If the query structure changes, the test code becomes cluttered. Extracting this into a helper method or a constant would improve readability.
+
+The test method testDataNodeLogsStackTraceWhenErrorTraceFalseOrEmpty contains a large JSON string embedded directly in the code, similar to the previous issue. This reduces readability and makes maintenance harder.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/SearchService.java</path>
+<side>right</side>
+<from>588</from>
+<to>599</to>
+<note>Information Disclosure: The code logs the full stack trace of exceptions on data nodes when error_trace is false. While intended for debugging, this exposes internal implementation details (class names, line numbers, internal paths) to logs that might be aggregated or accessed by less privileged users or log management systems. This violates the principle of least privilege for information exposure.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/search/ErrorTraceHelper.java</path>
+<side>right</side>
+<from>66</from>
+<to>70</to>
+<note>The method `addSeenLoggingExpectations` iterates over all node names in the cluster for every shard to build a regex pattern. This involves `Arrays.stream(...).map(...).collect(...)` inside a loop. If called frequently or with many shards/nodes, this creates unnecessary object allocations and stream processing overhead. The node list is static for the test cluster and should be computed once outside the loop.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/search/ErrorTraceHelper.java</path>
+<side>right</side>
+<from>95</from>
+<to>105</to>
+<note>The method `addUnseenLoggingExpectations` has nested loops: one over node names and one over shards. Inside the inner loop, it calls `getNodeId(nodeName)` and `format`. This results in O(Nodes * Shards) calls to `format` and `getNodeId`. While likely acceptable for tests, it is inefficient compared to pre-computing the node ID string.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/SearchService.java</path>
+<side>right</side>
+<from>588</from>
+<to>593</to>
+<note>Log Injection Potential: The nodeId, shardId, and taskId are used directly in the log message format string. If any of these values contain untrusted or user-controlled characters (though unlikely for nodeId/shardId/taskId in this context), they could potentially inject log lines or break log parsing. While these are internal identifiers, ensuring they are sanitized or validated before logging is a good practice.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/test/MockLog.java</path>
+<side>right</side>
+<from>319</from>
+<to>352</to>
+<note>The new class PatternAndExceptionSeenEventExpectation in MockLog.java is a nested class inside the public class MockLog. While functional, nested public classes can be confusing for readers and might be better as a top-level class or a static nested class if it's only used internally. Additionally, the class name is quite long.</note>
+</notesplit>

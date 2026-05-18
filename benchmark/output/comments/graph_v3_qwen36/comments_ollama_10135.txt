@@ -1,0 +1,53 @@
+<notesplit>
+<path>cmd/cmd.go</path>
+<side>right</side>
+<from>135</from>
+<to>135</to>
+<note>**[Security Vulnerability]** Race condition in concurrent map writes. The code uses a custom SyncMap to store file digests in parallel goroutines. However, the `filepath.Base(f)` extraction is performed inside the goroutine without synchronization relative to the map key generation. If multiple files share the same basename (e.g., 'model.bin' in different subdirectories), they will overwrite each other's entries in the map, leading to data integrity failures where the wrong digest is associated with a file name. This is a logic flaw that compromises data integrity in a security-sensitive context (blob creation).
+
+**[Code Defect]** Inefficient map operations: `files.Store(filepath.Base(f), digest)` is called inside a goroutine. If `filepath.Base(f)` returns the same base name for multiple files, later stores will overwrite earlier ones, leading to data loss. Consider if this is intended behavior or if a different key strategy is needed.</note>
+</notesplit>
+<notesplit>
+<path>cmd/cmd.go</path>
+<side>right</side>
+<from>148</from>
+<to>148</to>
+<note>**[Security Vulnerability]** Race condition in concurrent map writes for adapters. Similar to the files map, adapter paths are reduced to basenames before storing in the `adapters` SyncMap. Concurrent goroutines processing adapters with identical basenames will overwrite each other's digests, leading to incorrect blob associations and potential model corruption or injection of wrong weights.
+
+**[Code Defect]** Inefficient map operations: Same as above for `adapters.Store(filepath.Base(f), digest)`. Potential data loss if multiple adapters have the same base name.</note>
+</notesplit>
+<notesplit>
+<path>cmd/cmd.go</path>
+<side>right</side>
+<from>126</from>
+<to>128</to>
+<note>Race condition in closure: The goroutine captures the loop variable `f` and `digest`. In Go, loop variables are reused across iterations, so all goroutines may see the same final values of `f` and `digest` instead of their respective iteration values. This causes incorrect file processing and potential data corruption. Fix: Capture loop variables inside the closure: `f, digest := f, digest`.</note>
+</notesplit>
+<notesplit>
+<path>cmd/cmd.go</path>
+<side>right</side>
+<from>141</from>
+<to>143</to>
+<note>Race condition in closure: Same issue as above for the `Adapters` loop. The loop variables `f` and `digest` are captured by reference, leading to all goroutines potentially using the same final values. Fix: Capture loop variables inside the closure.</note>
+</notesplit>
+<notesplit>
+<path>cmd/cmd.go</path>
+<side>right</side>
+<from>123</from>
+<to>123</to>
+<note>Potential nil pointer dereference: `createBlob` is called with `cmd` which might be nil if the command is not properly initialized. If `cmd` is nil, accessing `cmd.Context()` or other methods will panic. Ensure `cmd` is always valid before use.</note>
+</notesplit>
+<notesplit>
+<path>cmd/cmd.go</path>
+<side>right</side>
+<from>139</from>
+<to>139</to>
+<note>Potential nil pointer dereference: Same as above for the `Adapters` loop. `cmd` might be nil when passed to `createBlob`.</note>
+</notesplit>
+<notesplit>
+<path>parser/parser.go</path>
+<side>right</side>
+<from>153</from>
+<to>160</to>
+<note>Symlink traversal vulnerability. The code resolves symlinks using `filepath.EvalSymlinks` and then checks if the relative path is local using `filepath.IsLocal`. However, `filepath.IsLocal` only checks if the path starts with '..' or is absolute. It does not prevent traversal through symlinks that point outside the intended directory structure if the base path itself is a symlink. An attacker could create a symlink inside the model directory pointing to a sensitive file outside, and if the base path is not strictly validated, this could lead to reading arbitrary files.</note>
+</notesplit>

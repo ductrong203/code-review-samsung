@@ -1,0 +1,58 @@
+<notesplit>
+<path>src/Common/ThreadStatus.h</path>
+<side>right</side>
+<from>162</from>
+<to>162</to>
+<note>**[Code Defect]** The constructor of ThreadGroupSwitcher is marked 'noexcept', but it contains code that can throw exceptions (e.g., 'throw Exception(...)', 'attachToGroup', 'setThreadName'). This violates the noexcept contract and will cause std::terminate if an exception is thrown.
+
+**[Maintainability and Readability]** The constructor for ThreadGroupSwitcher uses a raw pointer for thread_name. While it is documented to be at most 15 bytes, there is no compile-time or runtime enforcement of this constraint, which could lead to buffer overflows or truncated names if misused. Consider using std::string_view or a fixed-size array/struct to enforce the length constraint.</note>
+</notesplit>
+<notesplit>
+<path>src/Common/ThreadPool.cpp</path>
+<side>right</side>
+<from>799</from>
+<to>799</to>
+<note>The error message in the thread pool job check uses std::to_string on pointers and complex objects. This is brittle and potentially unsafe if the objects are destroyed or modified during the exception construction. Furthermore, the logic is only enabled in DEBUG_OR_SANITIZER_BUILD, making it invisible in production where such logical errors might still occur.</note>
+</notesplit>
+<notesplit>
+<path>src/Interpreters/ThreadStatusExt.cpp</path>
+<side>right</side>
+<from>205</from>
+<to>211</to>
+<note>The ThreadGroupSwitcher constructor catches all exceptions and logs them using tryLogCurrentException, but it does not prevent the object from being constructed in a partially initialized state. If an exception occurs during attachment, the object remains in a state where it might not correctly restore the previous thread group in the destructor, potentially leading to thread group leakage or incorrect memory tracking context.</note>
+</notesplit>
+<notesplit>
+<path>src/Interpreters/ThreadStatusExt.cpp</path>
+<side>right</side>
+<from>218</from>
+<to>218</to>
+<note>The destructor of ThreadGroupSwitcher performs operations that can throw (e.g., 'attachToGroup', 'throw Exception'), but it is implicitly noexcept (as all destructors are). While it has a try-catch block, the logic inside the catch block is insufficient to handle the potential failure of 'attachToGroup' during restoration, which could lead to an inconsistent thread state.</note>
+</notesplit>
+<notesplit>
+<path>src/Interpreters/ThreadStatusExt.cpp</path>
+<side>right</side>
+<from>218</from>
+<to>218</to>
+<note>The destructor of ThreadGroupSwitcher swallows exceptions by catching all and logging. While this is often necessary in destructors to prevent termination, it hides potential logical errors (like the ones checked for in the same block) from the caller. Consider if these errors should be reported via a different mechanism or if the design can be adjusted to avoid throwing in the destructor.</note>
+</notesplit>
+<notesplit>
+<path>src/Common/ThreadPool.cpp</path>
+<side>right</side>
+<from>798</from>
+<to>799</to>
+<note>The debug check performs string concatenation (std::to_string) and exception object construction inside the hot path of the thread pool worker. This adds overhead to every task execution in debug/sanitizer builds, which can significantly degrade performance during high-concurrency task scheduling.</note>
+</notesplit>
+<notesplit>
+<path>src/Interpreters/ThreadStatusExt.cpp</path>
+<side>right</side>
+<from>223</from>
+<to>226</to>
+<note>The destructor of ThreadGroupSwitcher performs string conversions (std::to_string) inside an exception-throwing block. While this is in a destructor, if these checks fail frequently or are triggered in a tight loop, the overhead of string formatting and potential exception handling will impact performance.</note>
+</notesplit>
+<notesplit>
+<path>src/Interpreters/ThreadStatusExt.cpp</path>
+<side>right</side>
+<from>237</from>
+<to>240</to>
+<note>The ThreadGroupSwitcher destructor also swallows exceptions. If the cleanup (detaching/restoring) fails, the thread may remain attached to the wrong group or fail to restore the original group, leading to incorrect memory accounting for subsequent tasks executed on the same thread.</note>
+</notesplit>

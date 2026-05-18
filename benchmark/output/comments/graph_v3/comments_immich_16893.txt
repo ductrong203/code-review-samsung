@@ -1,0 +1,58 @@
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>76</from>
+<to>76</to>
+<note>**[Security Vulnerability]** The service worker accepts a URL string from a BroadcastChannel message and constructs a new URL object using `new URL(urlstring, event.origin)`. If the `urlstring` is an absolute URL (e.g., 'https://attacker.com'), the `event.origin` base is ignored, potentially allowing the service worker to fetch and cache arbitrary external resources, leading to SSRF or cache poisoning.
+
+**[Code Defect]** The URL constructor is called with event.origin as the base, but event.origin is not guaranteed to be the correct base for relative URLs in all service worker contexts. If the URL is absolute, the second argument is ignored, but if it is relative, it might resolve incorrectly.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>62</from>
+<to>64</to>
+<note>The catch block returns Response.error() which is a network error. This will cause the browser to treat the request as failed, preventing the UI from displaying the image even if the error was transient or caused by an intentional abort. It should return a valid response or handle the abort specifically.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>63</from>
+<to>63</to>
+<note>The catch block in immichAsset returns Response.error() without logging the error. This makes debugging network failures or service worker issues significantly harder as there is no visibility into why the fetch failed.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>42</from>
+<to>67</to>
+<note>The immichAsset function is becoming a 'God function' for asset handling. It manages cache logic, fetch orchestration, abort signaling, and error handling. Consider splitting the cache-first logic from the fetch-and-abort logic.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>53</from>
+<to>53</to>
+<note>The `pendingLoads` map is populated with `url.toString()` but never cleaned up if the fetch fails or completes unexpectedly without hitting the `finally` block, or if multiple requests for the same URL are initiated. This can lead to a memory leak in the service worker over time.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>72</from>
+<to>74</to>
+<note>The broadcast.onmessage handler uses a loose check for event.data. It should validate the structure of the message (e.g., checking for the existence of 'url' and 'type') before attempting to process it to avoid runtime errors.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>84</from>
+<to>84</to>
+<note>The `preload` message handler calls `immichAsset(url)` without checking if a request for that URL is already in progress. This can trigger redundant network requests for the same asset, wasting bandwidth and potentially hitting browser connection limits.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>75</from>
+<to>75</to>
+<note>The variable name 'urlstring' is inconsistent with the project's camelCase naming convention (should be 'urlString').</note>
+</notesplit>

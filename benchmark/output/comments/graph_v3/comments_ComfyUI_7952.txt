@@ -1,0 +1,65 @@
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>right</side>
+<from>219</from>
+<to>219</to>
+<note>**[Security Vulnerability]** The RegexMatch node uses user-provided regex patterns without any validation or complexity limits. This allows for ReDoS (Regular Expression Denial of Service) attacks, where a maliciously crafted regex can cause catastrophic backtracking, consuming excessive CPU and hanging the server.
+
+**[Performance]** The regex pattern is not pre-compiled. In ComfyUI, nodes are often executed repeatedly. Compiling the regex inside the execute method causes unnecessary overhead. Use re.compile() or a cache decorator to store compiled patterns.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>right</side>
+<from>187</from>
+<to>188</to>
+<note>The StringCompare node logic for 'Starts With' and 'Ends With' modes is incomplete. It returns None if the mode is not 'Equal', 'Starts With', or 'Ends With', because the function lacks a return statement for the default case or an explicit else block. This will cause the node to fail in the workflow.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>right</side>
+<from>247</from>
+<to>296</to>
+<note>The RegexExtract node is vulnerable to ReDoS (Regular Expression Denial of Service) because it accepts arbitrary user-provided regex patterns without validation or complexity constraints. An attacker can provide a pattern designed to trigger exponential backtracking, leading to a denial of service.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>right</side>
+<from>259</from>
+<to>289</to>
+<note>The RegexExtract.execute method is overly complex, violating the Single Responsibility Principle. It handles four distinct extraction modes in one large block. This should be refactored into smaller helper methods or a strategy pattern.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>right</side>
+<from>74</from>
+<to>83</to>
+<note>The CaseConverter.execute method uses a long if-elif chain to map modes to string methods. This is hard to maintain as more modes are added. Use a dictionary mapping for cleaner dispatch.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>right</side>
+<from>103</from>
+<to>110</to>
+<note>The StringTrim.execute method uses an if-elif chain for trim modes. This is repetitive and violates the DRY principle. Use a dictionary mapping to call the appropriate strip method.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>right</side>
+<from>259</from>
+<to>275</to>
+<note>Regex patterns are not pre-compiled in RegexExtract. This causes redundant compilation overhead on every execution. Use re.compile() to improve performance.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>right</side>
+<from>176</from>
+<to>188</to>
+<note>The StringCompare.execute method contains redundant logic for case sensitivity and mode dispatching. The logic can be simplified by normalizing the strings once and using getattr to call the string method dynamically.</note>
+</notesplit>
+<notesplit>
+<path>comfy_extras/nodes_string.py</path>
+<side>right</side>
+<from>290</from>
+<to>294</to>
+<note>The RegexExtract node returns an empty string if the mode is not recognized. While this prevents a crash, it is better to explicitly handle the default case or raise an error if the mode is invalid, as returning an empty string might be indistinguishable from a failed match.</note>
+</notesplit>

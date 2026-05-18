@@ -1,0 +1,65 @@
+<notesplit>
+<path>src/Mod/Material/App/ModelManager.cpp</path>
+<side>right</side>
+<from>290</from>
+<to>290</to>
+<note>The function getModel(const QString& uuid) is truncated and incomplete, leading to a compilation error and missing implementation for the primary model retrieval logic.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Material/App/ModelManagerExternal.cpp</path>
+<side>right</side>
+<from>187</from>
+<to>187</to>
+<note>The function modelHitRate is truncated and incomplete, causing a compilation error.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Material/App/ModelLibrary.cpp</path>
+<side>right</side>
+<from>155</from>
+<to>155</to>
+<note>The function addModel is truncated and incomplete, causing a compilation error.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Material/App/ModelManagerLocal.cpp</path>
+<side>right</side>
+<from>101</from>
+<to>102</to>
+<note>**[Security Vulnerability]** The use of reinterpret_cast to cast a std::shared_ptr<std::list<ModelLibraryLocal>> to std::shared_ptr<std::list<ModelLibrary>> is undefined behavior and unsafe. This violates type safety and can lead to memory corruption or crashes when the list is accessed, as the underlying object layouts differ.
+
+**[Maintainability and Readability]** The use of reinterpret_cast to cast a shared_ptr<list<T>> to shared_ptr<list<U>> is undefined behavior and highly dangerous. Even if the underlying types are related, shared_ptr control blocks are not compatible this way. Use a standard container copy or a shared base class interface.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Material/App/ModelLibrary.cpp</path>
+<side>right</side>
+<from>76</from>
+<to>82</to>
+<note>The getModelTree method calls ModelManager::getManager().libraryModels(getName()) and ModelManager::getManager().getModel(...) inside a loop. This is an N+1 query pattern where N is the number of models in the library, leading to excessive overhead if the manager performs lookups or network calls.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Material/App/ModelManager.cpp</path>
+<side>right</side>
+<from>133</from>
+<to>151</to>
+<note>The getLibraries() method performs multiple iterations and map insertions to consolidate libraries from external and local managers. This creates unnecessary copies of shared_ptr lists and map entries every time the list is requested. If this is called frequently, consider caching the consolidated result or returning a view.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Material/App/ModelManager.cpp</path>
+<side>right</side>
+<from>250</from>
+<to>262</to>
+<note>The getModels() method rebuilds a full map of all models on every call by iterating through both external and local managers. This is an O(N+M) operation where N and M are the number of models, which can be significant if the model count is high. This should be cached.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Material/App/ModelManager.cpp</path>
+<side>right</side>
+<from>272</from>
+<to>276</to>
+<note>The function getModel(const QString& libraryName, const QString& uuid) is currently a stub that ignores the libraryName parameter. This is misleading for callers who expect library-specific scoping.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Material/App/ModelManager.cpp</path>
+<side>right</side>
+<from>98</from>
+<to>100</to>
+<note>The OnChange method logs a message using Base::Console().Log, but the logic inside is commented out. This creates dead/confusing code that doesn't actually perform the intended refresh.</note>
+</notesplit>

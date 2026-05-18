@@ -1,0 +1,32 @@
+<notesplit>
+<path>packages/actions/src/Exports/Jobs/PrepareCsvExport.php</path>
+<side>right</side>
+<from>79</from>
+<to>79</to>
+<note>The code accesses $originalOrders[0] after calling forget(0). Since $originalOrders is a Laravel Collection, numeric keys are not re-indexed automatically. If the first element was removed, index 0 no longer exists, causing an 'Undefined offset' error.</note>
+</notesplit>
+<notesplit>
+<path>packages/actions/src/Exports/Jobs/PrepareCsvExport.php</path>
+<side>right</side>
+<from>153</from>
+<to>153</to>
+<note>**[Code Defect]** The logic checks if the first order column matches the key name to apply distinct(). However, if the query has no orders, the condition fails, and distinct() is skipped entirely. This may lead to duplicate rows in the CSV export if the query is not ordered by the primary key.
+
+**[Performance]** The use of in_array on the orders array inside a potentially large export job is inefficient. Accessing the first element of the orders array via $query->getQuery()->orders[0] without checking if the array is empty can trigger an 'Undefined offset' notice, and performing an array search on every chunk iteration is redundant if the order column is constant for the query.
+
+**[Security Vulnerability]** The code uses an array index access on $query->getQuery()->orders[0] without verifying that the array is not empty. If the 'orders' array is empty, this will trigger an 'Undefined offset' error, which can lead to a denial-of-service (DoS) condition in the background job processing.</note>
+</notesplit>
+<notesplit>
+<path>packages/actions/src/Exports/Jobs/PrepareCsvExport.php</path>
+<side>right</side>
+<from>78</from>
+<to>83</to>
+<note>The logic for reordering the query is complex and relies on array index access (0) which is fragile. If the collection is empty, the code branches, but accessing $originalOrders[0] directly after a potential forget() or without checking if the key exists is risky. It is better to use collection methods like first() or shift() to handle the head of the collection safely.</note>
+</notesplit>
+<notesplit>
+<path>packages/actions/src/Exports/Jobs/PrepareCsvExport.php</path>
+<side>right</side>
+<from>153</from>
+<to>155</to>
+<note>The condition `in_array($query->getQuery()->orders[0]['column'] ?? null, [$keyName, $qualifiedKeyName])` is brittle. It accesses nested array properties directly without verifying the existence of the 'orders' array or the index 0, which could lead to undefined index notices if the query has no orders.</note>
+</notesplit>

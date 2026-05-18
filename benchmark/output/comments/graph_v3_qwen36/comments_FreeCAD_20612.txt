@@ -1,0 +1,65 @@
+<notesplit>
+<path>src/Mod/TechDraw/App/CosmeticExtension.cpp</path>
+<side>right</side>
+<from>69</from>
+<to>72</to>
+<note>Potential null pointer dereference in CosmeticExtension.cpp. The code retrieves a DrawViewPart pointer via getOwner() but does not check if it is null before calling viewPart->isCosmeticVertex(name) or viewPart->isCosmeticEdge(name). If getOwner() returns nullptr, this will cause a crash. The original code passed the owner pointer to DrawUtil static methods which likely handled null or the caller ensured validity, but now the member access is direct.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/CosmeticExtension.cpp</path>
+<side>right</side>
+<from>69</from>
+<to>69</to>
+<note>**[Maintainability and Readability]** The variable name 'viewPart' is too generic and does not convey its specific semantic meaning as the owner of the cosmetic elements. In the context of 'CosmeticExtension', this object represents the 'owner' view. A more descriptive name like 'ownerView' or 'cosmeticOwner' would improve readability and clarify the relationship between the extension and the view.
+
+The variable 'viewPart' is a raw pointer. In modern C++, using smart pointers or const references where possible improves memory safety and clarity. While changing to smart pointers might require broader refactoring, at minimum, if 'getOwner' returns a raw pointer, it should be clear if it's owned or borrowed. If it's borrowed, a const reference or just using the pointer without implying ownership is better. However, the primary issue here is the lack of clarity on ownership semantics with a raw pointer.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawViewPart.h</path>
+<side>right</side>
+<from>242</from>
+<to>244</to>
+<note>Missing const qualifier in DrawViewPart.h method declarations. The methods isCosmeticVertex, isCosmeticEdge, and isCenterLine are declared as non-const member functions in the header, but their implementations in DrawViewPart.cpp take const references or do not modify member state. They should be marked const to match their implementation and usage, ensuring they can be called on const objects if needed.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawViewPart.cpp</path>
+<side>right</side>
+<from>1501</from>
+<to>1504</to>
+<note>Missing const qualifier in DrawViewPart.cpp method definitions. The methods isCosmeticVertex, isCosmeticEdge, and isCenterLine are defined without the const qualifier, but they do not modify any member state. This mismatch with the header (if fixed) or general const-correctness practices can lead to issues when calling these methods on const objects.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/CosmeticExtension.cpp</path>
+<side>right</side>
+<from>71</from>
+<to>72</to>
+<note>The loop iterates over 'removables' and calls DU::getGeomTypeFromName(name) twice for the same name in consecutive if conditions. This redundant string parsing operation should be hoisted out of the loop or cached in a variable to avoid repeated work.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/CosmeticExtension.cpp</path>
+<side>right</side>
+<from>77</from>
+<to>79</to>
+<note>The loop iterates over 'removables' and calls DU::getGeomTypeFromName(name) again. Since this was already called in the previous block, this is a redundant computation. Hoisting this call outside the loop or using the cached value improves performance.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawViewPart.cpp</path>
+<side>right</side>
+<from>1501</from>
+<to>1502</to>
+<note>The function 'isCosmeticVertex' in DrawViewPart.cpp has a comment '// true if owner->element is a cosmetic vertex'. Since the function is now a member of DrawViewPart, 'owner' is redundant and confusing. The comment should be updated to reflect that it checks if 'this' element is a cosmetic vertex. This is a documentation inconsistency.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawViewPart.cpp</path>
+<side>right</side>
+<from>1512</from>
+<to>1513</to>
+<note>The function 'isCosmeticEdge' in DrawViewPart.cpp has a comment '// true if owner->element is a cosmetic edge'. Similar to the previous issue, 'owner' is redundant and confusing for a member function. The comment should be updated to reflect that it checks if 'this' element is a cosmetic edge.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/DrawViewPart.cpp</path>
+<side>right</side>
+<from>1522</from>
+<to>1523</to>
+<note>The function 'isCenterLine' in DrawViewPart.cpp has a comment '// true if owner->element is a center line'. Similar to the previous issues, 'owner' is redundant and confusing for a member function. The comment should be updated to reflect that it checks if 'this' element is a center line.</note>
+</notesplit>

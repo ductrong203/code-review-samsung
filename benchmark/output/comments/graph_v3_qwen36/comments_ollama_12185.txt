@@ -1,0 +1,55 @@
+<notesplit>
+<path>model/models/gemma3/embed.go</path>
+<side>right</side>
+<from>22</from>
+<to>22</to>
+<note>**[Code Defect]** The line `batch.Outputs = batch.Positions` assigns a slice of int32 to a field that is now of type `ml.Tensor`. This is a type mismatch that will cause a compilation error. The comment `// return all positions` suggests the intent was to populate Outputs, but the assignment is invalid for the new type.
+
+**[Maintainability and Readability]** In gemma3/embed.go, the line `batch.Outputs = batch.Positions` is a side effect that modifies the input batch. This is a bad practice as it mutates the input data structure unexpectedly. It should be avoided. The model should use a local variable or pass the positions directly if that's the intended behavior, rather than mutating the batch.</note>
+</notesplit>
+<notesplit>
+<path>runner/ollamarunner/runner.go</path>
+<side>right</side>
+<from>554</from>
+<to>556</to>
+<note>**[Maintainability and Readability]** Logic change in runner.go: The condition for adding to batchOutputs was changed from `i+1 == len(seq.inputs)` to `i+1 == len(seq.inputs) || seq.embeddingOnly`. This introduces a new branch `seq.embeddingOnly` that was not present before. This changes the behavior for embedding-only sequences, potentially affecting which outputs are returned. The intent of this change is unclear from the diff alone and might be a bug or an incomplete implementation of embedding support.
+
+**[Code Defect]** In `runner/ollamarunner/runner.go`, the logic for populating `batchOutputs` has changed. Previously, `seq.iBatch = len(batch.Outputs)` and then `batch.Outputs` was appended to. Now, `seq.iBatch = len(batchOutputs)` and `batchOutputs` is appended to. However, `seq.iBatch` is used later to index into the outputs. If `seq.embeddingOnly` is true, an output index is added even if it's not the last input. This might be intentional, but the variable `seq.iBatch` is assigned the length of `batchOutputs` *before* the append. This means `seq.iBatch` points to the index where the new element *will* be placed, which is correct for the append operation. However, if `batchOutputs` is not cleared between batches or if there's a mismatch in how `iBatch` is used across different sequences, this could lead to indexing errors. The primary risk is if `batchOutputs` is not reset properly for each batch, leading to incorrect indices.</note>
+</notesplit>
+<notesplit>
+<path>runner/ollamarunner/runner.go</path>
+<side>right</side>
+<from>709</from>
+<to>709</to>
+<note>**[Code Defect]** In `runner/ollamarunner/runner.go`, `batch.Outputs` is now an `ml.Tensor`. The code `activeBatch.batch.Outputs.Dim(0)` assumes the tensor has at least one dimension. If `batch.Outputs` is empty or not properly initialized as a tensor with dimension 0, this could panic or return incorrect results. More critically, looking at line 578, `batch.Outputs` is created via `FromIntSlice`. If `batchOutputs` is empty, the tensor might be 0-dimensional or have dimension 0, causing `Dim(0)` to potentially fail or return 0. The previous code used `len(activeBatch.batch.Outputs)` which is safe for slices. The new code relies on tensor structure which might be fragile if not fully initialized.
+
+**[Performance]** The calculation of `vocabSize` has changed from `len(outputs) / len(activeBatch.batch.Outputs)` to `len(outputs) / activeBatch.batch.Outputs.Dim(0)`. This is a minor change from using slice length to tensor dimension. The performance impact is negligible, but it's worth noting that `Dim(0)` might be a more expensive operation than `len()` if it involves bounds checking or tensor metadata access. However, this is likely a necessary change to support tensor outputs.</note>
+</notesplit>
+<notesplit>
+<path>runner/ollamarunner/runner.go</path>
+<side>right</side>
+<from>471</from>
+<to>471</to>
+<note>New variable `batchOutputs` is introduced in runner.go to collect output indices before creating the tensor. This is a good step towards using tensors, but the variable name `batchOutputs` is slightly ambiguous. It holds indices, not the outputs themselves. A name like `outputIndices` would be clearer.</note>
+</notesplit>
+<notesplit>
+<path>runner/ollamarunner/runner.go</path>
+<side>right</side>
+<from>581</from>
+<to>581</to>
+<note>The code now creates a tensor for `batch.Outputs` using `ctx.Input().FromIntSlice(batchOutputs, len(batchOutputs))`. Previously, `batch.Outputs` was a slice of `int32`. This change moves the allocation of the output indices tensor to the runner level. If `batchOutputs` is large, this allocation happens every batch. If `batchOutputs` is small, the overhead is minimal. However, if `batchOutputs` is large and frequently changes, this could be a performance hit compared to reusing a pre-allocated tensor if the size is known. The previous code did `ctx.Input().FromIntSlice` in each model's Forward call, which is now centralized. This is likely a net positive for performance if it reduces redundant allocations, but if `batchOutputs` is large, the allocation cost is now upfront.</note>
+</notesplit>
+<notesplit>
+<path>runner/ollamarunner/runner.go</path>
+<side>right</side>
+<from>554</from>
+<to>557</to>
+<note>The logic for appending to batchOutputs has changed. Previously, it only appended when `i+1 == len(seq.inputs)`. Now, it also appends when `seq.embeddingOnly` is true. This means `batchOutputs` can grow larger than the number of actual input tokens if many sequences are embedding-only, potentially leading to a larger tensor allocation than necessary if not all outputs are consumed downstream. However, the primary concern is that `batchOutputs` is now a slice of indices that might not correspond 1:1 with `batchInputs` length in the same way, which could cause issues if the downstream model expects `len(batchOutputs) == len(batchInputs)`. The change seems intentional for embedding-only models, but if `batchOutputs` grows unbounded relative to `batchInputs`, it's a memory inefficiency.</note>
+</notesplit>
+<notesplit>
+<path>runner/ollamarunner/runner.go</path>
+<side>right</side>
+<from>1067</from>
+<to>1067</to>
+<note>The code now initializes `batch.Outputs` as an empty tensor of size `s.parallel` instead of a slice of `int32` with indices. This means that the tensor is allocated even if it's not used. If `s.parallel` is large, this is a wasted allocation. The previous code allocated a slice of `int32` which is smaller. This change might lead to increased memory usage if `s.parallel` is large and the tensor is not fully utilized.</note>
+</notesplit>

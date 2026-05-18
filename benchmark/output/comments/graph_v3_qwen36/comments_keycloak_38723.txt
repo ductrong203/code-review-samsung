@@ -1,0 +1,39 @@
+<notesplit>
+<path>docs/maven-plugin/src/main/java/org/keycloak/guides/maven/GuideParser.java</path>
+<side>right</side>
+<from>79</from>
+<to>82</to>
+<note>**[Code Defect]** Missing 'break' statement after 'case "priority"' causes fall-through to 'case "tileVisible"'. When a guide has a priority, the code will immediately attempt to parse the priority value as a boolean for tileVisible, likely causing a NumberFormatException or incorrect behavior.
+
+**[Maintainability and Readability]** Missing break statement in switch case. The `case "priority":` block does not have a `break;` statement, causing fall-through to `case "tileVisible":`. This means if a guide has a priority, it will also attempt to parse `tileVisible` as a boolean, which is likely unintended and could lead to incorrect parsing or errors if the value is not a boolean. This is a critical logic error introduced by the change.</note>
+</notesplit>
+<notesplit>
+<path>docs/maven-plugin/src/main/java/org/keycloak/guides/maven/GuideParser.java</path>
+<side>right</side>
+<from>82</from>
+<to>82</to>
+<note>The 'tileVisible' case attempts to parse the value as a boolean using 'valueString'. However, the regex pattern for 'valueInt' (used for priority) captures digits, while 'valueString' captures quoted strings. If 'tileVisible' is specified as an integer (e.g., tileVisible=1) or without quotes, it might not match the expected group or pattern correctly, leading to null pointer exceptions or incorrect parsing. The pattern `(\"(?<valueString>[^\"]*)\"|(?<valueInt>[\d]*))` means tileVisible must be quoted string to match valueString, but if it's not quoted, it falls through to valueInt which is empty for non-digits, causing issues.</note>
+</notesplit>
+<notesplit>
+<path>docs/maven-plugin/src/main/java/org/keycloak/guides/maven/Context.java</path>
+<side>right</side>
+<from>34</from>
+<to>44</to>
+<note>The logic for handling guide priorities is deeply nested and complex. The original flat check `if (guidePriorities != null && guide != null)` was replaced with a nested structure that checks `guidePriorities`, then `priority`, then `guide.getPriority()`. This increases cognitive load and makes the control flow harder to follow. The nesting level of 3 (for -> if -> if -> if) violates the readability guideline for deep nesting.</note>
+</notesplit>
+<notesplit>
+<path>docs/maven-plugin/src/main/java/org/keycloak/guides/maven/Context.java</path>
+<side>right</side>
+<from>35</from>
+<to>44</to>
+<note>**[Code Defect]** The logic for handling priorities and pinned guides is flawed. The original code set a default priority if not in the map. The new code throws an exception if a guide is pinned (in the map) but already has a priority set (not MAX_VALUE). However, it removes the guide from the map after processing. If a guide is NOT in the pinned list, it keeps its default priority (MAX_VALUE). The check `if (!guide.isTileVisible() && guide.getPriority() == Integer.MAX_VALUE)` throws an error for invisible guides without priority. This seems correct for enforcing visibility rules, but the removal of processed items from `guidePriorities` map means that if a guide is pinned, it's removed. If a guide is NOT pinned, it remains in the map. The final check `if (guidePriorities != null && !guidePriorities.isEmpty())` throws an error if there are leftover items in the map. This implies that ALL guides listed in 'pinned-guides' MUST exist. If a guide in 'pinned-guides' does not exist, it remains in the map and throws an error. This is correct. However, the logic `guidePriorities.remove(guide.getId())` is inside the `if (guide != null)` block. If `guide` is null, it doesn't remove from the map. But `guide` is only null if parsing fails. If parsing fails, the guide is not added to `guides` list. The leftover check will fail if a pinned guide failed to parse. This is a valid error. The main issue is the fall-through bug in GuideParser.
+
+**[Maintainability and Readability]** The variable name `priority` is reused in a nested scope where it shadows the outer context or is used in a way that might be confusing. More importantly, the logic `guidePriorities.remove(guide.getId())` modifies the map while iterating or processing, which is generally acceptable here but combined with the complex nesting makes it harder to track state changes. The error message "Guide is pinned, but has a priority specified" is clear, but the logic flow is convoluted.</note>
+</notesplit>
+<notesplit>
+<path>docs/maven-plugin/src/main/java/org/keycloak/guides/maven/Guide.java</path>
+<side>right</side>
+<from>10</from>
+<to>10</to>
+<note>The field `tileVisible` is added with a default value of `true`. While this is a reasonable default, it's not immediately obvious from the field declaration alone without context. Adding a comment explaining why `true` is the default (e.g., 'visible by default unless pinned') would improve readability.</note>
+</notesplit>

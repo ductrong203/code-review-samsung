@@ -1,0 +1,67 @@
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/AutoConfigureNode.java</path>
+<side>right</side>
+<from>414</from>
+<to>420</to>
+<note>The call to CertGenUtils.generateSignedCertificate is passing an empty Set.of() for the extendedKeyUsages parameter instead of the required Set.of(new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth)). This omission means the generated transport certificate will lack the serverAuth extended key usage, potentially causing TLS handshake failures when clients expect this extension. The fix is to add the missing ExtendedKeyUsage set to the call.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/AutoConfigureNode.java</path>
+<side>right</side>
+<from>429</from>
+<to>435</to>
+<note>The call to CertGenUtils.generateSignedCertificate is passing an empty Set.of() for the extendedKeyUsages parameter instead of the required Set.of(new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth)). This omission means the generated transport certificate will lack the serverAuth extended key usage, potentially causing TLS handshake failures when clients expect this extension. The fix is to add the missing ExtendedKeyUsage set to the call.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/CertificateTool.java</path>
+<side>right</side>
+<from>964</from>
+<to>967</to>
+<note>The call to CertGenUtils.generateSignedCertificate is passing 'days' as the 6th parameter (isCa) but the method signature has changed to include keyUsage and extendedKeyUsages parameters. The call is missing the keyUsage parameter (should be null or a KeyUsage object) and the extendedKeyUsages parameter (should be Set.of()). This causes a compilation error or incorrect parameter mapping. The fix is to add the missing parameters.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/CertificateTool.java</path>
+<side>right</side>
+<from>325</from>
+<to>340</to>
+<note>**[Maintainability and Readability]** The `getCaKeyUsage` method in `CertificateTool.OptionSpecs` contains redundant logic. It checks `options.has(caKeyUsageSpec)` and then again checks if the resulting list is empty to return the default. The logic can be simplified. Also, the `splitByComma` function is created locally but could be a private static method or handled more concisely. The nested stream operations reduce readability.
+
+**[Security Vulnerability]** The `getCaKeyUsage` method parses user-provided key usage strings by splitting on commas. It filters out empty strings but does not validate that the resulting tokens are present in `CertGenUtils.KEY_USAGE_MAPPINGS`. Invalid or malformed input is silently ignored or accepted, which could lead to certificates being generated with unexpected or missing key usage constraints, weakening the security posture of the generated certificates.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/CertificateTool.java</path>
+<side>right</side>
+<from>207</from>
+<to>207</to>
+<note>The field `caKeyUsageSpec` in `CertificateTool.OptionSpecs` is declared as `OptionSpec<String>` but is not initialized at declaration. It is initialized later in the `acceptCertificateAuthorityKeyUsage` method. This separation of declaration and initialization can be confusing and makes the field appear uninitialized if read out of order. It should be initialized to `null` or declared as `final` after initialization to clarify its lifecycle.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/HttpCertificateCommand.java</path>
+<side>right</side>
+<from>760</from>
+<to>770</to>
+<note>The `HttpCertificateCommand` prompts the user for key usage and accepts a comma-separated string. Similar to `CertificateTool`, it relies on `CertGenUtils.buildKeyUsage` which likely performs a lookup. If `buildKeyUsage` does not validate the input against `KEY_USAGE_MAPPINGS` strictly, invalid inputs might be silently dropped or cause unexpected behavior. The code prints the available options but does not enforce strict validation on the user's input before passing it to the certificate generation logic.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/CertificateTool.java</path>
+<side>right</side>
+<from>327</from>
+<to>332</to>
+<note>Inefficient string splitting and stream creation. The code creates a new Function object and uses Stream.of().flatMap().filter().toList() for simple comma-separated string parsing. This creates unnecessary objects and stream overhead for a simple split operation.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/CertGenUtils.java</path>
+<side>right</side>
+<from>84</from>
+<to>98</to>
+<note>**[Maintainability and Readability]** The `KEY_USAGE_MAPPINGS` constant is defined using `Map.ofEntries` and `Map.entry` which is verbose. While correct, it could be simplified or documented better. The comment says 'as defined in KeyUsage class' but the mapping is explicit. This is a minor readability issue due to verbosity.
+
+**[Performance]** Static initialization of a TreeMap with Map.ofEntries. While this is done once, using TreeMap adds unnecessary overhead compared to a simple HashMap since ordering is not required for this lookup map.</note>
+</notesplit>
+<notesplit>
+<path>x-pack/plugin/security/cli/src/main/java/org/elasticsearch/xpack/security/cli/HttpCertificateCommand.java</path>
+<side>right</side>
+<from>760</from>
+<to>768</to>
+<note>The `printHeader` and subsequent `terminal.println` calls for key usage explanation are verbose and hard-coded. This text is repeated in the UI and could be extracted to a constant or a method for easier maintenance and potential localization. The long block of explanatory text reduces readability of the main logic flow.</note>
+</notesplit>

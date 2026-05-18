@@ -1,0 +1,37 @@
+<notesplit>
+<path>e2e/src/api/specs/library.e2e-spec.ts</path>
+<side>right</side>
+<from>1073</from>
+<to>1073</to>
+<note>The test case is incomplete and ends abruptly with 'utils.', which will cause a syntax error and prevent the test suite from running.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/trash.service.ts</path>
+<side>right</side>
+<from>55</from>
+<to>55</to>
+<note>**[Performance]** The logger.debug call is inside a loop that iterates over paginated asset IDs. While debug logging is often disabled in production, string interpolation or template literal construction inside a tight loop can still incur overhead. It is better to use a structured logger that accepts arguments to avoid unnecessary string concatenation.
+
+**[Maintainability and Readability]** The log message uses a manual '(s)' suffix to handle pluralization. This is a common anti-pattern that reduces readability and is prone to errors.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/trash.service.ts</path>
+<side>right</side>
+<from>21</from>
+<to>21</to>
+<note>The log message uses a manual '(s)' suffix to handle pluralization. This is a common anti-pattern that reduces readability and is prone to errors. Use a proper pluralization helper or template string if the library supports it, or keep the message simple.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/trash.service.ts</path>
+<side>right</side>
+<from>29</from>
+<to>29</to>
+<note>The log message uses a manual '(s)' suffix to handle pluralization. This is a common anti-pattern that reduces readability and is prone to errors.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/trash.service.ts</path>
+<side>right</side>
+<from>68</from>
+<to>68</to>
+<note>The log message uses a manual '(s)' suffix to handle pluralization. This is a common anti-pattern that reduces readability and is prone to errors.</note>
+</notesplit>

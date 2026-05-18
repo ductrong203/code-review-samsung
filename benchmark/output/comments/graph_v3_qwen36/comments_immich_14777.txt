@@ -1,0 +1,69 @@
+<notesplit>
+<path>e2e/src/api/specs/library.e2e-spec.ts</path>
+<side>right</side>
+<from>982</from>
+<to>1039</to>
+<note>**[Maintainability and Readability]** The test 'should set an offline asset to online if its file exists...' is extremely long (approx 90 lines) and contains complex nested logic with multiple file system operations, API calls, and state verifications. This violates the Single Responsibility Principle and makes the test hard to read and maintain. It should be broken down into smaller, focused helper functions or separate test cases.
+
+**[Performance]** The new test 'should set an offline asset to online if its file exists...' performs multiple synchronous API calls and file system operations within a single test block. While acceptable for e2e, the repeated calls to scan and waitForQueueFinish could be optimized by batching or mocking if this test is run frequently, though it is likely low impact.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/asset.service.ts</path>
+<side>right</side>
+<from>191</from>
+<to>191</to>
+<note>**[Security Vulnerability]** The change `deleteOnDisk: !asset.isOffline` introduces a logic flaw where assets that are NOT offline (i.e., online assets) will have `deleteOnDisk` set to `false`. This means when an online asset is deleted, its file is NOT removed from disk, leading to data accumulation and potential disk exhaustion (DoS). Conversely, if `isOffline` is true, it deletes the file, which might be intended, but the primary risk is the failure to delete online assets.
+
+**[Performance]** The change to set deleteOnDisk based on asset.isOffline introduces a potential performance issue if the asset object is not fully hydrated with the isOffline flag before this check. If isOffline is null or undefined, the logic might default incorrectly or require an additional database query to resolve the status, leading to N+1 query patterns or unexpected behavior in high-throughput deletion jobs.
+
+While the PR description claims to fix data loss by NOT deleting offline files, the implementation `!asset.isOffline` is ambiguous and likely incorrect for the 'online' case. If an asset is online, `isOffline` is false, so `deleteOnDisk` becomes false. This means normal user deletions will leave orphaned files on disk, which is a resource exhaustion vulnerability.</note>
+</notesplit>
+<notesplit>
+<path>e2e/src/api/specs/library.e2e-spec.ts</path>
+<side>right</side>
+<from>1174</from>
+<to>1174</to>
+<note>The test file ends abruptly with `utils.` on line 1174, indicating incomplete code. This is a syntax error and will prevent the test file from compiling or running.</note>
+</notesplit>
+<notesplit>
+<path>e2e/src/api/specs/library.e2e-spec.ts</path>
+<side>right</side>
+<from>1007</from>
+<to>1010</to>
+<note>The test 'should set an offline asset to online if its file exists...' checks `offlineAsset.isTrashed` to be `true` before the file is moved back. However, the code only sets the asset to offline (via exclusion/import path changes), it does not explicitly trash the asset. In Immich, 'offline' assets are typically not 'trashed' unless explicitly deleted or moved to trash. If the asset is not trashed, this assertion will fail, or if it is trashed, the subsequent logic expecting it to become 'online' (un-trashed) might be flawed or rely on implicit behavior. More critically, the test logic seems to assume the asset becomes trashed when it goes offline, which contradicts the PR description's intent to NOT delete offline files. The test might be verifying incorrect behavior or failing due to missing setup (trashing the asset).</note>
+</notesplit>
+<notesplit>
+<path>e2e/src/api/specs/library.e2e-spec.ts</path>
+<side>right</side>
+<from>1031</from>
+<to>1033</to>
+<note>Similar to the previous issue, this test checks `backOnlineAsset.isTrashed` to be `false`. If the asset was not trashed when it went offline, this assertion is correct. However, if the asset WAS trashed when it went offline (as suggested by the previous test's expectation), then the logic of 'going online' restoring it from trash needs to be verified. The PR says 'don't delete offline files', but doesn't explicitly say 'don't trash them'. If the system trashes offline assets, then restoring them from trash is a separate flow. The test might be conflating 'offline' and 'trashed' states.</note>
+</notesplit>
+<notesplit>
+<path>e2e/src/api/specs/library.e2e-spec.ts</path>
+<side>right</side>
+<from>1174</from>
+<to>1260</to>
+<note>The test 'should not set an offline asset to online if its file exists...' is also very long (approx 85 lines) and follows a similar complex pattern. It performs multiple file system operations, API calls, and state verifications. This violates Single Responsibility and makes it hard to understand and maintain.</note>
+</notesplit>
+<notesplit>
+<path>e2e/src/api/specs/library.e2e-spec.ts</path>
+<side>right</side>
+<from>1070</from>
+<to>1073</to>
+<note>The test 'should not set an offline asset to online if its file exists, is not covered by an exclusion pattern, but is outside of all import paths' does not check the final state of the asset after the second scan. It only checks that the asset is still trashed and offline. It should verify that the asset remains offline and trashed, or if it should become online. The test name suggests it should NOT become online, but the assertions only confirm it is still trashed/offline. It doesn't explicitly check `isOffline` or `isTrashed` after the second scan in the final block, although it does check them earlier. The final block only checks `assets.count`.</note>
+</notesplit>
+<notesplit>
+<path>e2e/src/api/specs/trash.e2e-spec.ts</path>
+<side>right</side>
+<from>110</from>
+<to>144</to>
+<note>The test 'should not delete offline assets from disk' is marked as `.skip`. While skipping tests is sometimes necessary, this test is skipped due to 'no mechanism to forward time'. This indicates a testability issue where the test relies on time-based behavior that cannot be easily mocked or controlled in the test environment. This makes the test hard to maintain and verify.</note>
+</notesplit>
+<notesplit>
+<path>e2e/src/api/specs/asset.e2e-spec.ts</path>
+<side>right</side>
+<from>788</from>
+<to>794</to>
+<note>The test 'should permanently delete an asset from trash' uses inline request calls for deleting assets. While functional, it could be refactored to use a helper function for consistency with other tests in the file that might use utility methods for common operations.</note>
+</notesplit>

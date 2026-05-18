@@ -1,0 +1,30 @@
+<notesplit>
+<path>pkg/gofr/http/middleware/logger.go</path>
+<side>right</side>
+<from>106</from>
+<to>109</to>
+<note>The middleware skips logging for health check paths, but it also skips the panic recovery defer. If a panic occurs during a health check request, it will not be caught by the recovery middleware, potentially crashing the entire application.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/middleware/logger.go</path>
+<side>right</side>
+<from>148</from>
+<to>152</to>
+<note>**[Performance]** The isLogProbeDisabled function performs a linear search (O(n)) over the probe paths for every incoming HTTP request. While the number of paths is currently small, this is executed in the hot path of every request. Converting the slice to a map would provide O(1) lookup performance.
+
+**[Maintainability and Readability]** The loop in isLogProbeDisabled contains a redundant check 'probes.Disabled' inside the loop. Since the function already returns false if !probes.Disabled at the start, this check is unnecessary and adds cognitive load.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/middleware/logger.go</path>
+<side>right</side>
+<from>149</from>
+<to>149</to>
+<note>The `isLogProbeDisabled` function performs a strict string equality check (`urlPath == path`) against the request path. If the application is deployed behind a proxy or uses path-based routing, an attacker might bypass this check using path traversal sequences (e.g., `/.well-known/../.well-known/health`) or URL encoding, potentially leading to log injection or information disclosure if the logging system is manipulated.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/http/middleware/logger.go</path>
+<side>right</side>
+<from>105</from>
+<to>109</to>
+<note>The logic for skipping logs is mixed directly into the main request handling flow. Extracting this into a clear 'shouldLog' predicate would improve readability of the Logging middleware.</note>
+</notesplit>

@@ -1,0 +1,35 @@
+<notesplit>
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>right</side>
+<from>47</from>
+<to>49</to>
+<note>The logic for the avatar checkbox is inverted. The UI label is 'Hide avatar', but the code appends '&visible_avatar=1' when the checkbox is checked. This means checking the box actually makes the avatar visible, which contradicts the label.</note>
+</notesplit>
+<notesplit>
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>right</side>
+<from>50</from>
+<to>52</to>
+<note>The generateIframeSrc function constructs a URL by concatenating query parameters without proper encoding. If 'locale' or other inputs are manipulated, this could lead to URL injection or XSS if the downstream consumer of this URL reflects these parameters unsafely. Always use encodeURIComponent for query parameter values.</note>
+</notesplit>
+<notesplit>
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>right</side>
+<from>45</from>
+<to>56</to>
+<note>The generateIframeSrc function is recreated on every render of the EmbedModal component. Since it is a simple derivation based on state, it should be memoized using useMemo to prevent unnecessary recalculations and potential downstream re-renders if the result is passed to child components.</note>
+</notesplit>
+<notesplit>
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>right</side>
+<from>45</from>
+<to>54</to>
+<note>The generateIframeSrc function manually constructs a URL string by concatenating query parameters. This is error-prone and hard to maintain as more parameters are added. Use the URLSearchParams API to handle parameter encoding and construction safely.</note>
+</notesplit>
+<notesplit>
+<path>web/src/components/api-service/embed-modal/index.tsx</path>
+<side>right</side>
+<from>80</from>
+<to>80</to>
+<note>The header 'Option' is singular, but the container holds multiple options. It should be pluralized to 'Options' for better semantic clarity.</note>
+</notesplit>

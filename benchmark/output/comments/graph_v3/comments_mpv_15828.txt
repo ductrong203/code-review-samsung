@@ -1,0 +1,44 @@
+<notesplit>
+<path>player/command.c</path>
+<side>right</side>
+<from>7708</from>
+<to>7720</to>
+<note>**[Performance]** The coalescing logic uses a nested loop pattern (implicit in the linear scan and potential array shifting) that performs O(n) array shifts inside a loop. While the number of callbacks is likely small, this is an inefficient way to manage a queue. A better approach is to use a hash map or a simple deduplication pass before appending to the array.
+
+**[Maintainability and Readability]** The loop logic for coalescing callbacks is complex and modifies the array while iterating, which is error-prone. The logic for shifting elements and updating the last index is non-obvious. It would be clearer to use a temporary buffer or a more standard filtering approach.</note>
+</notesplit>
+<notesplit>
+<path>player/command.c</path>
+<side>right</side>
+<from>7707</from>
+<to>7720</to>
+<note>The loop logic for coalescing callbacks is flawed. When a match is found and 'drop' becomes true, the loop continues to shift elements, but the 'drop' flag is never reset. This causes all subsequent elements in the array to be incorrectly dropped or overwritten, leading to data loss in the callback queue.</note>
+</notesplit>
+<notesplit>
+<path>player/command.c</path>
+<side>right</side>
+<from>7715</from>
+<to>7715</to>
+<note>The array shifting logic 'mpctx->option_callbacks[i] = mpctx->option_callbacks[i + 1]' does not decrement 'mpctx->num_option_callbacks'. This leaves the array in an inconsistent state where the last element is duplicated or contains stale data, and the count remains unchanged.</note>
+</notesplit>
+<notesplit>
+<path>player/command.c</path>
+<side>right</side>
+<from>7714</from>
+<to>7719</to>
+<note>The loop logic for coalescing option callbacks contains a potential out-of-bounds access or logic error. When 'drop' is true, the code shifts elements using 'mpctx->option_callbacks[i] = mpctx->option_callbacks[i + 1]'. If 'i' is the last element, 'i + 1' accesses memory outside the allocated array. Furthermore, the loop continues after shifting, which may lead to processing stale or uninitialized data.</note>
+</notesplit>
+<notesplit>
+<path>player/command.c</path>
+<side>right</side>
+<from>7707</from>
+<to>7707</to>
+<note>The variable 'drop' is used as a flag to trigger logic inside the loop, but it is not reset correctly for subsequent iterations if multiple items were to be processed. This makes the logic hard to reason about.</note>
+</notesplit>
+<notesplit>
+<path>player/playloop.c</path>
+<side>right</side>
+<from>125</from>
+<to>130</to>
+<note>The function 'handle_option_callbacks' lacks documentation regarding its side effects on the 'num_option_callbacks' counter and the order of execution, which is critical for maintaining the state of the player.</note>
+</notesplit>

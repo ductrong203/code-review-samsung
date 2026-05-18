@@ -1,0 +1,18 @@
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1512</from>
+<to>1515</to>
+<note>**[Performance]** The bufferStuckTimer is created inside flushBuffer, which can be called frequently. If flushBuffer is invoked multiple times in rapid succession, multiple timers will be created without clearing the previous one, leading to potential memory leaks and incorrect telemetry events.
+
+**[Maintainability and Readability]** The bufferStuckTimer is created inside flushBuffer but is not cleared if flushBuffer is called again before the timer expires. This can lead to multiple overlapping timers and incorrect telemetry events.
+
+**[Code Defect]** The bufferStuckTimer is started inside flushBuffer but is not cleared if flushBuffer is called again while a previous chunk is still being processed (chunkEnroute is true). This can lead to multiple overlapping timers and incorrect telemetry events.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/terminal/TerminalProcess.ts</path>
+<side>right</side>
+<from>198</from>
+<to>203</to>
+<note>The logic for checking terminal snapshots after a failure is duplicated in both the shell integration fallback block and the non-shell integration block. This should be extracted into a helper method to improve maintainability.</note>
+</notesplit>

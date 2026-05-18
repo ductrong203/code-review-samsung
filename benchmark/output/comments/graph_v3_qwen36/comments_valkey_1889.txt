@@ -1,0 +1,37 @@
+<notesplit>
+<path>src/networking.c</path>
+<side>right</side>
+<from>2769</from>
+<to>2784</to>
+<note>**[Code Defect]** The non-printable character replacement loop is now inside the `else` block. When `server.hide_user_data_from_log` is true, `buf` is set to "*redacted*" but the loop that sanitizes it is skipped. While "*redacted*" contains no non-printable chars, this is a logic defect: the sanitization logic is no longer universally applied to the buffer content. If the redacted string were to change to include control characters, they would be logged. More critically, if the `if` branch were to be modified to include user data later, the sanitization would be missing.
+
+**[Maintainability and Readability]** The non-printable character removal logic is duplicated inside the `else` block. Since the `if (server.hide_user_data_from_log)` branch does not modify `buf` after the initial `snprintf`, the cleanup loop is redundant there. Moving this loop outside the `if/else` structure reduces code duplication and ensures consistent behavior for both redacted and non-redacted logs.</note>
+</notesplit>
+<notesplit>
+<path>src/networking.c</path>
+<side>right</side>
+<from>2771</from>
+<to>2771</to>
+<note>The code uses `snprintf` with `%s` format specifier on `c->querybuf + c->qb_pos`. While the buffer `buf` is fixed-size (256 bytes), `snprintf` truncates output, preventing a buffer overflow. However, if the query buffer contains binary data or null bytes, `snprintf` with `%s` will stop at the first null byte, potentially logging incomplete data. More critically, if `c->querybuf` is not null-terminated (which `sds` strings are, but relying on pointer arithmetic `c->querybuf + c->qb_pos` assumes validity), it could lead to reading out of bounds if `qb_pos` is invalid. The primary risk here is information disclosure if the redaction logic fails or is bypassed, but the current change actually mitigates this by adding redaction. The remaining non-redacted path still exposes raw user input in logs, which is a privacy/compliance issue (A09 Logging Failures).</note>
+</notesplit>
+<notesplit>
+<path>src/networking.c</path>
+<side>right</side>
+<from>2773</from>
+<to>2775</to>
+<note>In the else-if branch for large query buffers, the code logs both the beginning and end of the buffer. The format string uses `%.*s` which is safer than `%s`, but it still exposes raw user data to logs. This is a privacy/compliance violation (A09 Logging Failures) where sensitive user data (PII, credentials) might be written to log files. The fix is to ensure this path is also covered by the `hide-user-data-from-log` check or to sanitize the output.</note>
+</notesplit>
+<notesplit>
+<path>src/networking.c</path>
+<side>right</side>
+<from>2778</from>
+<to>2783</to>
+<note>The loop iterating over the buffer to replace non-printable characters is now executed inside the `else` branch of the `hide_user_data_from_log` check. Previously, this loop was always executed. While this change reduces work when redaction is enabled, it introduces a branch misprediction penalty in the common case where data is logged. More importantly, if `hide_user_data_from_log` is false, the loop runs on the potentially large `buf` array. If `buf` is large, this is an O(N) operation on every protocol error. Consider if this transformation is necessary for every error or if it can be deferred or optimized.</note>
+</notesplit>
+<notesplit>
+<path>src/networking.c</path>
+<side>right</side>
+<from>2768</from>
+<to>2768</to>
+<note>The string literal "*redacted*" uses asterisks which might be interpreted as formatting markers in some log aggregators or parsers. Consider using a more neutral string like "[REDACTED]" or "<redacted>" for better clarity and compatibility with log analysis tools.</note>
+</notesplit>

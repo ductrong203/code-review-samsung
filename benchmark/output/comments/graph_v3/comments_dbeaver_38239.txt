@@ -1,0 +1,35 @@
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/navigator/DBNDatabaseNode.java</path>
+<side>right</side>
+<from>730</from>
+<to>730</to>
+<note>The code casts childItem to DBSObject before checking if it is an instance of DBPOverloadedObject. While this is safe if all childItems are DBSObjects, the logic for filtering is now split. If childItem is not a DBSObject, the code will throw a ClassCastException. The original code also performed this cast, but the new logic introduces a potential null pointer or type mismatch if the collection contains non-DBSObject items.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/struct/DBSObjectFilter.java</path>
+<side>right</side>
+<from>190</from>
+<to>214</to>
+<note>The implementation of matchesAny is a near-duplicate of the existing matches method. This violates the DRY principle. The logic should be unified into a single method that handles both single and multiple names.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/struct/DBSObjectFilter.java</path>
+<side>right</side>
+<from>216</from>
+<to>219</to>
+<note>The use of Arrays.stream().anyMatch() inside a hot path (navigator object filtering) creates unnecessary stream objects and lambda overhead for every object check. Since the input array 'names' is typically very small (usually 1-2 elements), a simple for-loop is significantly more performant.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/navigator/DBNDatabaseNode.java</path>
+<side>right</side>
+<from>729</from>
+<to>736</to>
+<note>The logic for checking filter matches is duplicated and slightly complex. It can be simplified by delegating the decision to the filter object itself or by using a unified interface, reducing the need for explicit instanceof checks in the node class.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/struct/DBSObjectFilter.java</path>
+<side>right</side>
+<from>217</from>
+<to>218</to>
+<note>The method atLeastOneNameMatchesPattern uses Arrays.stream(names).anyMatch(...). If the 'names' array passed to matchesAny contains null elements, the stream will pass null to matchesPattern, which likely does not handle null inputs, leading to a NullPointerException.</note>
+</notesplit>

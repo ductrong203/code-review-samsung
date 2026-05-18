@@ -1,0 +1,135 @@
+<notesplit>
+<path>src/Functions/array/arrayAggregation.cpp</path>
+<side>right</side>
+<from>482</from>
+<to>482</to>
+<note>**[Code Defect]** In the documentation for `FunctionArrayMax`, the `returned_value` incorrectly states 'returns the minimum element of the lambda results'. It should state 'returns the maximum element of the lambda results'. This is a documentation defect that misleads users about the function's behavior.
+
+**[Maintainability and Readability]** Inconsistent parameter naming in syntax string: `arrayMax` syntax uses `source_arr` but the description and arguments use `source_arr`. However, the `returned_value` description for `arrayMax` says 'minimum element' instead of 'maximum element'. This is a copy-paste error in the documentation text that contradicts the function name and purpose.
+
+**[Security Vulnerability]** Documentation mismatch: The returned value description for arrayMax says 'minimum element' instead of 'maximum element'. This is a documentation error that could mislead users about the function's behavior. Fix: Change 'minimum' to 'maximum' in the returned value string.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayAggregation.cpp</path>
+<side>right</side>
+<from>498</from>
+<to>498</to>
+<note>**[Code Defect]** In the documentation for `FunctionArraySum`, the `syntax` string incorrectly uses `arrayMax` instead of `arraySum`. The syntax should be `arrayMax([func(x[, y1, ..., yN])], source_arr[, cond1_arr, ... , condN_arr])` -> `arraySum([func(x[, y1, ..., yN])], source_arr[, cond1_arr, ... , condN_arr])`. This is a copy-paste error.
+
+**[Maintainability and Readability]** Syntax string for `arraySum` incorrectly uses `arrayMax` syntax: `arrayMax([func(x[, y1, ..., yN])], source_arr[, cond1_arr, ... , condN_arr])`. This is a copy-paste error from the `arrayMax` documentation block.
+
+**[Security Vulnerability]** Documentation mismatch: The syntax for arraySum uses 'arrayMax' instead of 'arraySum'. This is a documentation error that could mislead users about the correct function name to use, potentially causing SQL errors or confusion. Fix: Change 'arrayMax' to 'arraySum' in the syntax string.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayFirstLast.cpp</path>
+<side>right</side>
+<from>253</from>
+<to>253</to>
+<note>**[Code Defect]** In the documentation for `FunctionArrayLast`, the `syntax` string uses `source` and `cond1` instead of the consistent `source_arr` and `cond1_arr` naming convention used in other functions in this PR. This inconsistency can confuse users.
+
+**[Maintainability and Readability]** Inconsistent parameter naming: `arrayLast` syntax uses `source` while other functions use `source_arr`. Also, the example for `arrayLast` 'No match' case incorrectly calls `arrayFirst` instead of `arrayLast`.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayFirstLast.cpp</path>
+<side>right</side>
+<from>256</from>
+<to>257</to>
+<note>**[Code Defect]** In the documentation for `FunctionArrayLast`, the `arguments` for `source` uses `source` instead of `source_arr`, and `cond1` instead of `cond1_arr`. This is inconsistent with other functions.
+
+**[Maintainability and Readability]** Inconsistent parameter naming: `arrayLast` arguments use `source` and `cond1` while other functions use `source_arr` and `cond1_arr`. This inconsistency makes the documentation harder to read and maintain.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayFirstLast.cpp</path>
+<side>right</side>
+<from>262</from>
+<to>266</to>
+<note>**[Code Defect]** In the `examples` for `FunctionArrayLast`, the 'No match' example query uses `arrayFirst` instead of `arrayLast`. This is a copy-paste error from the `arrayFirst` documentation block above.
+
+**[Maintainability and Readability]** The example for `arrayLast` 'No match' case incorrectly uses `arrayFirst` in the SQL query instead of `arrayLast`. This is a copy-paste error.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayFirstLastIndex.cpp</path>
+<side>right</side>
+<from>165</from>
+<to>166</to>
+<note>**[Maintainability and Readability]** Missing documentation registration: `FunctionArrayLastIndex` is not registered with documentation. The code only registers `FunctionArrayFirstIndex` with documentation, but `FunctionArrayLastIndex` is registered without it.
+
+**[Code Defect]** In the documentation for `FunctionArrayLastIndex`, the `factory.registerFunction` call is missing the `documentation_last` argument. It still uses the old style `factory.registerFunction<FunctionArrayLastIndex>();` without passing the newly created documentation object. This means the documentation is not actually registered for `arrayLastIndex`.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayFirstLast.cpp</path>
+<side>right</side>
+<from>264</from>
+<to>264</to>
+<note>Documentation mismatch: The example for arrayLast uses 'arrayFirst' instead of 'arrayLast'. This is a documentation error that could mislead users about the correct function name to use. Fix: Change 'arrayFirst' to 'arrayLast' in the example query.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayAggregation.cpp</path>
+<side>right</side>
+<from>449</from>
+<to>453</to>
+<note>The description string for arrayMin contains trailing whitespace inside the raw string literal (R"(...)"). This results in unnecessary memory allocation and storage of whitespace characters in the documentation metadata, slightly increasing memory footprint and potential serialization overhead.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayAggregation.cpp</path>
+<side>right</side>
+<from>471</from>
+<to>475</to>
+<note>The description string for arrayMax contains trailing whitespace inside the raw string literal. This causes unnecessary memory allocation for whitespace characters in the documentation metadata.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayAggregation.cpp</path>
+<side>right</side>
+<from>493</from>
+<to>497</to>
+<note>The description string for arraySum contains trailing whitespace inside the raw string literal. This causes unnecessary memory allocation for whitespace characters in the documentation metadata.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayAggregation.cpp</path>
+<side>right</side>
+<from>515</from>
+<to>519</to>
+<note>The description string for arrayAvg contains trailing whitespace inside the raw string literal. This causes unnecessary memory allocation for whitespace characters in the documentation metadata.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayFirstLast.cpp</path>
+<side>right</side>
+<from>228</from>
+<to>230</to>
+<note>The description string for arrayFirstOrNull contains trailing whitespace inside the raw string literal. This causes unnecessary memory allocation for whitespace characters in the documentation metadata.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayFirstLast.cpp</path>
+<side>right</side>
+<from>250</from>
+<to>252</to>
+<note>The description string for arrayLast contains trailing whitespace inside the raw string literal. This causes unnecessary memory allocation for whitespace characters in the documentation metadata.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayFirstLast.cpp</path>
+<side>right</side>
+<from>275</from>
+<to>277</to>
+<note>The description string for arrayLastOrNull contains trailing whitespace inside the raw string literal. This causes unnecessary memory allocation for whitespace characters in the documentation metadata.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayFirstLastIndex.cpp</path>
+<side>right</side>
+<from>128</from>
+<to>130</to>
+<note>The description string for arrayFirstIndex contains trailing whitespace inside the raw string literal. This causes unnecessary memory allocation for whitespace characters in the documentation metadata.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayFirstLastIndex.cpp</path>
+<side>right</side>
+<from>148</from>
+<to>150</to>
+<note>The description string for arrayLastIndex contains trailing whitespace inside the raw string literal. This causes unnecessary memory allocation for whitespace characters in the documentation metadata.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/array/arrayAll.cpp</path>
+<side>right</side>
+<from>66</from>
+<to>68</to>
+<note>The description string for arrayAll contains trailing whitespace inside the raw string literal. This causes unnecessary memory allocation for whitespace characters in the documentation metadata.</note>
+</notesplit>

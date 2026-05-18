@@ -1,0 +1,90 @@
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>82</from>
+<to>85</to>
+<note>**[Performance]** The offsets `str1_offset` and `str2_offset` are extracted from the first row of the column (index 0) and used for all rows. If these are non-constant columns, the offsets will be incorrect for rows other than the first, leading to incorrect results. Even if intended as constants, this pattern prevents vectorization and fails for variable offsets. This is a logic error that likely causes incorrect performance or results.
+
+**[Maintainability and Readability]** In `executeImpl`, the variables `str1_offset` and `str2_offset` are extracted from the column at index 0. If the column is not constant (e.g., it's a regular column with varying offsets per row), this code only reads the first row's value. This leads to incorrect behavior for non-constant offset arguments, which is a significant maintainability and correctness issue in the logic structure.</note>
+</notesplit>
+<notesplit>
+<path>docs/en/sql-reference/functions/string-functions.md</path>
+<side>right</side>
+<from>2549</from>
+<to>2549</to>
+<note>**[Security Vulnerability]** Typo in documentation: `stringComare` should be `stringCompare`. This is a documentation error, not a code vulnerability, but it misleads users.
+
+**[Maintainability and Readability]** Typo in the function name in the syntax definition: 'stringComare' is missing a 'p'. It should be 'stringCompare'. This will confuse users trying to use the function based on the documentation.
+
+**[Code Defect]** Typo in the syntax definition: `stringComare` should be `stringCompare`. This will cause users to use the wrong function name if they copy-paste from the docs.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>82</from>
+<to>83</to>
+<note>The code extracts `str1_offset` and `str2_offset` from `arguments[2]` and `arguments[3]` respectively. However, these arguments are only present when `arguments.size() > 2` (i.e., 5 arguments total). If the function is called with 2 arguments, `arguments[2]` and `arguments[3]` do not exist, leading to an out-of-bounds access and a crash. The condition `arguments.size() > 2` is incorrect; it should be `arguments.size() > 4` to check for the presence of the 3 optional arguments.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>85</from>
+<to>85</to>
+<note>The code extracts `num_bytes` from `arguments[4]` using the condition `arguments.size() > 2`. This is incorrect because `arguments[4]` only exists when there are 5 arguments. With only 2 arguments, this causes an out-of-bounds access and crash. It should check `arguments.size() > 4`.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>85</from>
+<to>88</to>
+<note>Off-by-one error in offset validation allows reading one byte past the string's valid data. The code checks `if (str1_offset >= str1.size())` but should check `if (str1_offset >= str1.size() - 1)` or similar to prevent accessing `str1.data()[str1.size()]` which is the null terminator or out-of-bounds depending on implementation. This can lead to information disclosure or crashes.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>90</from>
+<to>93</to>
+<note>Potential out-of-bounds read in `executeStringString`. The loop `for (size_t i = 0; i < num_bytes; ++i)` does not check if `str1_offset + i` or `str2_offset + i` exceeds the string size before accessing `str1.getChars()[str1_offset + i]`. If `num_bytes` is large, this reads past the string buffer.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>100</from>
+<to>103</to>
+<note>Integer overflow in `num_bytes` calculation. `num_bytes` is `size_t`. If `str1_offset + num_bytes` overflows, it wraps around, potentially causing a very large loop or incorrect logic. While `num_bytes` comes from a UInt argument, the addition `str1_offset + num_bytes` can overflow if `str1_offset` is large.</note>
+</notesplit>
+<notesplit>
+<path>docs/en/sql-reference/functions/string-functions.md</path>
+<side>right</side>
+<from>2554</from>
+<to>2558</to>
+<note>Inconsistent naming in the Arguments section: 'string1_offset' is used in the description but 'str1_off' was used in the (typoed) syntax. The parameter name in the syntax should match the argument name 'string1_offset' for clarity and consistency.</note>
+</notesplit>
+<notesplit>
+<path>docs/en/sql-reference/functions/string-functions.md</path>
+<side>right</side>
+<from>2558</from>
+<to>2558</to>
+<note>The description for `num_bytes` references `string_offset` which is not a defined parameter. It should reference `string1_offset` and `string2_offset` to be accurate.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>86</from>
+<to>89</to>
+<note>Magic number `0` is used for `num_bytes` check without a clear comment explaining why 0 bytes results in inserting 0s (or what the semantic meaning is). While likely correct, it lacks explanatory context.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>95</from>
+<to>110</to>
+<note>The `executeImpl` function uses a large chain of `if-else` statements to dispatch to specific execution functions based on column types. This creates a static dispatch table that is evaluated for every call. While not O(N), it adds overhead. More importantly, if the column types are not constant across calls, the JIT/compiler cannot optimize the dispatch. A better approach for high-performance functions is to use a virtual table or template specialization based on the argument types at compile time, or at least cache the dispatch decision if the types are known to be stable.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>288</from>
+<to>319</to>
+<note>In `executeStringString`, the loop iterates over rows and calls `memcmpSmallLikeZeroPaddedAllowOverflow15` for each row. If `num_bytes` is large, this could be a bottleneck. However, the function uses `memcmpSmallLikeZeroPaddedAllowOverflow15` which is optimized for small sizes. For large sizes, consider using `std::memcmp` or a SIMD-optimized comparison if available. Also, ensure that `getChars` and `getOffsets` are efficient.</note>
+</notesplit>

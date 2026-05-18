@@ -1,0 +1,93 @@
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/lucene/search/uhighlight/QueryMaxAnalyzedOffset.java</path>
+<side>right</side>
+<from>20</from>
+<to>25</to>
+<note>**[Code Defect]** The `create` method in `QueryMaxAnalyzedOffset` does not validate the `indexMaxAnalyzedOffset` parameter. If `indexMaxAnalyzedOffset` is negative (e.g., -1), and the query max is also negative (triggering the fallback), the resulting `QueryMaxAnalyzedOffset` will hold a negative value. Subsequent calls to `getNotNull()` will return this negative value, which is likely invalid for offset limits and may cause unexpected behavior or errors in downstream code like `LimitedOffsetsEnum`.
+
+**[Maintainability and Readability]** The `create` method parameter `queryMaxAnalyzedOffset` is an `Integer` (nullable), but the internal field is `int` (primitive). The method name `create` is generic and doesn't convey that it resolves the value. Consider renaming the method to `resolve` or `createResolved` and renaming the parameter to `inputQueryMaxAnalyzedOffset` for clarity. This makes the transformation logic (null check, negative check) more explicit.
+
+**[Performance]** The `create` method instantiates a new `QueryMaxAnalyzedOffset` object for every highlight request. Since this object is a simple value holder used in hot paths (highlighting), creating a new object per request adds unnecessary allocation overhead. Consider using a cached instance or a primitive `int` with a sentinel value (e.g., -1) to avoid allocation.
+
+**[Security Vulnerability]** The `create` method in `QueryMaxAnalyzedOffset` allows a negative value (-1) to default to the index's `maxAnalyzedOffset`. If an attacker can control the query parameter `max_analyzed_offset` and set it to -1, they can effectively bypass any query-level limit and rely on the index setting. If the index setting is misconfigured or too high, this could lead to resource exhaustion (DoS) by processing excessively large fields. This is a potential DoS vector.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/lucene/search/uhighlight/CustomUnifiedHighlighter.java</path>
+<side>right</side>
+<from>128</from>
+<to>130</to>
+<note>**[Code Defect]** In `CustomUnifiedHighlighter`, the condition `queryMaxAnalyzedOffset.getNotNull() > maxAnalyzedOffset` is used. If `queryMaxAnalyzedOffset` was created with a negative value (due to the bug in `QueryMaxAnalyzedOffset.create`), `getNotNull()` returns a negative number. A negative number is never greater than a positive `maxAnalyzedOffset`, so the check `queryMaxAnalyzedOffset.getNotNull() > maxAnalyzedOffset` will be false. This might bypass the intended length check if the logic relies on this comparison to decide whether to throw an exception. However, the primary defect is in `QueryMaxAnalyzedOffset`. This line is safe from a crash perspective but logically incorrect if the input is invalid.
+
+**[Performance]** The condition `queryMaxAnalyzedOffset.getNotNull() > maxAnalyzedOffset` calls `getNotNull()` on every evaluation. If `queryMaxAnalyzedOffset` was previously checked for null, this is redundant. More importantly, if this check is performed repeatedly in a loop or for many fields, the method call overhead (though small) combined with the object allocation from `create` contributes to GC pressure. Refactoring to use primitives would eliminate this.
+
+**[Security Vulnerability]** The condition `queryMaxAnalyzedOffset.getNotNull() > maxAnalyzedOffset` checks if the query limit is higher than the index limit. If the query limit is -1 (defaulting to index limit), `getNotNull()` returns the index limit, so the condition becomes `indexLimit > indexLimit`, which is false. This means the check `fieldValueLength > maxAnalyzedOffset` will still trigger if the field exceeds the index limit. However, if `queryMaxAnalyzedOffset` is null, it also skips the check. This logic seems consistent, but the use of `getNotNull()` on a potentially null object (though guarded by `queryMaxAnalyzedOffset == null` check in the OR) is safe. The real issue is if `queryMaxAnalyzedOffset` is -1, it defaults to index limit, which might be large, allowing large fields to be processed, leading to DoS.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/lucene/search/uhighlight/QueryMaxAnalyzedOffset.java</path>
+<side>right</side>
+<from>12</from>
+<to>12</to>
+<note>The class name 'QueryMaxAnalyzedOffset' is misleading. The class does not store the query's max analyzed offset directly; instead, it stores the *effective* max analyzed offset (which might be the index setting if the query value is -1). A name like 'EffectiveMaxAnalyzedOffset' or 'ResolvedMaxAnalyzedOffset' would better reflect its actual responsibility and state, reducing cognitive load for maintainers.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/lucene/search/uhighlight/CustomFieldHighlighter.java</path>
+<side>right</side>
+<from>115</from>
+<to>117</to>
+<note>**[Code Defect]** In `CustomFieldHighlighter.highlightOffsetsEnums`, if `queryMaxAnalyzedOffset` is not null, it calls `queryMaxAnalyzedOffset.getNotNull()`. If `QueryMaxAnalyzedOffset` was created with a negative value (due to the bug in `create`), this negative value is passed to `LimitedOffsetsEnum`. This could cause `LimitedOffsetsEnum` to behave incorrectly or throw an error if it expects a non-negative offset limit.
+
+**[Performance]** Calling `queryMaxAnalyzedOffset.getNotNull()` inside the highlight loop creates method call overhead. Since this is a hot path for text highlighting, reducing object interactions is beneficial. The wrapper class `QueryMaxAnalyzedOffset` adds indirection that can be removed by using a primitive `int` with a sentinel value.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/fetch/subphase/highlight/DefaultHighlighter.java</path>
+<side>right</side>
+<from>193</from>
+<to>198</to>
+<note>**[Code Defect]** In `DefaultHighlighter.wrapAnalyzer`, if `maxAnalyzedOffset` is not null, it calls `maxAnalyzedOffset.getNotNull()`. If `QueryMaxAnalyzedOffset` was created with a negative value (due to the bug in `create`), this negative value is passed to `LimitTokenOffsetAnalyzer`. This could cause `LimitTokenOffsetAnalyzer` to behave incorrectly or throw an error if it expects a non-negative offset limit.
+
+**[Performance]** The `wrapAnalyzer` method calls `maxAnalyzedOffset.getNotNull()` which involves method dispatch on an object. In the hot path of highlighting, eliminating this object wrapper and using a primitive `int` with a sentinel value (-1) would reduce allocation and method call overhead.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/fetch/subphase/highlight/PlainHighlighter.java</path>
+<side>right</side>
+<from>249</from>
+<to>254</to>
+<note>**[Code Defect]** In `PlainHighlighter.wrapAnalyzer`, if `maxAnalyzedOffset` is not null, it calls `maxAnalyzedOffset.getNotNull()`. If `QueryMaxAnalyzedOffset` was created with a negative value (due to the bug in `create`), this negative value is passed to `LimitTokenOffsetAnalyzer`. This could cause `LimitTokenOffsetAnalyzer` to behave incorrectly or throw an error if it expects a non-negative offset limit.
+
+**[Performance]** Similar to other highlighters, `PlainHighlighter.wrapAnalyzer` calls `maxAnalyzedOffset.getNotNull()`. This method call overhead on an object wrapper in a hot path can be eliminated by using a primitive `int` with a sentinel value (-1).</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/lucene/search/uhighlight/QueryMaxAnalyzedOffset.java</path>
+<side>right</side>
+<from>13</from>
+<to>13</to>
+<note>The field name `queryMaxAnalyzedOffset` is misleading because, as seen in the `create` method, it may store the `indexMaxAnalyzedOffset` value when the input is negative. This inconsistency between the field name and its actual content makes the code harder to understand and debug. Renaming it to `resolvedMaxAnalyzedOffset` would clarify its purpose.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/lucene/search/uhighlight/QueryMaxAnalyzedOffset.java</path>
+<side>right</side>
+<from>12</from>
+<to>30</to>
+<note>The entire `QueryMaxAnalyzedOffset` class lacks JavaDoc documentation. Given its role in resolving max analyzed offsets with special logic for negative values, documenting the class, its constructor, and methods would significantly improve maintainability and help developers understand the intended behavior without reading the implementation details.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/search/fetch/subphase/highlight/AbstractHighlighterBuilder.java</path>
+<side>right</side>
+<from>568</from>
+<to>570</to>
+<note>The validation logic for maxAnalyzedOffset allows 0 to be rejected but does not explicitly handle the case where 0 is passed as a valid positive integer in some contexts, or conversely, the logic `maxAnalyzedOffset < -1 || maxAnalyzedOffset == 0` might be too permissive or restrictive depending on business logic. However, the primary security concern here is that allowing -1 to default to index settings introduces a configuration dependency that could lead to unexpected behavior if index settings are changed, potentially bypassing intended query-level limits. This is a logic flaw rather than a direct injection or auth bypass.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/lucene/search/uhighlight/QueryMaxAnalyzedOffset.java</path>
+<side>right</side>
+<from>15</from>
+<to>18</to>
+<note>The constructor parameter `queryMaxAnalyzedOffset` shadows the field name (before rename) and is confusing. It should be renamed to `inputQueryMaxAnalyzedOffset` or similar to distinguish the input argument from the resolved value stored in the instance. This improves clarity for anyone reading the constructor logic.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/lucene/search/uhighlight/QueryMaxAnalyzedOffset.java</path>
+<side>right</side>
+<from>27</from>
+<to>29</to>
+<note>The method name `getNotNull` is unclear and potentially misleading. It suggests it's a null-safety getter, but it simply returns the resolved value. A name like `getValue` or `getResolvedMaxAnalyzedOffset` would be more descriptive and consistent with standard Java naming conventions for getters.</note>
+</notesplit>

@@ -1,0 +1,30 @@
+<notesplit>
+<path>examples/http-server-using-redis/main_test.go</path>
+<side>right</side>
+<from>97</from>
+<to>97</to>
+<note>The original code used 'httpPort' (an integer) in a formatted string. The new code uses 'configs.HTTPHost', which is already a full URL string (e.g., 'http://localhost:1234'). Concatenating 'http://localhost:' with a full URL results in an invalid URL like 'http://localhost:http://localhost:1234/handle'.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/gofr_test.go</path>
+<side>right</side>
+<from>833</from>
+<to>833</to>
+<note>The code uses 'fmt.Sprintf("http://localhost:%s", configs.HTTPHost)'. Since 'configs.HTTPHost' is already a full URL (e.g., 'http://localhost:1234'), this results in an invalid URL like 'http://localhost:http://localhost:1234'.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/config/godotenv_test.go</path>
+<side>right</side>
+<from>94</from>
+<to>97</to>
+<note>**[Maintainability and Readability]** Swallowing an error from os.Setenv is bad practice. While unlikely to fail in a test environment, it hides potential issues with the environment setup. If it fails, the test should fail explicitly.
+
+**[Security Vulnerability]** The error returned by os.Setenv is ignored. While this is a test file, failing to set an environment variable can lead to silent test failures or incorrect test configurations, potentially masking security-related environment settings.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/file/sftp/fs.go</path>
+<side>right</side>
+<from>221</from>
+<to>226</to>
+<note>The loop creates a new slice and performs an element-by-element copy. This is redundant as the slice can be converted or assigned directly, avoiding unnecessary memory allocation and iteration overhead.</note>
+</notesplit>

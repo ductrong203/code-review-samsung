@@ -1,0 +1,20 @@
+<notesplit>
+<path>src/Processors/Executors/PipelineExecutor.cpp</path>
+<side>right</side>
+<from>385</from>
+<to>389</to>
+<note>**[Code Defect]** The use of std::adopt_lock with a default-constructed std::mutex (spawn_lock) that was not previously locked is undefined behavior. std::adopt_lock assumes the mutex is already locked by the caller. Since spawn_lock was just checked via try_lock, the lock should be acquired using a standard lock_guard or unique_lock without adopt_lock.
+
+**[Performance]** The use of std::mutex::try_lock inside spawnThreads creates a potential contention point if multiple threads attempt to spawn simultaneously. While it prevents redundant spawning, it introduces a lock acquisition overhead in a hot path. Consider using a std::atomic_flag with test_and_set for a lock-free approach to the spawn lock.
+
+**[Maintainability and Readability]** The 'spawnThreads' method uses a mutex 'spawn_lock' to ensure only one thread spawns others. However, the implementation splits logic into 'spawnThreads' and 'spawnThreadsImpl'. This adds unnecessary indirection and complexity to the execution flow. The locking logic could be simplified by keeping the implementation within a single method or using a more idiomatic concurrency pattern.
+
+**[Security Vulnerability]** The use of `std::mutex::try_lock` followed by `std::lock_guard` with `std::adopt_lock` is redundant and potentially dangerous. If `try_lock` succeeds, the mutex is locked; `std::adopt_lock` assumes the mutex is already locked by the current thread. However, if the logic is intended to prevent concurrent spawning, a simple `std::unique_lock` with `try_to_lock` is the standard, safer pattern to avoid potential deadlocks or ownership mismatches.</note>
+</notesplit>
+<notesplit>
+<path>src/Processors/Executors/ExecutorTasks.h</path>
+<side>right</side>
+<from>52</from>
+<to>52</to>
+<note>The constant 'TOO_MANY_IDLE_THRESHOLD' is defined as a magic number with a comment 'found by rolling dice'. This lacks technical justification and makes the threshold difficult to tune or understand in different deployment environments. It should be configurable or documented with a clear performance rationale.</note>
+</notesplit>

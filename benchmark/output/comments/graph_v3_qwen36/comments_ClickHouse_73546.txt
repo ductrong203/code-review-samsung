@@ -1,0 +1,70 @@
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueIFileMetadata.cpp</path>
+<side>right</side>
+<from>267</from>
+<to>269</to>
+<note>In ObjectStorageQueueIFileMetadata::resetProcessing, the SCOPE_EXIT block calls file_status->reset() which is intended to clean up state. However, if the subsequent logic throws an exception (e.g., LOGICAL_ERROR for missing processing_id_version), the function exits via exception, but the SCOPE_EXIT block has already executed. More critically, if the logic proceeds to the ZooKeeper operations and fails with a LOGICAL_ERROR at the end, the SCOPE_EXIT has already run. The main issue is that if an exception is thrown before the SCOPE_EXIT block is fully entered or if the SCOPE_EXIT logic is flawed relative to the new flow. Actually, the bigger bug is that `file_status->reset()` is called in the SCOPE_EXIT, but if the function throws an exception later, the state might be inconsistent or the reset might happen at the wrong time. Wait, SCOPE_EXIT runs on scope exit. If an exception is thrown, it runs. This seems correct for cleanup. However, looking at the old code, `resetProcessingImpl` was virtual and not implemented in the base class, but `resetProcessing` called it. Now `resetProcessing` is implemented in the base class. The `file_status->reset()` call inside SCOPE_EXIT might be redundant or incorrect if `resetProcessing` is meant to just clean up ZK nodes. Let's look closer. The old code: `resetProcessingImpl(); file_status->reset();`. The new code puts `file_status->reset()` in SCOPE_EXIT. If `resetProcessingImpl` (now inline logic) throws, `file_status->reset()` still runs. This is likely fine. BUT, look at line 264: `if (state != FileStatus::State::Processing) throw ...`. This is before the SCOPE_EXIT. So if state is wrong, it throws, SCOPE_EXIT doesn't run. This is correct. The real issue is likely in `setFailed`.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueIFileMetadata.cpp</path>
+<side>right</side>
+<from>367</from>
+<to>370</to>
+<note>In ObjectStorageQueueIFileMetadata::setFailed, the `else` block calls `resetProcessing()` when `reduce_retry_count` is false. However, `resetProcessing()` is designed to reset the processing state (remove ZK nodes). If the file is being set as failed (non-retriable if retries exhausted, or retriable), calling `resetProcessing()` might interfere with the intended state transition. Specifically, if `reduce_retry_count` is false, it implies we want to keep the retry count or reset it? The logic `if (reduce_retry_count) { ... } else { resetProcessing(); }` suggests that if we are NOT reducing retry count, we reset processing. This seems inverted or incorrect. Usually, if a file fails and we are NOT reducing retry count (meaning we want to retry), we might want to reset the processing state so it can be picked up again. But `resetProcessing` removes the processing node. If the file is in `Failed` state, removing the processing node is correct. However, the `file_status->onFailed` is called AFTER this block. If `resetProcessing` throws, `onFailed` is not called. This is a control flow issue.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>right</side>
+<from>474</from>
+<to>524</to>
+<note>In ObjectStorageQueueSource::generateImpl, the cancellation and shutdown logic has been duplicated for both `isCancelled()` and `shutdown_called` paths. This duplication increases the code size and maintenance burden, and potentially the CPU cycles spent in the hot path due to redundant checks and logic execution. The logic for handling unfinished files is repeated almost verbatim.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>right</side>
+<from>487</from>
+<to>488</to>
+<note>In ObjectStorageQueueSource::generateImpl, when `isCancelled()` is true, the code checks if there are unfinished files. If `processed_files` is empty or the last file is not Processing, it breaks. Otherwise, it marks the file as Cancelled and throws. However, `processed_files` is a vector of `ProcessedFile`. The check `processed_files.back().state != FileState::Processing` is correct. But if `processed_files` is empty, `processed_files.back()` is undefined behavior. The code checks `processed_files.empty()` first, so it's safe. Wait, `if (processed_files.empty() || processed_files.back().state != FileState::Processing)`. If empty, it short-circuits. So it's safe. The issue is that `reader` might be null. The code checks `if (reader)` later. But in the `isCancelled` block, it does `if (reader) reader->cancel();`. This is safe. The real issue is that `processed_files` might not contain the file being processed if the logic is flawed. But looking at the diff, the main change is moving the cancellation logic. The `chassert` at line 483 `chassert(started_file->getFileStatus()->processed_rows > 0)` might fail if a file is cancelled before any rows are read. This is a potential crash.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>right</side>
+<from>509</from>
+<to>512</to>
+<note>Similar to the previous issue, in the `shutdown_called` block, there is a `chassert(started_file->getFileStatus()->processed_rows > 0)`. If the table is being dropped and the file has 0 processed rows, this will crash. The code should handle the case where no rows have been processed yet.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueIFileMetadata.cpp</path>
+<side>right</side>
+<from>267</from>
+<to>314</to>
+<note>In ObjectStorageQueueIFileMetadata::resetProcessing, the SCOPE_EXIT block calls file_status->reset() if an exception is thrown during the ZooKeeper operations. However, if the ZooKeeper operations succeed (code == ZOK), the function returns early, and the SCOPE_EXIT block is not executed. This means that if the ZooKeeper operations succeed, the file_status is not reset, potentially leaving it in an inconsistent state. This could lead to issues where the file is not properly marked as non-processing, causing retries or other state-related issues.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>right</side>
+<from>566</from>
+<to>568</to>
+<note>In ObjectStorageQueueSource::generateImpl, the code now emplaces a ProcessedFile into processed_files vector inside the loop. If this loop runs many times, repeated emplace_back calls on the vector may cause reallocations. While not a critical issue, ensuring the vector has sufficient capacity beforehand could improve performance.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>right</side>
+<from>489</from>
+<to>494</to>
+<note>In ObjectStorageQueueSource::generateImpl, when a query is cancelled, the code marks the file as 'Cancelled' and throws an exception. However, it does not call setFailed() or update the ZooKeeper state to reflect this cancellation. This leaves the file in an inconsistent state in the queue metadata (ZooKeeper), potentially causing the file to be retried indefinitely or stuck in a 'Processing' state, leading to a denial of service or resource exhaustion.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>right</side>
+<from>509</from>
+<to>519</to>
+<note>In ObjectStorageQueueSource::generateImpl, when a table is being dropped, the code marks the file as 'Cancelled' and throws an exception. Similar to the query cancellation case, it does not call setFailed() or update the ZooKeeper state. This leaves the file in an inconsistent state, potentially causing retries or resource exhaustion.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>right</side>
+<from>561</from>
+<to>565</to>
+<note>In ObjectStorageQueueSource::generateImpl, after the `if (reader)` block, there is an `else` block that handles the case when `reader` is null. Inside this else block, if `shutdown_called` is true, it breaks. Otherwise, it proceeds to get the object info. However, the `else` block also has `processed_files.emplace_back(file_metadata);` and `progress->processed_files += 1;`. This logic seems to be adding the file to `processed_files` when it wasn't there before. But if `reader` is null, it means we are not currently processing a file? This logic might be incorrect if `reader` is null but we are still in the middle of processing a file (e.g., between chunks). The `processed_files` vector is used to track the current file. If `reader` is null, we should not be adding to `processed_files` unless we are starting a new file. The diff shows that `file_metadata` is obtained from `object_info->file_metadata` which comes from `reader->getObjectInfo()`. If `reader` is null, this code path is not taken. Wait, the `else` block is for `if (reader)`. So if `reader` is null, we go to `else`. In the `else` block, we check `if (shutdown_called)`. If not, we get `object_info` from `reader->getObjectInfo()`. But `reader` is null! This is a null pointer dereference. `reader` is a `ReaderHolder`. If it is null, `reader->getObjectInfo()` will crash.</note>
+</notesplit>

@@ -1,0 +1,37 @@
+<notesplit>
+<path>src/Storages/MergeTree/KeyCondition.cpp</path>
+<side>right</side>
+<from>2905</from>
+<to>2922</to>
+<note>**[Maintainability and Readability]** The lambda `is_always_monotonic_chain` is defined inside the function `matchesExactContinuousRange`. This creates a closure that captures `field` by reference. While functional, this inline definition makes the logic harder to read and test. It should be extracted to a private static helper method or a free function to improve separation of concerns and readability.
+
+**[Performance]** The lambda `is_always_monotonic_chain` is defined inside the function but called multiple times within the loop over `rpn`. Each call iterates through the `chain` vector. If `rpn` is large and chains are long, this could be O(N*M) where N is number of RPN elements and M is average chain length. This is the core logic change, but the complexity is acceptable for the intended optimization. However, `func->getMonotonicityForRange` is called repeatedly for the same function and range. If this is expensive, it could be a bottleneck.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/MergeTree/KeyCondition.cpp</path>
+<side>right</side>
+<from>2924</from>
+<to>2938</to>
+<note>The loop iterating over `rpn` contains complex nested logic checking `monotonic_functions_chain` and `set_index`. This violates Single Responsibility by mixing iteration, validation, and specific condition checks in one block. It should be refactored into smaller, named helper functions like `checkMonotonicChains` and `checkSetIndexMonotonicity`.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/MergeTree/KeyCondition.cpp</path>
+<side>right</side>
+<from>2905</from>
+<to>2905</to>
+<note>The lambda `is_always_monotonic_chain` captures `field` by reference, but `field` is a local variable defined inside `matchesExactContinuousRange`. While this is technically valid C++, it creates a closure that might be less efficient than passing the constant by value or making it static. More importantly, the lambda is defined inside the loop over `rpn` elements, causing it to be reconstructed on every iteration. This is a minor performance overhead.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/MergeTree/KeyCondition.cpp</path>
+<side>right</side>
+<from>2904</from>
+<to>2904</to>
+<note>The variable `field` is initialized as `const Field field{};` but its purpose is not immediately clear from the name. It is used as a placeholder for range boundaries in `getMonotonicityForRange`. A more descriptive name like `empty_field` or `placeholder_field` would improve readability.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/MergeTree/KeyCondition.cpp</path>
+<side>right</side>
+<from>2934</from>
+<to>2936</to>
+<note>The loop over `elem.set_index->getIndexesMapping()` iterates through all mappings. If there are many mappings, this could be slow. However, this is part of the new logic to support more cases, so it's expected. The performance impact depends on the number of mappings in the set index.</note>
+</notesplit>

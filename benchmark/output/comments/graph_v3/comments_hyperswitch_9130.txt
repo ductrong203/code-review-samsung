@@ -1,0 +1,49 @@
+<notesplit>
+<path>crates/router/src/core/payments.rs</path>
+<side>right</side>
+<from>6943</from>
+<to>6947</to>
+<note>The logic in `is_google_pay_pre_decrypt_type_connector_tokenization` is inverted. The function returns `true` when the filter is `None` or `ConnectorTokenization`, but the `&&` condition in the caller `is_google_pay_pre_decrypt_type_connector_tokenization(...)` effectively blocks the flow if the filter is `NetworkTokenization`. However, the logic inside the function returns `!matches!(..., NetworkTokenization)`, which means it returns `false` if the filter is `NetworkTokenization`. This logic is correct for a filter check, but the function name implies it checks if the type IS `ConnectorTokenization`, while it actually checks if it is NOT `NetworkTokenization`. This is confusing and prone to logic errors if the enum expands.</note>
+</notesplit>
+<notesplit>
+<path>crates/hyperswitch_connectors/src/connectors/checkout/transformers.rs</path>
+<side>right</side>
+<from>238</from>
+<to>247</to>
+<note>The GooglePayPredecrypt struct contains sensitive payment data (token, expiry, cryptogram) but derives Serialize without implementing any masking or redaction. This risks logging or exposing raw PAN and cryptogram data in plain text if the struct is serialized for logging or debugging purposes.</note>
+</notesplit>
+<notesplit>
+<path>crates/hyperswitch_connectors/src/connectors/checkout/transformers.rs</path>
+<side>right</side>
+<from>239</from>
+<to>240</to>
+<note>The field `_type` in `GooglePayPredecrypt` uses a leading underscore, which is typically reserved for unused variables in Rust. Since this field is serialized to JSON, it should be renamed to `r#type` or mapped explicitly to `type` without the underscore to follow standard naming conventions and avoid confusion.</note>
+</notesplit>
+<notesplit>
+<path>crates/hyperswitch_connectors/src/connectors/checkout/transformers.rs</path>
+<side>right</side>
+<from>481</from>
+<to>483</to>
+<note>The code performs a .clone() on the application_primary_account_number (a CardNumber type) inside the payment processing flow. If this type contains a large buffer or sensitive data that is expensive to copy, this adds unnecessary allocation overhead in a hot path.</note>
+</notesplit>
+<notesplit>
+<path>crates/hyperswitch_connectors/src/connectors/checkout/transformers.rs</path>
+<side>right</side>
+<from>480</from>
+<to>508</to>
+<note>The match block in `transformers.rs` has become deeply nested and complex. Extracting the `GooglePayDecrypt` branch into a dedicated private helper function would improve readability and maintainability of the `PaymentMethodData` transformation logic.</note>
+</notesplit>
+<notesplit>
+<path>crates/hyperswitch_connectors/src/connectors/checkout/transformers.rs</path>
+<side>right</side>
+<from>497</from>
+<to>497</to>
+<note>The code performs a .clone() on the cryptogram (a Secret<String> type) inside the payment processing flow. Cloning sensitive secret wrappers can be expensive due to potential zeroing or memory management overhead. If the data is not needed elsewhere, move the value instead.</note>
+</notesplit>
+<notesplit>
+<path>crates/router/src/core/payments.rs</path>
+<side>right</side>
+<from>6985</from>
+<to>7008</to>
+<note>The function `is_google_pay_pre_decrypt_type_connector_tokenization` duplicates the logic pattern used for Apple Pay. This logic should be abstracted into a generic helper or trait to avoid code duplication as more payment methods are added.</note>
+</notesplit>

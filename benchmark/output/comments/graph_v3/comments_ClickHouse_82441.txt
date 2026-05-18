@@ -1,0 +1,44 @@
+<notesplit>
+<path>src/Common/JemallocNodumpAllocatorImpl.cpp</path>
+<side>right</side>
+<from>36</from>
+<to>39</to>
+<note>**[Maintainability and Readability]** The error handling in the `alloc` method uses `throw std::runtime_error` inside a callback that is likely invoked by jemalloc's internal memory management. Throwing exceptions from within low-level memory allocation hooks can lead to undefined behavior or crashes if the caller (jemalloc) is not prepared to handle C++ exceptions.
+
+**[Security Vulnerability]** The custom allocator uses `madvise` with `MADV_DONTDUMP` after allocation. If the allocation is small, it may be subject to Small String Optimization (SSO) or internal jemalloc caching, meaning the memory might not be page-aligned or might be shared with other data, potentially failing to exclude the sensitive data from core dumps or affecting adjacent memory. The implementation lacks a check to ensure the memory range is page-aligned, which is a requirement for `madvise` to function correctly on many systems.</note>
+</notesplit>
+<notesplit>
+<path>src/Common/JemallocNodumpAllocatorImpl.cpp</path>
+<side>right</side>
+<from>36</from>
+<to>36</to>
+<note>The `madvise` call is performed on the memory returned by the original allocator. However, `madvise` requires the address to be page-aligned. If the original allocator returns a pointer that is not page-aligned, `madvise` will fail with EINVAL. The `JemallocNodumpAllocatorImpl::allocate` method supports custom alignment, but the `alloc` hook does not guarantee page alignment for the returned memory block.</note>
+</notesplit>
+<notesplit>
+<path>src/Common/JemallocNodumpAllocatorImpl.cpp</path>
+<side>right</side>
+<from>36</from>
+<to>44</to>
+<note>The `alloc` method performs `madvise` on every single allocation. `madvise` is a system call that involves kernel-mode transitions and page table updates. Performing this on every allocation in a hot path will significantly degrade performance. Consider batching or using a dedicated arena where the entire memory range is marked once.</note>
+</notesplit>
+<notesplit>
+<path>src/Common/JemallocNodumpAllocatorImpl.cpp</path>
+<side>right</side>
+<from>71</from>
+<to>72</to>
+<note>The `setupArena` method uses `chassert(original_alloc_ == nullptr);` to ensure it is only called once. However, if `setupArena` is called multiple times or fails partially, the state of `original_alloc_` might be inconsistent. It is better to use a `std::call_once` or a boolean flag to ensure initialization happens exactly once in a thread-safe manner.</note>
+</notesplit>
+<notesplit>
+<path>src/Common/JemallocNodumpAllocatorImpl.cpp</path>
+<side>right</side>
+<from>74</from>
+<to>74</to>
+<note>The `extent_hooks_` member is copied from the default hooks, but it is not guaranteed that the default hooks structure is fully initialized or that copying it is safe if it contains pointers to internal jemalloc state that might be invalidated or cause issues when modified. It is safer to initialize the struct and only set the `alloc` field.</note>
+</notesplit>
+<notesplit>
+<path>src/Common/JemallocNodumpSTLAllocator.h</path>
+<side>right</side>
+<from>92</from>
+<to>98</to>
+<note>The `toNoDumpString` helper function takes `std::string` by value and then constructs a `NoDumpString`. This causes an unnecessary heap allocation and copy of the sensitive data before it is moved into the custom allocator's memory space. It should take a `std::string_view` or `const std::string &` to avoid the initial copy.</note>
+</notesplit>

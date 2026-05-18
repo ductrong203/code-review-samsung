@@ -1,0 +1,16 @@
+<notesplit>
+<path>src/SignalR/server/StackExchangeRedis/test/Docker.cs</path>
+<side>right</side>
+<from>20</from>
+<to>20</to>
+<note>**[Maintainability and Readability]** The container name 'redisTestContainer74' embeds a version number (74) directly into the identifier. This violates the Single Responsibility Principle and makes the code brittle; if the Redis version changes, the container name must be updated, risking collisions with old containers or requiring cleanup logic. It is better to use a consistent name or derive the name from the image variable.
+
+**[Code Defect]** The container name was changed from 'redisTestContainer' to 'redisTestContainer74'. The comment on line 112 (in the diff context) states the static name is used 'so if the container doesn't get removed we don't keep adding more'. Changing the name breaks this cleanup logic, potentially leading to orphaned containers accumulating over time if the test runner crashes or fails to clean up.</note>
+</notesplit>
+<notesplit>
+<path>src/SignalR/server/StackExchangeRedis/test/Docker.cs</path>
+<side>right</side>
+<from>19</from>
+<to>19</to>
+<note>The variable _redisImageName contains a long, opaque registry URL with a random-looking suffix (f8bzbjakh8cga6ab). This is a 'magic string' that is hard to read and maintain. It should be extracted to a constant with a clear name or configuration, or at least split into registry and image parts for clarity.</note>
+</notesplit>

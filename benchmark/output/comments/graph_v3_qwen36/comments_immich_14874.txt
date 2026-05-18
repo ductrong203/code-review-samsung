@@ -1,0 +1,51 @@
+<notesplit>
+<path>server/src/services/metadata.service.ts</path>
+<side>right</side>
+<from>458</from>
+<to>458</to>
+<note>In `applyMotionPhotos`, `dates.dateTimeOriginal` is assigned to `fileCreatedAt`. However, `getDates` returns `dateTimeOriginal` as `undefined` when EXIF tags are missing (the condition `if (!localDateTime || !dateTimeOriginal)` is not reached because `dateTime` is undefined, so `dateTimeOriginal` remains undefined). This causes `fileCreatedAt` to be set to `undefined`, leading to data corruption or database errors. The logic should use the fallback `earliestDate` when `dateTimeOriginal` is missing.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/metadata.service.ts</path>
+<side>right</side>
+<from>453</from>
+<to>460</to>
+<note>**[Maintainability and Readability]** The `getDates` method is used to populate motion asset creation fields. However, the method relies on `firstDateTime` which may return `undefined` if no valid date is found in EXIF tags. The code does not handle this case, leading to `undefined` values being assigned to `fileCreatedAt`, `fileModifiedAt`, and `localDateTime`. This is a regression from the previous logic which explicitly fell back to `asset.fileCreatedAt`. This makes the code fragile and potentially introduces null/undefined values into the database.
+
+**[Performance]** In the `applyMotionPhotos` method within `metadata.service.ts`, `this.getDates` is called for every motion asset creation. This function performs date parsing and validation. If this path is triggered frequently (e.g., during bulk processing of videos with motion photos), it adds unnecessary overhead compared to the previous direct assignment. Consider if `getDates` can be optimized or if the result can be cached if multiple assets share similar metadata.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/metadata.service.ts</path>
+<side>right</side>
+<from>459</from>
+<to>459</to>
+<note>In `applyMotionPhotos`, `dates.modifyDate` is assigned to `fileModifiedAt`. If `modifyDate` is missing from EXIF tags, `getDates` returns `undefined` for it. This results in `fileModifiedAt` being set to `undefined`, which is likely incorrect behavior for motion assets that should retain the original asset's modification time or a valid date.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/metadata.service.ts</path>
+<side>right</side>
+<from>460</from>
+<to>460</to>
+<note>In `applyMotionPhotos`, `dates.localDateTime` is assigned to `localDateTime`. If `localDateTime` is missing from EXIF tags, `getDates` returns `undefined` for it. This results in `localDateTime` being set to `undefined`, which is likely incorrect behavior.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/metadata.service.ts</path>
+<side>right</side>
+<from>615</from>
+<to>617</to>
+<note>The `earliestDate` method is added but not tested. The test file adds tests for the logic in `handleMetadataExtraction` but does not add unit tests for the new `earliestDate` helper method itself. While the logic is simple, it is a new public/protected method that should have its own test coverage to ensure correctness and prevent future regressions.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/metadata.service.ts</path>
+<side>right</side>
+<from>595</from>
+<to>597</to>
+<note>The `earliestDate` method creates a new Date object using `Math.min` and `valueOf`. While efficient, creating new Date objects in hot paths can generate garbage. If this fallback is common, consider reusing a cached Date instance or optimizing the comparison logic if `Date` construction is costly.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/metadata.service.ts</path>
+<side>right</side>
+<from>453</from>
+<to>453</to>
+<note>The variable name `dates` is generic. It holds an object with specific date fields (`dateTimeOriginal`, `modifyDate`, `localDateTime`). A more descriptive name like `extractedDates` or `dateInfo` would improve readability.</note>
+</notesplit>

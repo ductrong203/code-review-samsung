@@ -1,0 +1,72 @@
+<notesplit>
+<path>src/others/xml/lv_xml_utils.c</path>
+<side>right</side>
+<from>266</from>
+<to>269</to>
+<note>**[Performance]** The loop `while(*src[0] == delimiter) { src++; }` modifies the pointer `src` passed by reference. However, `src` is a local copy of the pointer passed from the caller. Modifying `src` inside the function does NOT update the caller's pointer. This means the caller's pointer remains pointing at the first delimiter, causing `lv_xml_split_str` to potentially return the same delimiter repeatedly or behave incorrectly in subsequent calls, leading to infinite loops or incorrect parsing in the callers (e.g., `lv_xml_style.c` and `lv_xml_obj_parser.c`). This is a critical logic error that impacts performance (infinite loops) and correctness.
+
+**[Maintainability and Readability]** Potential infinite loop in `lv_xml_split_str` (src/others/xml/lv_xml_utils.c). The loop `while(*src[0] == delimiter) { src++; }` increments the pointer `src` but does not check if `src` becomes NULL or invalid. If the input string consists only of delimiters, this could lead to undefined behavior.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/lv_xml_style.c</path>
+<side>right</side>
+<from>284</from>
+<to>319</to>
+<note>Memory leak in XML style parsing: The code allocates memory for `dsc_array` using `lv_malloc` to parse grid descriptors. However, this allocated memory is never freed. While the comment suggests styles are 'created once and never freed', this is a resource leak that can be exploited for Denial of Service (DoS) by repeatedly creating/destroying objects with grid styles, exhausting available memory.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/lv_xml_style.c</path>
+<side>right</side>
+<from>293</from>
+<to>295</to>
+<note>Memory leak in `apply_styles` (src/others/xml/lv_xml_style.c). The code allocates `dsc_array` using `lv_malloc` but never frees it. The comment acknowledges this but suggests it's a design flaw for maintainability. This pattern is repeated in `src/others/xml/parsers/lv_xml_obj_parser.c` where the array is freed via an event callback, creating an inconsistent memory management strategy across the codebase.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/parsers/lv_xml_obj_parser.c</path>
+<side>right</side>
+<from>891</from>
+<to>926</to>
+<note>Memory leak in XML object parser: Similar to the style parser, `dsc_array` is allocated via `lv_malloc` to parse grid descriptors. Although `lv_event_free_user_data_cb` is added to free it on delete, this relies on the object being deleted. If the object is not deleted or if there's a path where the event callback isn't triggered, the memory leaks. More critically, this pattern is inconsistent with the rest of the codebase which often leaks such allocations.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/parsers/lv_xml_obj_parser.c</path>
+<side>right</side>
+<from>897</from>
+<to>929</to>
+<note>Code duplication in `apply_styles` (src/others/xml/parsers/lv_xml_obj_parser.c). The logic for parsing `style_grid_column_dsc_array` and `style_grid_row_dsc_array` is duplicated from `src/others/xml/lv_xml_style.c`. This violates DRY principles and makes maintenance harder.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/lv_xml_style.c</path>
+<side>right</side>
+<from>287</from>
+<to>295</to>
+<note>The code iterates over the `value` string twice: once to count items (lines 284-292) and again to parse them (lines 296-312). This is an O(n) operation performed twice where a single pass would suffice. For large grid descriptions, this doubles the parsing time unnecessarily.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/parsers/lv_xml_obj_parser.c</path>
+<side>right</side>
+<from>897</from>
+<to>903</to>
+<note>Similar to the style parser, this code iterates over the `value` string twice: once to count items (lines 896-904) and again to parse them (lines 908-922). This redundant iteration is a performance bottleneck for grid description parsing.</note>
+</notesplit>
+<notesplit>
+<path>src/others/observer/lv_observer.c</path>
+<side>right</side>
+<from>802</from>
+<to>822</to>
+<note>Inconsistent error handling in `lv_spangroup_bind_span_text` (src/others/observer/lv_observer.c). The function checks for `fmt == NULL` and sets a default format, but then checks `subject->type` again. If the type is incompatible, it logs a warning and returns NULL. However, if `fmt` is provided, it checks the type again. This double-checking logic is confusing and could be simplified.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/lv_xml_utils.c</path>
+<side>right</side>
+<from>266</from>
+<to>271</to>
+<note>Potential out-of-bounds read in `lv_xml_split_str`: The loop `while(*src[0] == delimiter) { src++; }` increments the pointer `src` without checking if it has reached the end of the string. If the input string consists only of delimiters or ends with delimiters, `src` could be incremented past the valid string boundary, leading to an out-of-bounds read when `*src[0]` is accessed in the next iteration or in the subsequent `if(*src[0] == '\0')` check.</note>
+</notesplit>
+<notesplit>
+<path>src/widgets/span/lv_span.c</path>
+<side>right</side>
+<from>202</from>
+<to>225</to>
+<note>Code duplication in `lv_span_set_text_fmt` and `lv_spangroup_set_span_text_fmt` (src/others/xml/lv_span.c). These two functions have nearly identical logic for formatting text and updating the span. This duplication should be reduced by extracting common logic.</note>
+</notesplit>

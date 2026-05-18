@@ -1,0 +1,44 @@
+<notesplit>
+<path>src/services/posthog/telemetry/TelemetryService.ts</path>
+<side>right</side>
+<from>236</from>
+<to>239</to>
+<note>The validation check in captureConversationTurnEvent was updated to remove taskId, but the function signature still includes it as a parameter. This creates a mismatch between the interface and the implementation logic, and potentially breaks callers that pass a taskId.</note>
+</notesplit>
+<notesplit>
+<path>src/services/posthog/telemetry/TelemetryService.ts</path>
+<side>right</side>
+<from>236</from>
+<to>236</to>
+<note>**[Security Vulnerability]** The check `if (!ulid || !provider || !model || !source)` in `captureConversationTurnEvent` is insufficient because `ulid` is a user-controlled identifier. If `ulid` is missing or malformed, the telemetry event is dropped, which can lead to a loss of auditability for specific task sessions. Ensure that `ulid` is validated against expected formats before processing.
+
+**[Maintainability and Readability]** The validation check in `captureConversationTurnEvent` still references `taskId` in the error condition, but the parameter was removed from the function signature. This will cause a runtime error if the check is triggered.</note>
+</notesplit>
+<notesplit>
+<path>src/core/controller/models/refreshGroqModels.ts</path>
+<side>right</side>
+<from>110</from>
+<to>113</to>
+<note>The code removes the taskId property from the telemetry object but leaves the object structure incomplete or potentially inconsistent with other telemetry calls that expect a taskId. While ulid is added, if the backend or other telemetry consumers still rely on taskId, this will cause data loss.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/ToolExecutor.ts</path>
+<side>right</side>
+<from>692</from>
+<to>692</to>
+<note>The use of setTimeoutPromise(3_500) inside the tool execution loop introduces a significant, hard-coded latency of 3.5 seconds per tool call. This blocks the task execution flow unnecessarily and degrades performance for users performing multiple tool operations.</note>
+</notesplit>
+<notesplit>
+<path>src/services/browser/BrowserSession.ts</path>
+<side>right</side>
+<from>175</from>
+<to>175</to>
+<note>The JSDoc comment for `setUlid` still incorrectly refers to the parameter as 'task ID' instead of 'ULID'. This creates confusion for developers reading the API documentation.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>2173</from>
+<to>2179</to>
+<note>The call to `telemetryService.captureConversationTurnEvent` is missing the `ulid` argument in the updated code block, which is a required parameter. This will break telemetry tracking for assistant turns.</note>
+</notesplit>

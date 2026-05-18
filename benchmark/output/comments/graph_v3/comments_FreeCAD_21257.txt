@@ -1,0 +1,42 @@
+<notesplit>
+<path>src/Mod/PartDesign/App/FeatureSketchBased.cpp</path>
+<side>right</side>
+<from>721</from>
+<to>726</to>
+<note>The code uses Part::Feature::getShape() inside a loop, but the function signature was changed to require a ShapeOptions bitmask. The call passes a bitmask, but the function is defined in PartFeature.h as taking ShapeOptions, and the previous implementation used a boolean 'needSubElement'. The logic here is inconsistent with the new API requirements.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>971</from>
+<to>971</to>
+<note>In _getTopoShape, the logic for updating the matrix 'pmat' uses 'resolveLink' which is no longer a boolean parameter but a flag in 'options'. The check 'if (options.testFlag(ShapeOption::ResolveLink) && obj != owner)' is correct, but the variable 'resolveLink' is no longer defined in the scope of this function.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>924</from>
+<to>924</to>
+<note>The function _getTopoShape performs a cache lookup using PropertyShapeCache::getShape(obj, shape, subname). When the 'NoElementMap' flag is set, the code proceeds to reset the element map and tag on the retrieved shape. This is redundant and inefficient because the cached shape is already fully constructed. If the caller requires a shape without an element map, the cache should ideally store that version or the logic should avoid modifying the cached object's internal state, which could lead to cache invalidation or inconsistent state.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.h</path>
+<side>right</side>
+<from>48</from>
+<to>56</to>
+<note>The ShapeOption enum uses integer values (1, 2, 4, 8, 16) but does not explicitly define them as powers of two in a way that prevents accidental overlap if extended. Using a bitmask-friendly definition or explicit bit-shifting (e.g., 1 << 0, 1 << 1) would improve clarity and maintainability.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/PartFeature.cpp</path>
+<side>right</side>
+<from>901</from>
+<to>907</to>
+<note>The commented-out function signature for _getTopoShape is confusing and adds noise to the source file. If the signature was intended for documentation, it should be moved to a header or converted to a proper Doxygen comment block.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/PartDesign/App/FeatureSketchBased.cpp</path>
+<side>right</side>
+<from>196</from>
+<to>199</to>
+<note>There is an unnecessary double newline after the subshape extraction logic, which reduces code density and readability.</note>
+</notesplit>

@@ -1,0 +1,9 @@
+<notesplit>
+<path>src/valkey-benchmark.c</path>
+<side>right</side>
+<from>129</from>
+<to>129</to>
+<note>**[Maintainability and Readability]** The struct member name 'server_config' is redundant when the struct type is already 'serverConfig'. This creates stuttering (e.g., config.server_config->save). Consider renaming the member to just 'config' or 'data' to improve readability.
+
+Similar to the global config, the 'clusterNode' struct member 'server_config' is redundant. Since it is inside a 'clusterNode' struct, 'config' is sufficient and more idiomatic.</note>
+</notesplit>

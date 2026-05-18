@@ -1,0 +1,43 @@
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>959</from>
+<to>960</to>
+<note>**[Code Defect]** The loop variable 'obj2' is used to populate 'objNames', but the original code used 'obj'. While this is syntactically correct, if 'obj' was intended to be used elsewhere or if this is a copy-paste error, it could lead to logic inconsistencies. Assuming 'obj2' is the intended iterator, ensure no other references to 'obj' exist in this scope.
+
+**[Maintainability and Readability]** The loop variable 'obj2' is used to shadow the intent of the loop. While functional, using a more descriptive name or reusing the original 'obj' name (if scope allows) improves readability. The current naming 'obj2' suggests a second collection or a different type, which is misleading here.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>1167</from>
+<to>1167</to>
+<note>**[Performance]** The code creates a temporary std::string from a C-string literal, then immediately copies it into a new std::string object. This causes an unnecessary heap allocation and string copy. Using the string literal directly or constructing the string once is more efficient.
+
+**[Security Vulnerability]** The code constructs a std::string from a raw pointer (RESOURCEDIR) which may contain null characters. While the comment mentions removing them, the current implementation simply creates a string from the pointer, which will truncate at the first null byte, potentially leading to an incorrect path being used for file operations.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>1182</from>
+<to>1182</to>
+<note>**[Performance]** Similar to the previous issue, creating a temporary std::string from a C-string literal before assigning it to another std::string object is redundant and causes an extra heap allocation.
+
+**[Security Vulnerability]** Similar to the previous issue, constructing a std::string from LIBRARYDIR without accounting for potential embedded null characters (as warned by the comment) may result in an incomplete or incorrect path, leading to potential path traversal or file access issues.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>1196</from>
+<to>1196</to>
+<note>**[Performance]** Creating a temporary std::string from a C-string literal before assigning it to another std::string object is redundant and causes an extra heap allocation.
+
+**[Security Vulnerability]** Constructing a std::string from DOCDIR without handling potential null characters (as noted in the code comment) can lead to truncated paths, which may cause the application to look for files in the wrong directory.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>975</from>
+<to>981</to>
+<note>The added braces around the 'if' statements are good for safety, but the logic flow is slightly fragmented. The two separate 'if' blocks could be combined or simplified to improve readability of the exit conditions.</note>
+</notesplit>

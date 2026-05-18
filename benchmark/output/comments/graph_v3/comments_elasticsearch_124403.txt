@@ -1,0 +1,37 @@
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/snapshots/SnapshotsService.java</path>
+<side>right</side>
+<from>1460</from>
+<to>1460</to>
+<note>The code uses ActionListener.completeWith to execute logic that performs blocking I/O (repo.getSnapshotGlobalMetadata). Since this is running on the SNAPSHOT thread pool, blocking this thread can lead to thread pool starvation, preventing other snapshot operations from progressing.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/snapshots/SnapshotsService.java</path>
+<side>right</side>
+<from>1403</from>
+<to>1403</to>
+<note>**[Performance]** The SnapshotFinalization task is submitted to the SNAPSHOT thread pool without checking if the current thread is already a SNAPSHOT thread. This causes an unnecessary context switch and task queueing overhead when the caller is already on the correct thread.
+
+**[Security Vulnerability]** The SnapshotFinalization class implements AbstractRunnable but does not override onRejection to handle potential thread pool rejections in the doRun method. While onRejection is implemented for the task submission, the internal logic flow relies on thread pool availability. If the SNAPSHOT pool is saturated, tasks may be rejected, potentially leaving snapshot state in an inconsistent or 'stuck' state.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/snapshots/SnapshotsService.java</path>
+<side>right</side>
+<from>1413</from>
+<to>1413</to>
+<note>The inner class SnapshotFinalization is defined inside SnapshotsService but is quite large and handles complex logic. It should be extracted to its own file to improve readability and maintainability of the SnapshotsService class.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/snapshots/SnapshotsService.java</path>
+<side>right</side>
+<from>1590</from>
+<to>1597</to>
+<note>The onRejection method in SnapshotFinalization performs a specific check for executor shutdown. This logic is repeated or could be abstracted into a utility to handle common thread pool rejection scenarios consistently across the service.</note>
+</notesplit>
+<notesplit>
+<path>server/src/main/java/org/elasticsearch/snapshots/SnapshotsService.java</path>
+<side>right</side>
+<from>1458</from>
+<to>1458</to>
+<note>The comment 'This listener is kinda unnecessary since we now always complete it synchronously' indicates dead code or an obsolete pattern. If the listener is truly unnecessary, it should be removed entirely rather than kept with a TODO comment.</note>
+</notesplit>

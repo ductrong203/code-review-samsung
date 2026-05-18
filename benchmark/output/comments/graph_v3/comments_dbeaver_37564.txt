@@ -1,0 +1,30 @@
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/navigator/fs/DBNPathBase.java</path>
+<side>right</side>
+<from>296</from>
+<to>296</to>
+<note>**[Code Defect]** The code attempts to copy a file using Files.copy(InputStream, Path) without specifying a CopyOption. If the target file already exists, this will throw a FileAlreadyExistsException, causing the copy operation to fail silently or crash the process depending on the caller's exception handling.
+
+**[Security Vulnerability]** Path Traversal vulnerability. The code uses node.getNodeDisplayName() as a filename in Files.copy() without sanitizing the input. An attacker could provide a name containing path traversal sequences (e.g., '../../etc/passwd') to write files outside the intended target directory.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model.rcp/src/org/jkiss/dbeaver/model/navigator/DBNResource.java</path>
+<side>right</side>
+<from>423</from>
+<to>428</to>
+<note>The implementation of getAdapter for InputStream performs a synchronous I/O operation (file.getContents()) inside a method that is likely called frequently during UI interactions or drag-and-drop operations. This can block the UI thread, causing latency or unresponsiveness. Consider offloading this to a background task or ensuring it is only called when necessary.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model.rcp/src/org/jkiss/dbeaver/model/navigator/DBNResource.java</path>
+<side>right</side>
+<from>424</from>
+<to>428</to>
+<note>The InputStream obtained from file.getContents() is not closed by the caller, leading to a potential resource leak. The adapter pattern should ideally return a resource that the caller is responsible for closing, but this implementation lacks clear ownership documentation or a wrapper to ensure closure.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/navigator/fs/DBNPathBase.java</path>
+<side>right</side>
+<from>293</from>
+<to>300</to>
+<note>The logic inside the loop in dropNodes is becoming complex. The fallback to InputStream when Path is null mixes different abstraction levels (filesystem paths vs. generic input streams) within the same loop, making the flow harder to follow.</note>
+</notesplit>

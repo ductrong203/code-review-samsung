@@ -1,0 +1,22 @@
+<notesplit>
+<path>libs/entitlement/src/main/java/org/elasticsearch/entitlement/runtime/policy/PolicyManager.java</path>
+<side>right</side>
+<from>328</from>
+<to>328</to>
+<note>**[Code Defect]** The check `requestingClass.getPackageName().startsWith(agentsPackageName)` is prone to false positives. If `agentsPackageName` is 'co.elastic.apm.agent', it would incorrectly match a package named 'co.elastic.apm.agent.extra' or 'co.elastic.apm.agentfoo'. It should check for an exact package match or ensure the next character is a dot.
+
+**[Performance]** The check 'requestingClass.getPackageName().startsWith(agentsPackageName)' is performed inside a hot path (entitlement checks). String prefix checking is relatively expensive when executed frequently. Since 'agentsPackageName' is a constant, this should be optimized by checking if the package name equals the constant or starts with the constant followed by a dot to avoid partial package name matches and improve performance.
+
+**[Maintainability and Readability]** The condition 'requestingClass.getPackageName().startsWith(agentsPackageName)' is fragile. If 'agentsPackageName' is empty or null, this could lead to unexpected behavior or NullPointerException. Additionally, relying on package prefix matching for security-sensitive entitlement checks is less robust than checking the ClassLoader directly.
+
+The code calls `requestingClass.getPackageName()` without checking if `requestingClass` is null. While `requestingClass` is often non-null in this context, it is safer to handle potential nulls if the caller can pass a null class.
+
+**[Security Vulnerability]** The entitlement check relies on `requestingClass.getPackageName().startsWith(agentsPackageName)`. This is vulnerable to package name spoofing. An attacker can create a class in a package like `co.elastic.apm.agent.malicious` which would satisfy the `startsWith` check and gain elevated agent entitlements.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/src/main/java/org/elasticsearch/entitlement/runtime/policy/PolicyManager.java</path>
+<side>right</side>
+<from>102</from>
+<to>102</to>
+<note>The constructor for PolicyManager now has 6 parameters, which exceeds the recommended limit of 5. This reduces readability and makes instantiation cumbersome.</note>
+</notesplit>

@@ -1,0 +1,30 @@
+<notesplit>
+<path>misc/language.c</path>
+<side>right</side>
+<from>336</from>
+<to>336</to>
+<note>The logic for parsing subtitle tags from filenames is flawed. The loop condition `i >= 0` and the subsequent `i -= (delimiter != '.') ? 2 : 1;` logic, combined with the `continue` statement, can lead to an infinite loop if the filename contains specific patterns or if the delimiter logic fails to advance the index `i` correctly when multiple tags are present.</note>
+</notesplit>
+<notesplit>
+<path>misc/language.c</path>
+<side>right</side>
+<from>327</from>
+<to>327</to>
+<note>**[Security Vulnerability]** The code uses a compound literal `&(enum track_flags){0}` to initialize a pointer when the input `flags` is NULL. While this is valid C, it creates a temporary object with automatic storage duration. Assigning the address of this temporary to `f` and then dereferencing it (`*f |= ...`) is technically undefined behavior if the temporary's lifetime ends, though here it is scoped to the function. It is safer and more idiomatic to use a local variable.
+
+**[Maintainability and Readability]** The use of `&(enum track_flags){0}` to create a temporary pointer for optional output parameters is non-standard and potentially confusing for maintainers. It is safer and more readable to check for NULL and use a local variable if the caller does not provide a pointer.</note>
+</notesplit>
+<notesplit>
+<path>misc/language.c</path>
+<side>right</side>
+<from>339</from>
+<to>345</to>
+<note>The loop iterates over a static array of suffixes and performs a case-insensitive string comparison for each. While the array is small, this logic is inside a loop that parses filename tags. Using a more efficient lookup or avoiding redundant string comparisons would be better for hot paths.</note>
+</notesplit>
+<notesplit>
+<path>test/language.c</path>
+<side>right</side>
+<from>92</from>
+<to>92</to>
+<note>The test case uses an octal literal `00` which is confusing and likely a typo for `0`. While it evaluates to zero, it reduces readability.</note>
+</notesplit>

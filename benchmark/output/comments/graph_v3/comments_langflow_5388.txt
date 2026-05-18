@@ -1,0 +1,23 @@
+<notesplit>
+<path>src/backend/base/langflow/graph/graph/utils.py</path>
+<side>right</side>
+<from>186</from>
+<to>186</to>
+<note>**[Code Defect]** The code accesses 'node['data']['node']['template'][field]' without verifying if 'field' exists in the 'template' dictionary. This will raise a KeyError if the field is missing from the node template.
+
+**[Security Vulnerability]** The code accesses 'node_data['template'][field]['proxy']' without verifying that 'field' exists in 'node_data['template']'. If a user-controlled 'field' is provided, this will raise a KeyError, potentially leading to a Denial of Service (DoS) if the application does not handle the exception gracefully.</note>
+</notesplit>
+<notesplit>
+<path>src/backend/base/langflow/graph/graph/utils.py</path>
+<side>right</side>
+<from>151</from>
+<to>154</to>
+<note>The code performs a linear search (O(n)) over g_nodes inside update_target_handle to find a node by ID. If update_target_handle is called frequently or within a loop (as suggested by the caller get_updated_edges), this results in O(n*m) complexity. A dictionary-based lookup (e.g., {node['id']: node for node in g_nodes}) should be used to achieve O(1) lookup time.</note>
+</notesplit>
+<notesplit>
+<path>src/backend/base/langflow/graph/graph/utils.py</path>
+<side>right</side>
+<from>186</from>
+<to>190</to>
+<note>The code accesses nested dictionary keys (node['data']['node']['template'][field]['proxy']) without validation. If 'template' or 'field' keys are missing, this will raise a KeyError. It should use .get() or a try-except block to handle potential missing data gracefully.</note>
+</notesplit>

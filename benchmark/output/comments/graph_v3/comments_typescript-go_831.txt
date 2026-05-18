@@ -1,0 +1,42 @@
+<notesplit>
+<path>internal/ast/ast.go</path>
+<side>right</side>
+<from>3714</from>
+<to>3714</to>
+<note>The VisitEachChild method for TypeAliasDeclaration was modified to remove the special handling for KindJSTypeAliasDeclaration, but the logic inside the removed block (calling UpdateJSTypeAliasDeclaration) is now unreachable or lost. Since JSTypeAliasDeclaration is still a valid kind, this change likely breaks visitor traversal for these nodes.</note>
+</notesplit>
+<notesplit>
+<path>internal/ast/ast.go</path>
+<side>right</side>
+<from>3690</from>
+<to>3690</to>
+<note>The function name 'newTypeAliasOrJSTypeAliasDeclaration' is overly verbose and descriptive of its implementation details rather than its purpose. It violates the principle of keeping internal factory methods concise. Consider renaming to 'newTypeAliasDeclaration' and relying on the 'kind' parameter to distinguish behavior.</note>
+</notesplit>
+<notesplit>
+<path>internal/ast/ast.go</path>
+<side>right</side>
+<from>4047</from>
+<to>4047</to>
+<note>The function name 'newImportOrJSImportDeclaration' is redundant and verbose. Similar to the type alias factory, this naming pattern adds unnecessary cognitive load. It should be simplified to 'newImportDeclaration'.</note>
+</notesplit>
+<notesplit>
+<path>internal/ast/ast.go</path>
+<side>right</side>
+<from>4081</from>
+<to>4081</to>
+<note>The Clone method for ImportDeclaration is incomplete in the diff, ending abruptly with 'func (node *ImportDeclaration) Clone(f NodeFactoryCoercible) *Node'. This will cause a compilation error as the function body is missing.</note>
+</notesplit>
+<notesplit>
+<path>internal/parser/reparser.go</path>
+<side>right</side>
+<from>120</from>
+<to>120</to>
+<note>The use of .Clone() on an AST node inside the reparser loop creates a deep copy of the node tree. If this reparser is triggered frequently during compilation, this can lead to significant memory pressure and increased GC overhead. Consider if a shallow copy or a reference-based approach is feasible.</note>
+</notesplit>
+<notesplit>
+<path>internal/ast/utilities.go</path>
+<side>right</side>
+<from>2365</from>
+<to>2365</to>
+<note>The comment '/*ImportDeclaration | ImportEqualsDeclaration | ExportDeclaration*/' is now outdated and misleading because the function logic only handles 'KindImportDeclaration' and 'KindJSImportDeclaration'. It fails to account for the other types mentioned in the comment, which can lead to developer confusion.</note>
+</notesplit>

@@ -1,0 +1,49 @@
+<notesplit>
+<path>internal/checker/checker.go</path>
+<side>right</side>
+<from>10829</from>
+<to>10861</to>
+<note>The function `containerSeemsToBeEmptyDomElement` has become significantly longer (34 lines) and deeply nested with multiple early returns and switch cases. This violates the Single Responsibility Principle by mixing library checks, type iteration, name parsing, and character validation in one block. It should be refactored into smaller helper functions like `isDomLibraryEnabled`, `containsDomTypes`, and `isValidHtmlElementName` to improve readability and testability.</note>
+</notesplit>
+<notesplit>
+<path>internal/checker/checker.go</path>
+<side>right</side>
+<from>10854</from>
+<to>10858</to>
+<note>The loop `for _, r := range name` iterates over the string `name` character by character. In Go, ranging over a string decodes UTF-8 runes, which involves decoding overhead. Since `stringutil.IsASCIILetter` only checks ASCII letters (single-byte), iterating over bytes (`for i := range name` or `for i < len(name)`) would be faster and avoid UTF-8 decoding overhead for this specific check.</note>
+</notesplit>
+<notesplit>
+<path>internal/checker/checker.go</path>
+<side>right</side>
+<from>10844</from>
+<to>10847</to>
+<note>The code uses strings.CutPrefix and strings.CutSuffix to validate type names. While this is safer than regex, it performs case-sensitive matching on type names. If an attacker can influence the type name (e.g., via a malicious .d.ts file or user-defined types), they might bypass this check by using mixed-case names (e.g., 'HTMLElement' vs 'htmlelement'). This is a logic flaw in security-critical validation, potentially leading to incorrect type checking behavior.</note>
+</notesplit>
+<notesplit>
+<path>internal/checker/checker.go</path>
+<side>right</side>
+<from>10849</from>
+<to>10852</to>
+<note>Similar to the prefix check, the suffix check using strings.CutSuffix is case-sensitive. An attacker could bypass this validation by using 'htmlelement' (lowercase) instead of 'HTMLElement'. This inconsistency in case sensitivity could lead to incorrect type classification.</note>
+</notesplit>
+<notesplit>
+<path>internal/checker/checker.go</path>
+<side>right</side>
+<from>10844</from>
+<to>10844</to>
+<note>The variable name `ok` is reused for different `strings.CutPrefix` and `strings.CutSuffix` operations. While valid Go, using the same name for distinct boolean checks can be confusing. Consider using more descriptive names like `hasHtmlPrefix` and `hasElementSuffix` to clarify intent.</note>
+</notesplit>
+<notesplit>
+<path>internal/checker/checker.go</path>
+<side>right</side>
+<from>10849</from>
+<to>10849</to>
+<note>The variable name `ok` is reused for `strings.CutSuffix`. This is the second reuse of `ok` in the same function scope, which can be confusing. Consider using `hasElementSuffix` to clarify intent.</note>
+</notesplit>
+<notesplit>
+<path>internal/checker/checker.go</path>
+<side>right</side>
+<from>10855</from>
+<to>10857</to>
+<note>The function `stringutil.IsASCIILetter` is called for every rune in the name. If this function is not inlined or optimized, the call overhead inside the loop could be significant. Consider if a simple range check `r >= 'A' && r <= 'Z' || r >= 'a' && r <= 'z'` would be faster or if the function is already optimized.</note>
+</notesplit>

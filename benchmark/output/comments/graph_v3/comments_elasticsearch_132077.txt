@@ -1,0 +1,49 @@
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestEntitlementsRule.java</path>
+<side>right</side>
+<from>41</from>
+<to>41</to>
+<note>The use of a static AtomicBoolean 'active' to enforce test isolation prevents running tests in parallel. This is a significant limitation for a test framework. Consider using a thread-local or a per-instance state management strategy if parallel execution is desired in the future.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestEntitlementsRule.java</path>
+<side>right</side>
+<from>186</from>
+<to>186</to>
+<note>The method `removeEntitledNodePaths` is referenced in the `EntitledNodePaths` record constructor but is never defined in the `TestEntitlementsRule` class, which will cause a compilation error.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestEntitlementsRule.java</path>
+<side>right</side>
+<from>193</from>
+<to>193</to>
+<note>The `EntitledNodePaths` record is incomplete; it lacks the implementation of the `Closeable` interface, meaning it cannot be used as a return type for `addEntitledNodePaths` or passed to `IOUtils.closeWhileHandlingException` as intended in `MockNode`.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestEntitlementsRule.java</path>
+<side>right</side>
+<from>64</from>
+<to>82</to>
+<note>The TestEntitlementsRule uses a static AtomicBoolean 'active' to enforce test isolation. If a test suite fails or is interrupted in a way that prevents the 'finally' block from executing, 'active' remains true, causing all subsequent tests in the JVM to fail or potentially bypass entitlement checks if the logic is incorrectly assumed to be reset. This creates a risk of inconsistent security state across tests.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestPathLookup.java</path>
+<side>right</side>
+<from>81</from>
+<to>85</to>
+<note>The baseDirModifier method creates a new ArrayList and copies all elements from the existing collection on every single modification (add/remove). This results in O(n) complexity for every update, where n is the number of paths. In test suites with many nodes or frequent path updates, this causes excessive object allocation and garbage collection pressure.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/entitlement/bootstrap/TestPathLookup.java</path>
+<side>right</side>
+<from>75</from>
+<to>87</to>
+<note>The 'baseDirModifier' method is overly complex for a simple collection update. It uses a functional approach that creates new ArrayLists and unmodifiable collections on every call, which is inefficient and harder to read than a standard synchronized block or a thread-safe collection update.</note>
+</notesplit>
+<notesplit>
+<path>test/framework/src/main/java/org/elasticsearch/node/MockNode.java</path>
+<side>right</side>
+<from>248</from>
+<to>248</to>
+<note>The constructor now requires a Closeable 'entitledNodePaths' parameter. Passing a no-op '() -> {}' as a default in multiple constructors creates a maintenance burden and forces callers to handle entitlement lifecycle even when not needed. Consider using an Optional or a dedicated Null Object pattern.</note>
+</notesplit>

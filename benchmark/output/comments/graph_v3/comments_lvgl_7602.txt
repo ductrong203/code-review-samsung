@@ -1,0 +1,25 @@
+<notesplit>
+<path>src/misc/lv_text.c</path>
+<side>right</side>
+<from>653</from>
+<to>653</to>
+<note>**[Code Defect]** The check 'txt[*i] == '\0'' is unsafe because it dereferences 'txt' at index '*i' without verifying if the index is within the bounds of the string. If '*i' is large, this causes an out-of-bounds read.
+
+**[Performance]** The added null check `txt[*i] == '\0'` performs an array access on `txt` before verifying if `txt` is non-NULL. While the `txt == NULL` check is present, the order of evaluation in C is not guaranteed to be short-circuited in a way that prevents the potential dereference if the compiler reorders or if the logic is misinterpreted. More importantly, accessing `txt[*i]` when `*i` is uninitialized or out of bounds is a risk. It is safer to check `txt` first, then `i` bounds, then the content.</note>
+</notesplit>
+<notesplit>
+<path>src/misc/lv_text.c</path>
+<side>right</side>
+<from>653</from>
+<to>655</to>
+<note>**[Security Vulnerability]** The function checks if txt is NULL but then accesses txt[*i] in the subsequent if statement (LV_IS_ASCII(txt[*i])). If txt is NULL, the check returns, but if txt is valid and *i is out of bounds, it could lead to an out-of-bounds read. The check should ensure *i is within the bounds of the string if possible, or at least ensure the pointer dereference is safe.
+
+**[Maintainability and Readability]** The function returns 'result' (initialized to 0) when the input is null or empty. However, the caller might expect a specific behavior or error code. Returning 0 silently can mask bugs in the calling code. Consider if an error code or a specific sentinel value is more appropriate.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/test_txt.c</path>
+<side>right</side>
+<from>142</from>
+<to>205</to>
+<note>The new test cases for 'lv_text_encoded_letter_next_2' are highly repetitive. They share the same setup and assertion patterns. This could be refactored into a parameterized test helper to improve maintainability.</note>
+</notesplit>

@@ -1,0 +1,16 @@
+<notesplit>
+<path>vllm/distributed/kv_transfer/kv_connector/v1/multi_connector.py</path>
+<side>right</side>
+<from>90</from>
+<to>100</to>
+<note>**[Maintainability and Readability]** The shutdown method catches all exceptions from individual connectors but only raises the last one. This swallows exceptions from other connectors, making debugging difficult as multiple failures will appear as a single failure. This violates the principle of clear error reporting.
+
+The shutdown method lacks a docstring explaining its purpose, behavior, and exception handling. This makes it harder for developers to understand the contract of this method.</note>
+</notesplit>
+<notesplit>
+<path>vllm/distributed/kv_transfer/kv_connector/v1/multi_connector.py</path>
+<side>right</side>
+<from>98</from>
+<to>98</to>
+<note>The shutdown method catches exceptions from individual connectors but re-raises only the last exception encountered. This suppresses other exceptions that occurred during the shutdown process, potentially hiding critical errors or resource leaks in other connectors. This is a reliability and observability issue rather than a direct security exploit, but it can mask security-relevant failures (e.g., failure to close secure connections).</note>
+</notesplit>

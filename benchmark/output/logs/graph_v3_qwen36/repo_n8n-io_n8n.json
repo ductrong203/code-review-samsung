@@ -1,0 +1,60 @@
+{
+  "run_name": "graph_v3_qwen36",
+  "repo": "n8n-io/n8n",
+  "dataset_path": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\dataset\\positive_samples.json",
+  "extension_base": "http://localhost:8100/api",
+  "backend_url": "",
+  "started_at": "2026-05-18T20:31:51",
+  "comments_output_dir": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36",
+  "results": [
+    {
+      "pr_url": "https://github.com/n8n-io/n8n/pull/20210",
+      "pr_id": "n8n_20210",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_n8n_20210.txt"
+    },
+    {
+      "pr_url": "https://github.com/n8n-io/n8n/pull/15057",
+      "pr_id": "n8n_15057",
+      "status": "error",
+      "error": "HTTP 400: {\"detail\":\"Could not fetch PR diff: HTTPSConnectionPool(host='github.com', port=443): Max retries exceeded with url: /n8n-io/n8n/pull/15057.diff (Caused by NameResolutionError(\\\"HTTPSConnection(host='github.com', port=443): Failed to resolve 'github.com' ([Errno 11002] getaddrinfo failed)\\\"))\"}"
+    },
+    {
+      "pr_url": "https://github.com/n8n-io/n8n/pull/13323",
+      "pr_id": "n8n_13323",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_n8n_13323.txt"
+    },
+    {
+      "pr_url": "https://github.com/n8n-io/n8n/pull/20344",
+      "pr_id": "n8n_20344",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_n8n_20344.txt"
+    },
+    {
+      "pr_url": "https://github.com/n8n-io/n8n/pull/20188",
+      "pr_id": "n8n_20188",
+      "status": "error",
+      "error": "HTTP 400: {\"detail\":\"Could not fetch PR diff: HTTPSConnectionPool(host='github.com', port=443): Max retries exceeded with url: /n8n-io/n8n/pull/20188.diff (Caused by NameResolutionError(\\\"HTTPSConnection(host='github.com', port=443): Failed to resolve 'github.com' ([Errno 11002] getaddrinfo failed)\\\"))\"}"
+    },
+    {
+      "pr_url": "https://github.com/n8n-io/n8n/pull/15362",
+      "pr_id": "n8n_15362",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_n8n_15362.txt"
+    }
+  ],
+  "initial_graph_status": {
+    "repo": "n8n-io/n8n",
+    "registered": true,
+    "local_path": "E:\\My_Project\\samsung\\n8n",
+    "main_graph_ready": true
+  },
+  "finished_at": "2026-05-18T20:32:01",
+  "summary": {
+    "selected": 6,
+    "success": 0,
+    "skipped": 4,
+    "errors": 2
+  }
+}

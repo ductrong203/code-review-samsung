@@ -1,0 +1,73 @@
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>right</side>
+<from>43</from>
+<to>48</to>
+<note>**[Performance]** The `detectEncoding` function is called for every file read in `extractTextFromFile`, including large files. Since `detectEncoding` reads the entire file buffer into memory to perform charset detection (via `jschardet`), this creates a significant memory overhead for large files. The original code only checked file size after determining it wasn't binary, but now the full buffer is loaded regardless. For files >300KB, this is wasteful since they are rejected anyway. Consider checking file size BEFORE calling `detectEncoding` to avoid loading large buffers into memory unnecessarily.
+
+**[Maintainability and Readability]** The `extractTextFromFile` function now reads the entire file into a buffer before checking size and encoding. For large files, this can cause high memory usage. The original code checked size before reading content. This change inverts the logic, potentially causing OOM errors for large files that were previously handled gracefully.
+
+**[Security Vulnerability]** The `extractTextFromFile` function reads the file buffer and detects its encoding. If `detectEncoding` returns an unsupported or malformed encoding, `iconv.decode` might throw an error. This error is not caught, which could lead to an unhandled exception. Additionally, the function does not validate the detected encoding before passing it to `iconv.decode`.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>right</side>
+<from>64</from>
+<to>66</to>
+<note>**[Code Defect]** The `extractTextFromIPYNB` function also uses `detectEncoding` and passes the result to `iconv.decode`. Since `detectEncoding` returns hyphenated strings from `jschardet`, this will cause the same decoding failure. The encoding name must be normalized here as well.
+
+**[Maintainability and Readability]** The `extractTextFromIPYNB` function reads the file into a buffer and detects encoding, but does not handle potential errors from `detectEncoding` or `iconv.decode`. If the JSON parsing fails later, the error message will be less clear. Additionally, if encoding detection fails, it might throw an error that isn't caught.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/editor/DiffViewProvider.ts</path>
+<side>right</side>
+<from>49</from>
+<to>51</to>
+<note>**[Maintainability and Readability]** The `detectEncoding` function is called without a try-catch block. If `jschardet` fails or throws an exception during detection, the entire `open()` method will crash, preventing the file from being opened. This is a missing error handling issue for an external library call.
+
+**[Performance]** In `DiffViewProvider.open()`, the entire file is read into a buffer (`fs.readFile(absolutePath)`) and then decoded using `iconv.decode()`. For large files, this creates a full copy of the file content in memory (buffer + decoded string). The original code used `fs.readFile(absolutePath, 'utf-8')` which could stream or handle encoding more efficiently. Consider if the full buffer is necessary or if a streaming approach could be used for large files to reduce peak memory usage.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>right</side>
+<from>11</from>
+<to>14</to>
+<note>The `detectEncoding` function returns the raw result from `chardet.detect()`. However, `jschardet` returns encoding names like 'windows-1252' or 'ISO-8859-1', while `iconv-lite` expects 'windows1252' or 'ISO8859-1' (without hyphens). Passing hyphenated strings to `iconv.decode()` will cause decoding errors or fallback to UTF-8, defeating the purpose of the fix. You must normalize the encoding name by removing hyphens before returning it.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/editor/DiffViewProvider.ts</path>
+<side>right</side>
+<from>48</from>
+<to>51</to>
+<note>Same encoding normalization issue as in `extract-text.ts`. The `fileEncoding` is set directly from `detectEncoding`, which returns hyphenated strings from `jschardet`. When `iconv.decode` is called with this encoding, it may fail or produce incorrect results because `iconv-lite` does not support hyphenated encoding names like 'windows-1252'. The encoding name must be normalized.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>right</side>
+<from>11</from>
+<to>26</to>
+<note>**[Security Vulnerability]** The `detectEncoding` function uses `jschardet` to detect file encoding. If `jschardet` fails or returns an unsupported encoding string, the code falls back to `utf8`. However, if `jschardet` returns a malicious or malformed encoding string (e.g., via a crafted file header), it could be passed directly to `iconv-lite.decode()`. While `iconv-lite` is generally safe, passing unvalidated strings to encoding functions can lead to unexpected behavior or crashes if the encoding is not supported. Additionally, the function does not validate the detected encoding against a whitelist of known safe encodings.
+
+**[Maintainability and Readability]** The `detectEncoding` function returns a string but does not validate if the detected encoding is actually supported by `iconv-lite`. If `jschardet` returns an unsupported encoding (e.g., 'GB18030' without proper support or a malformed string), `iconv.decode` will throw an error. This should be validated or handled.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>right</side>
+<from>64</from>
+<to>66</to>
+<note>In `extractTextFromIPYNB`, the entire notebook file is read into a buffer and then decoded. IPYNB files can be large (containing base64-encoded images, etc.). Reading the entire file into memory before parsing JSON could cause memory issues for large notebooks. Consider if the file size should be checked before loading, or if a streaming JSON parser could be used for very large notebooks.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>right</side>
+<from>64</from>
+<to>67</to>
+<note>The `extractTextFromIPYNB` function reads the file buffer and detects its encoding. If `detectEncoding` returns an unsupported or malformed encoding, `iconv.decode` might throw an error. This error is not caught, which could lead to an unhandled exception. Additionally, the function does not validate the detected encoding before passing it to `iconv.decode`.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/editor/DiffViewProvider.ts</path>
+<side>right</side>
+<from>48</from>
+<to>55</to>
+<note>The `open` method in `DiffViewProvider` reads the file buffer and detects its encoding. If `detectEncoding` returns an unsupported or malformed encoding, `iconv.decode` might throw an error. This error is not caught, which could lead to an unhandled exception and potentially expose internal stack traces or crash the extension. Additionally, the `fileEncoding` property is set but not validated before use.</note>
+</notesplit>

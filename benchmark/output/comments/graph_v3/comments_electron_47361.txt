@@ -1,0 +1,27 @@
+<notesplit>
+<path>shell/browser/api/electron_api_session.cc</path>
+<side>right</side>
+<from>359</from>
+<to>359</to>
+<note>**[Code Defect]** The ClearDataTask object is now managed by gin_helper::CleanedUpAtExit, but it also calls 'delete this' in OnTaskFinished. This will cause a double-free or use-after-free when the object is destroyed by the CleanedUpAtExit mechanism after the manual delete.
+
+**[Security Vulnerability]** The 'delete this' call at the end of OnTaskFinished is dangerous because it assumes the object is always heap-allocated and that no further references to the object exist. If this object is managed by a smart pointer (as it should be) or if it is destroyed during a callback chain, this will cause a double-free or use-after-free vulnerability.
+
+**[Maintainability and Readability]** The class ClearDataTask uses 'delete this' to manage its own lifetime. While this pattern is sometimes used in legacy C++, it is highly error-prone and makes ownership unclear, especially when combined with the new std::vector<std::unique_ptr<ClearDataOperation>> member. It is safer to use a smart pointer (e.g., std::unique_ptr) or a more modern lifecycle management pattern to avoid potential double-frees or use-after-free bugs.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/api/electron_api_session.cc</path>
+<side>right</side>
+<from>217</from>
+<to>217</to>
+<note>**[Security Vulnerability]** The ClearDataTask object is allocated with 'new' but is not managed by a smart pointer or guaranteed to be deleted in all execution paths. While 'delete this' is called in OnTaskFinished, if an exception occurs or if the task is abandoned before completion, this will result in a memory leak. More importantly, if the task is destroyed prematurely, it may lead to a use-after-free if operations are still pending.
+
+**[Maintainability and Readability]** The use of 'new ClearDataTask' followed by manual 'delete this' inside the class is a manual memory management pattern that bypasses modern C++ safety features. This increases the risk of memory leaks if an exception occurs or if the logic flow is interrupted before 'delete this' is reached.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/api/electron_api_session.cc</path>
+<side>right</side>
+<from>322</from>
+<to>328</to>
+<note>The use of std::remove_if followed by erase on a std::vector to remove a single element results in O(n) complexity for each operation completion. While the number of operations is likely small, this pattern is inefficient for frequent removals. If the number of operations grows, consider using a std::unordered_set or std::list for O(1) removal.</note>
+</notesplit>

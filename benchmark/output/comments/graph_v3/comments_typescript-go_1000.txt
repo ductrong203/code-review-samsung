@@ -1,0 +1,28 @@
+<notesplit>
+<path>internal/ls/diagnostics.go</path>
+<side>right</side>
+<from>27</from>
+<to>27</to>
+<note>The original code returned a 'FullDocumentDiagnosticReport' with a 'Kind' field set to 'lsproto.StringLiteralFull{}'. The new implementation removes this field, which may cause the LSP client to fail to recognize the report type or default to an incorrect behavior.</note>
+</notesplit>
+<notesplit>
+<path>internal/ls/diagnostics.go</path>
+<side>right</side>
+<from>14</from>
+<to>14</to>
+<note>The slice 'diagnostics' is initialized with a capacity of 3, but it may hold more elements if multiple diagnostic types are added. While this is a small optimization, it is better to pre-calculate the exact capacity or use a fixed-size array if the number of diagnostic sources is known to be small and constant to avoid potential reallocations.</note>
+</notesplit>
+<notesplit>
+<path>internal/ls/diagnostics.go</path>
+<side>right</side>
+<from>14</from>
+<to>25</to>
+<note>The logic for collecting diagnostics is becoming complex and hard to read due to nested conditional logic and manual slice management. This violates the Single Responsibility Principle as GetDocumentDiagnostics is now responsible for both orchestrating diagnostic retrieval and managing the collection structure. Consider extracting the diagnostic collection logic into a dedicated helper function.</note>
+</notesplit>
+<notesplit>
+<path>internal/ls/diagnostics.go</path>
+<side>right</side>
+<from>36</from>
+<to>48</to>
+<note>The function toLSPDiagnostics uses a manual loop to calculate the total size of the slice before allocation. While this is a common Go pattern for performance, it adds boilerplate. If the number of diagnostic sources grows, this function will become increasingly verbose. Consider if a simpler approach or a helper that handles variadic slice flattening is appropriate.</note>
+</notesplit>

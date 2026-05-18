@@ -1,0 +1,23 @@
+<notesplit>
+<path>packages/support/src/helpers.php</path>
+<side>right</side>
+<from>185</from>
+<to>187</to>
+<note>**[Security Vulnerability]** The code performs string interpolation of `$field` and `$path` directly into a raw SQL string `json_extract({$field}{$path})`. If these variables contain user-controlled input or are not properly escaped by the `wrapJsonFieldAndPath` method, this introduces a SQL injection vulnerability.
+
+**[Maintainability and Readability]** The use of 'invade()' to access private methods (wrapJsonFieldAndPath) on the query grammar creates a fragile dependency on internal implementation details. This violates encapsulation and makes the code susceptible to breaking if the underlying framework changes its internal API. Consider if there is a public-facing way to handle JSON path extraction or if this logic should be moved into a dedicated service or macro.</note>
+</notesplit>
+<notesplit>
+<path>packages/support/src/helpers.php</path>
+<side>right</side>
+<from>185</from>
+<to>185</to>
+<note>The logic uses `invade()` to access `wrapJsonFieldAndPath` on the query grammar. This method is not part of the public Laravel Query Grammar API and is subject to change or removal, which will cause a runtime crash. Furthermore, `wrapJsonFieldAndPath` expects specific arguments that may not align with the raw string `$column` being passed, potentially leading to incorrect SQL generation.</note>
+</notesplit>
+<notesplit>
+<path>packages/support/src/helpers.php</path>
+<side>right</side>
+<from>184</from>
+<to>184</to>
+<note>The use of `str($column)->contains('->')` inside a loop or frequently called helper function creates a new Stringable object on every invocation. This is inefficient for high-frequency search operations. Using native string functions like `str_contains` is significantly faster and avoids unnecessary object instantiation.</note>
+</notesplit>

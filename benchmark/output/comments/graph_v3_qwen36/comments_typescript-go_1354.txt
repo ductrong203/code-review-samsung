@@ -1,0 +1,364 @@
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>right</side>
+<from>66</from>
+<to>66</to>
+<note>**[Code Defect]** In internal/execute/tsc.go, the function fmtMain calls format.GetDefaultFormatCodeSettings with a hardcoded string "\n". Previously, it used sys.NewLine() which was dynamically determined (e.g., "\r\n" on Windows). This change forces LF line endings for formatting regardless of the OS, which is a functional regression for Windows users expecting CRLF.
+
+**[Maintainability and Readability]** Hardcoded `\n` in `tsc.go` at line 63. The `format.GetDefaultFormatCodeSettings` and `format.WithFormatCodeSettings` calls now use `\n` directly instead of `sys.NewLine()`. This hardcodes the newline for formatting operations.
+
+**[Performance]** In `fmtMain`, the `format.GetDefaultFormatCodeSettings` is called with a hardcoded `\n`. This is a simplification, but if `sys.NewLine()` was doing any caching or optimization, it is lost. However, since `sys.NewLine()` was likely just returning a string, this is a minor issue.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>right</side>
+<from>188</from>
+<to>188</to>
+<note>In internal/execute/tsc.go, the call to createProgram (or similar internal function) has removed the `extendedConfigCache` argument. The diff shows `extendedConfigCache` was removed from the call site. If `createProgram` or the underlying `NewCachedFSCompilerHost` still expects this argument or relies on it for caching, this will cause a compilation error or runtime panic. Looking at `internal/compiler/host.go`, `NewCachedFSCompilerHost` signature changed to remove `extendedConfigCache`. This looks like a consistent cleanup. However, in `tsc.go` line 188, the call to `createProgram` (or similar) removed the cache. If the function signature wasn't updated, this is a bug. The diff shows `NewCachedFSCompilerHost` was updated in `host.go` to remove the cache. So this is consistent. No bug here.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>right</side>
+<from>230</from>
+<to>230</to>
+<note>In internal/execute/tsc.go, the call to `compiler.NewCachedFSCompilerHost` has been updated to remove the `extendedConfigCache` argument. This matches the signature change in `internal/compiler/host.go`. This is a consistent change. No bug.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>right</side>
+<from>71</from>
+<to>71</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `tsc.go` at line 67. The error message now uses `Fprintln` which adds a newline, but the original code used `Fprint` with `sys.NewLine()`. This is a functional change but also removes the explicit newline handling.
+
+**[Performance]** In `tsc.go`, the `sys.NewLine()` call is replaced with `fmt.Fprintln`. This is a simplification.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>right</side>
+<from>85</from>
+<to>85</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `tsc.go` at line 84. Similar to line 67, this uses `Fprintln` instead of `Fprint` with `sys.NewLine()`.
+
+**[Performance]** In `tsc.go`, the `sys.NewLine()` call is replaced with `fmt.Fprintln`. This is a simplification.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>right</side>
+<from>374</from>
+<to>374</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `tsc.go` at line 371. The `listFiles` function now uses `Fprintln` instead of `Fprintf` with `sys.NewLine()`.
+
+**[Performance]** In `tsc.go`, the `sys.NewLine()` call is replaced with `fmt.Fprintln`. This is a simplification.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>147</from>
+<to>147</to>
+<note>**[Maintainability and Readability]** The function `getHeader` in `outputs.go` now uses hardcoded `\n` strings instead of the `sys.NewLine()` method. This hardcodes the newline character to LF, ignoring the system's actual newline preference (CRLF on Windows). This reduces maintainability and portability of the output formatting.
+
+**[Performance]** The function `getHeader` in `internal/execute/outputs.go` builds a string slice by repeatedly appending to it. While this is a slice append, the logic for building the header string is now hardcoded with `\n` instead of using a method call. This is a minor optimization opportunity as string concatenation in loops or repeated appends can be slightly less efficient than using a `strings.Builder` for larger outputs, though here the impact is negligible. The primary issue is the removal of the `sys.NewLine()` abstraction which might have allowed for platform-specific optimizations or caching in the future, but currently, it's just a cleanup.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>159</from>
+<to>159</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `outputs.go` at line 159. This is part of a widespread pattern in this file where `sys.NewLine()` calls are replaced with literal `\n`. This makes the code less adaptable to different environments if the decision ever changes.
+
+**[Performance]** In `printEasyHelp`, the output slice is built by appending strings. The change from `sys.NewLine()` to hardcoded `\n` removes a method call, which is a micro-optimization. However, the repeated use of `append` in a loop or multiple times can lead to slice reallocations. Using a `strings.Builder` or pre-allocating the slice if the size is known could be more efficient.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>161</from>
+<to>161</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `outputs.go` at line 161. Consistent with other issues in this file, this hardcoding reduces flexibility.
+
+**[Performance]** Similar to previous issues, `output` is built via repeated appends. Hardcoding `\n` is fine, but the pattern of appending many small strings can be optimized with `strings.Builder`.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>167</from>
+<to>167</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `outputs.go` at line 168. This pattern repeats throughout the file.
+
+**[Performance]** The `output` slice is appended to multiple times. Hardcoding `\n` is a simplification, but the repeated appends can be optimized.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>209</from>
+<to>209</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `outputs.go` at line 203. This is part of the `generateSectionOptionsOutput` function.
+
+**[Performance]** In `generateSectionOptionsOutput`, the `output` slice is built by appending. Hardcoding `\n` is fine, but the pattern can be optimized with `strings.Builder`.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>212</from>
+<to>212</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `outputs.go` at line 206.
+
+**[Performance]** Similar to previous issues, `output` is built via repeated appends. Hardcoding `\n` is fine, but the pattern can be optimized.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>217</from>
+<to>217</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `outputs.go` at line 211.
+
+Hardcoded `\n` in `outputs.go` at line 232.
+
+**[Performance]** Similar to previous issues, `output` is built via repeated appends. Hardcoding `\n` is fine, but the pattern can be optimized.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>230</from>
+<to>230</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `outputs.go` at line 227.
+
+**[Performance]** Similar to previous issues, `output` is built via repeated appends. Hardcoding `\n` is fine, but the pattern can be optimized.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>315</from>
+<to>315</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `outputs.go` at line 314.
+
+**[Performance]** In `generateOptionOutput`, the `text` slice is built by appending. Hardcoding `\n` is fine, but the pattern can be optimized with `strings.Builder`.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>319</from>
+<to>319</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `outputs.go` at line 318.
+
+Hardcoded `\n` in `outputs.go` at line 322.
+
+Hardcoded `\n` in `outputs.go` at line 327.
+
+**[Performance]** Similar to previous issues, `text` is built via repeated appends. Hardcoding `\n` is fine, but the pattern can be optimized.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watcher.go</path>
+<side>right</side>
+<from>59</from>
+<to>59</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `watcher.go` at line 58. The commented-out line now uses `Fprintln` instead of `Fprint` with `sys.NewLine()`.
+
+**[Performance]** In `watcher.go`, the `sys.NewLine()` call is replaced with `fmt.Fprintln`. This is a simplification.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watcher.go</path>
+<side>right</side>
+<from>83</from>
+<to>83</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `watcher.go` at line 80. The commented-out line now uses `Fprint` with `\n` instead of `Fprint` with `sys.NewLine()`.
+
+**[Performance]** In `watcher.go`, the `sys.NewLine()` call is replaced with a hardcoded `\n`. This is a simplification, but if `sys.NewLine()` was doing any caching or optimization, it is lost.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watcher.go</path>
+<side>right</side>
+<from>91</from>
+<to>91</to>
+<note>**[Maintainability and Readability]** Hardcoded `\n` in `watcher.go` at line 88. The commented-out line now uses `Fprintln` instead of `Fprint` with `sys.NewLine()`.
+
+**[Performance]** In `watcher.go`, the `sys.NewLine()` call is replaced with a hardcoded `\n`. This is a simplification.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>261</from>
+<to>262</to>
+<note>Hardcoded `\n` in `outputs.go` at lines 258-259. The check `lines[len(lines)-2] != "\n"` and the append `lines = append(lines, "\n")` are now hardcoded.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watch.go</path>
+<side>right</side>
+<from>44</from>
+<to>44</to>
+<note>Hardcoded `\n` in `watch.go` at line 44. The `initialize` function now uses `Fprintln` instead of `Fprint` with `sys.NewLine()`.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watch.go</path>
+<side>right</side>
+<from>47</from>
+<to>47</to>
+<note>Hardcoded `\n` in `watch.go` at line 47. Similar to line 44, this uses `Fprintln` instead of `Fprint` with `sys.NewLine()`.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>261</from>
+<to>263</to>
+<note>In `makeOutput`, the `lines` slice is modified by appending. Hardcoding `\n` is fine, but the pattern can be optimized if the slice is large.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>right</side>
+<from>63</from>
+<to>63</to>
+<note>In internal/execute/tsc.go, `fmtMain` now uses hardcoded `\n` for format settings. Consistent with PR goal. Not a defect.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>right</side>
+<from>188</from>
+<to>188</to>
+<note>In internal/execute/tsc.go, `createProgram` call removed `extendedConfigCache`. This is part of the cleanup. Not a defect.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>right</side>
+<from>230</from>
+<to>230</to>
+<note>In internal/execute/tsc.go, `NewCachedFSCompilerHost` call removed `extendedConfigCache`. Consistent with host.go changes. Not a defect.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>98</from>
+<to>98</to>
+<note>In internal/execute/outputs.go, `printVersion` now uses `fmt.Fprintln` with two arguments. The original used `fmt.Fprint` with a concatenation including `sys.NewLine()`. The new code passes the formatted version string and then `Fprintln` adds a newline. This is functionally equivalent to `print(... + sys.NewLine())` if `sys.NewLine()` was `\n`. If `sys.NewLine()` was `\r\n`, the output changes. The PR description says 'we now just use \n for the output newline on Windows'. This is an intentional change. Not a defect.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>144</from>
+<to>144</to>
+<note>In internal/execute/outputs.go, `getHeader` now uses hardcoded `\n` instead of `sys.NewLine()`. This is consistent with the PR's stated goal to standardize on `\n`. Not a defect.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>156</from>
+<to>156</to>
+<note>In internal/execute/outputs.go, `printEasyHelp` now uses hardcoded `\n` instead of `sys.NewLine()`. Consistent with PR goal. Not a defect.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>206</from>
+<to>206</to>
+<note>In internal/execute/outputs.go, `generateSectionOptionsOutput` now uses hardcoded `\n` instead of `sys.NewLine()`. Consistent with PR goal. Not a defect.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>227</from>
+<to>227</to>
+<note>In internal/execute/outputs.go, `generateSectionOptionsOutput` now uses hardcoded `\n` instead of `sys.NewLine()`. Consistent with PR goal. Not a defect.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>258</from>
+<to>258</to>
+<note>In internal/execute/outputs.go, `makeLines` now uses hardcoded `\n` instead of `sys.NewLine()`. Consistent with PR goal. Not a defect.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>312</from>
+<to>312</to>
+<note>In internal/execute/outputs.go, `generateOptionOutput` now uses hardcoded `\n` instead of `sys.NewLine()`. Consistent with PR goal. Not a defect.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watch.go</path>
+<side>right</side>
+<from>42</from>
+<to>42</to>
+<note>In internal/execute/watch.go, `fmt.Fprintln` is used with hardcoded `\n` in comments. Not a defect.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watcher.go</path>
+<side>right</side>
+<from>56</from>
+<to>56</to>
+<note>In internal/execute/watcher.go, `fmt.Fprintln` is used in comments. Not a defect.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watcher.go</path>
+<side>right</side>
+<from>80</from>
+<to>80</to>
+<note>In internal/execute/watcher.go, `fmt.Fprint` is used in comments. Not a defect.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watcher.go</path>
+<side>right</side>
+<from>88</from>
+<to>88</to>
+<note>In internal/execute/watcher.go, `fmt.Fprintln` is used in comments. Not a defect.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>right</side>
+<from>49</from>
+<to>49</to>
+<note>In `tsc.go`, the `sys.NewLine()` call is replaced with `fmt.Fprintln`. This is a simplification.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>right</side>
+<from>188</from>
+<to>188</to>
+<note>In `tscCompilation`, the `extendedConfigCache` is no longer passed to `NewCompilerHost`. This is a cleanup change, but if the cache was being reused across multiple compilations, this could lead to a performance regression as the cache is now lost. However, since the cache is passed as `nil` in many places, this might not be a significant issue.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>right</side>
+<from>208</from>
+<to>208</to>
+<note>Similar to previous issue, the `extendedConfigCache` is no longer passed. This is a cleanup change.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/tsc.go</path>
+<side>right</side>
+<from>235</from>
+<to>235</to>
+<note>In `performCompilation`, the `extendedConfigCache` is no longer passed to `NewCachedFSCompilerHost`. This is a cleanup change, but if the cache was being reused, this could lead to a performance regression.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>101</from>
+<to>101</to>
+<note>In `printVersion`, the `sys.NewLine()` call is replaced with `fmt.Fprintln`. This is a simplification, but if `sys.NewLine()` was doing any caching or optimization, it is lost.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watch.go</path>
+<side>right</side>
+<from>27</from>
+<to>27</to>
+<note>In `initialize`, the `extendedConfigCache` is no longer passed to `NewCompilerHost`. This is a cleanup change.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watch.go</path>
+<side>right</side>
+<from>45</from>
+<to>45</to>
+<note>In `watch.go`, the `sys.NewLine()` call is replaced with `fmt.Fprintln`. This is a simplification.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watch.go</path>
+<side>right</side>
+<from>48</from>
+<to>48</to>
+<note>In `watch.go`, the `sys.NewLine()` call is replaced with `fmt.Fprintln`. This is a simplification.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/watcher.go</path>
+<side>right</side>
+<from>63</from>
+<to>63</to>
+<note>In `watcher.go`, the `extendedConfigCache` is no longer passed to `NewCompilerHost`. This is a cleanup change.</note>
+</notesplit>

@@ -1,0 +1,25 @@
+<notesplit>
+<path>packages/cli/src/controllers/users.controller.ts</path>
+<side>right</side>
+<from>100</from>
+<to>104</to>
+<note>**[Code Defect]** The `removeSupplementaryFields` method uses `userDetailSchema.parse(user)` and `userBaseSchema.parse(user)`. If the `publicUsers` objects (which come from the database) contain extra fields not defined in the schemas, `zod.parse()` will throw a validation error. The code should use `safeParse` or `passthrough()`/`strip()` to handle potential schema mismatches gracefully instead of crashing the request.
+
+**[Performance]** The `removeSupplementaryFields` method performs Zod parsing (`userDetailSchema.parse` or `userBaseSchema.parse`) inside a `.map()` loop for every user in the list. Zod parsing is computationally expensive due to schema validation overhead. Since the schema is static, this should be handled by a projection at the database query level or by simple object destructuring/pick operations if validation is not strictly required for every item.
+
+**[Maintainability and Readability]** The logic inside removeSupplementaryFields uses .parse() on data that has already been retrieved from the database. If the database record structure deviates from the schema, this will throw an exception, potentially causing a 500 error for the API request. It is safer to use .safeParse() and handle the error or log a warning.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/controllers/users.controller.ts</path>
+<side>right</side>
+<from>101</from>
+<to>103</to>
+<note>The `removeSupplementaryFields` method uses `userDetailSchema.parse(user)` and `userBaseSchema.parse(user)` on objects retrieved from the database. If the database query returns extra fields not defined in the schema, `zod`'s `parse` method will throw an error, potentially causing a Denial of Service (DoS) for the API endpoint. Use `passthrough()` or `strip()` to handle unexpected fields safely.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/controllers/users.controller.ts</path>
+<side>right</side>
+<from>79</from>
+<to>79</to>
+<note>The method removeSupplementaryFields is becoming overloaded with responsibilities: it handles both field filtering (based on query options) and now authorization-based schema enforcement. Consider splitting these into two distinct steps or methods to improve readability.</note>
+</notesplit>

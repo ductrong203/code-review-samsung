@@ -1,0 +1,51 @@
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.databricks/src/org/jkiss/dbeaver/ext/databricks/DatabricksDataSource.java</path>
+<side>right</side>
+<from>100</from>
+<to>100</to>
+<note>In `initializeContextState`, when `initFrom` is not null, the code attempts to cast `initFromDefaults.getDefaultCatalog()` to `GenericCatalog`. However, `getDefaultCatalog()` returns `DBPObject` (or `Object`), and if the default catalog is not a `GenericCatalog` (e.g., it's null or a different type), this cast will throw a `ClassCastException` at runtime. The null check `if (defaultCatalog != null)` happens *after* the cast, which is too late.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.databricks/src/org/jkiss/dbeaver/ext/databricks/DatabricksExecutionContext.java</path>
+<side>right</side>
+<from>72</from>
+<to>95</to>
+<note>The refreshDefaults method in DatabricksExecutionContext performs a synchronous SQL query (SELECT CURRENT_CATALOG()) every time it is called. This method is likely called frequently during UI operations or connection initialization. Executing a database query synchronously on the UI thread or in a hot path will block execution and degrade responsiveness. This should be executed asynchronously or cached if the catalog doesn't change often.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.databricks/src/org/jkiss/dbeaver/ext/databricks/DatabricksDataSource.java</path>
+<side>right</side>
+<from>82</from>
+<to>105</to>
+<note>**[Performance]** The initializeContextState method calls contextDefaults.refreshDefaults(monitor, true) which likely triggers a database query. If this method is called during connection initialization or context creation for multiple connections, it could lead to N+1 query patterns or excessive database round-trips. Ensure this is not called redundantly.
+
+**[Maintainability and Readability]** The `initializeContextState` method in `DatabricksDataSource` is relatively long (27 lines) and performs multiple distinct tasks: checking defaults, refreshing if new, and copying state from an existing context. Extracting the logic for copying the default catalog into a private helper method would improve single responsibility and readability.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.databricks/src/org/jkiss/dbeaver/ext/databricks/DatabricksDataSource.java</path>
+<side>right</side>
+<from>101</from>
+<to>103</to>
+<note>In `initializeContextState`, the logic `if (defaultCatalog != null && contextDefaults.supportsCatalogChange())` proceeds to set the default catalog. However, it does not check if the `defaultCatalog` from `initFrom` is actually different from the current context's default catalog. This might lead to unnecessary updates or side effects if the catalogs are already the same, though this is less critical than the crash. More importantly, if `initFromDefaults.getDefaultCatalog()` returns a catalog that doesn't exist in the new context, `setDefaultCatalog` might fail or behave unexpectedly.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.databricks/src/org/jkiss/dbeaver/ext/databricks/DatabricksExecutionContext.java</path>
+<side>right</side>
+<from>76</from>
+<to>92</to>
+<note>The `refreshDefaults` method contains a nested try-with-resources block (JDBCSession containing JDBCStatement containing JDBCResultSet). This deep nesting (3 levels) reduces readability and makes the code harder to maintain. It is better to flatten this structure by handling resources sequentially or using helper methods.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.databricks/src/org/jkiss/dbeaver/ext/databricks/DatabricksExecutionContext.java</path>
+<side>right</side>
+<from>78</from>
+<to>78</to>
+<note>SQL Injection Risk: The code executes a static SQL query 'SELECT CURRENT_CATALOG()'. While the query string itself is hardcoded and not directly user-controlled, this pattern establishes a precedent for SQL execution. If this code were to be modified to include user input in the query string without proper parameterization, it would lead to SQL injection. Currently, it is safe because the query is static, but it lacks the defensive pattern of using parameterized queries which is a best practice for SQL execution in Java.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.ext.databricks/src/org/jkiss/dbeaver/ext/databricks/DatabricksExecutionContext.java</path>
+<side>right</side>
+<from>90</from>
+<to>90</to>
+<note>Information Disclosure: The error message 'Failed to get current catalog' is logged. While not containing sensitive data, verbose logging of internal database operations can sometimes aid an attacker in understanding the system's structure. Ensure that such logs are not exposed to end-users or external interfaces.</note>
+</notesplit>

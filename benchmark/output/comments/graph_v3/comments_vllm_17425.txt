@@ -1,0 +1,46 @@
+<notesplit>
+<path>vllm/logger.py</path>
+<side>right</side>
+<from>55</from>
+<to>58</to>
+<note>**[Code Defect]** The use of @lru_cache on a function that accepts *args (which are mutable or non-hashable) will cause a TypeError when called with non-hashable arguments. The type hint 'Hashable' is insufficient as it does not enforce that the caller only passes hashable types, and many common logger arguments (like lists or dicts) are not hashable.
+
+**[Performance]** The use of @lru_cache on functions accepting *args (which are mutable or non-hashable) can lead to memory leaks or cache misses if the arguments are not hashable. The type hint 'Hashable' is insufficient to guarantee that all passed arguments are immutable/hashable, potentially causing the cache to grow indefinitely or fail to cache effectively.</note>
+</notesplit>
+<notesplit>
+<path>vllm/logger.py</path>
+<side>right</side>
+<from>61</from>
+<to>64</to>
+<note>**[Code Defect]** The use of @lru_cache on a function that accepts *args (which are mutable or non-hashable) will cause a TypeError when called with non-hashable arguments. The type hint 'Hashable' is insufficient as it does not enforce that the caller only passes hashable types, and many common logger arguments (like lists or dicts) are not hashable.
+
+**[Performance]** Similar to _print_info_once, the @lru_cache on _print_warning_once with *args can lead to memory leaks. Unbounded caches in long-running processes like vLLM engines are a risk.</note>
+</notesplit>
+<notesplit>
+<path>vllm/logger.py</path>
+<side>right</side>
+<from>56</from>
+<to>56</to>
+<note>The use of `Hashable` as a type hint for `*args` is overly restrictive and potentially misleading. `logging` methods accept any object that can be converted to a string, not just hashable ones. This could cause static analysis tools to flag valid logging calls as errors.</note>
+</notesplit>
+<notesplit>
+<path>vllm/logger.py</path>
+<side>right</side>
+<from>62</from>
+<to>62</to>
+<note>The use of `Hashable` as a type hint for `*args` is overly restrictive and potentially misleading. `logging` methods accept any object that can be converted to a string, not just hashable ones.</note>
+</notesplit>
+<notesplit>
+<path>vllm/logger.py</path>
+<side>right</side>
+<from>76</from>
+<to>76</to>
+<note>The use of `Hashable` as a type hint for `*args` is overly restrictive and potentially misleading. `logging` methods accept any object that can be converted to a string, not just hashable ones.</note>
+</notesplit>
+<notesplit>
+<path>vllm/logger.py</path>
+<side>right</side>
+<from>83</from>
+<to>83</to>
+<note>The use of `Hashable` as a type hint for `*args` is overly restrictive and potentially misleading. `logging` methods accept any object that can be converted to a string, not just hashable ones.</note>
+</notesplit>

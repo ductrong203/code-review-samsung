@@ -1,0 +1,23 @@
+<notesplit>
+<path>internal/checker/checker.go</path>
+<side>right</side>
+<from>10829</from>
+<to>10831</to>
+<note>The logic for checking the 'lib' compiler option is inverted. The function should return false if 'lib.dom.d.ts' is NOT present (meaning the DOM types are missing), but the current code returns false if it IS present. This causes the checker to incorrectly identify DOM elements as 'empty' when the DOM library is actually loaded.</note>
+</notesplit>
+<notesplit>
+<path>internal/checker/checker.go</path>
+<side>right</side>
+<from>10854</from>
+<to>10858</to>
+<note>**[Performance]** The loop iterates over every character in the string to check if it is an ASCII letter. This is redundant as strings in Go are immutable and this check can be performed more efficiently using a single regex or a pre-compiled character set check if performance is critical, or simply by checking the range of the string bytes if the format is strictly defined.
+
+**[Maintainability and Readability]** The manual loop to check if characters are ASCII letters is redundant. Go's standard library provides unicode.IsLetter or similar utilities, or if specifically ASCII is required, a simple range check is more idiomatic and readable.</note>
+</notesplit>
+<notesplit>
+<path>internal/checker/checker.go</path>
+<side>right</side>
+<from>10839</from>
+<to>10852</to>
+<note>The logic inside the closure in containerSeemsToBeEmptyDomElement is becoming complex. Extracting the name validation logic into a named helper function would improve readability and testability.</note>
+</notesplit>

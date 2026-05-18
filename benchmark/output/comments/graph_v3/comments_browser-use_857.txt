@@ -1,0 +1,20 @@
+<notesplit>
+<path>browser_use/browser/context.py</path>
+<side>right</side>
+<from>453</from>
+<to>453</to>
+<note>**[Code Defect]** The logic for passing `bypass_csp` and `ignore_https_errors` to `browser.new_context` was removed in the refactor. The new dictionary unpacking `**({'bypass_csp': True, 'ignore_https_errors': True} if self.config.disable_security else {})` is syntactically correct but relies on the `patchright` implementation supporting these keys in `new_context`. If `self.config.disable_security` is False, these options are omitted, which may change the default behavior compared to the original code if the original code intended to pass False explicitly.
+
+**[Security Vulnerability]** The code conditionally enables 'bypass_csp' and 'ignore_https_errors' based on 'self.config.disable_security'. Disabling Content Security Policy (CSP) and ignoring HTTPS errors significantly increases the risk of Cross-Site Scripting (XSS) and Man-in-the-Middle (MitM) attacks. These security features should remain enabled by default.
+
+**[Performance]** The dictionary comprehension `{'bypass_csp': True, 'ignore_https_errors': True} if self.config.disable_security else {}` is evaluated every time a new browser context is created. While minor, this creates a new dictionary object on every call. It is more efficient to define this as a constant or pre-calculate the dictionary outside the hot path if this method is called frequently.
+
+**[Maintainability and Readability]** The dictionary construction for `bypass_csp` and `ignore_https_errors` using a conditional expression inside `new_context` is less readable than explicit keyword arguments. It obscures the API call structure.</note>
+</notesplit>
+<notesplit>
+<path>browser_use/browser/context.py</path>
+<side>right</side>
+<from>490</from>
+<to>501</to>
+<note>The `add_init_script` contains an empty block for `window.navigator.permissions.query` logic that serves no purpose after the removal of other anti-detection scripts. It adds noise to the codebase.</note>
+</notesplit>

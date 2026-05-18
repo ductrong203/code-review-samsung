@@ -1,0 +1,81 @@
+<notesplit>
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>338</from>
+<to>343</to>
+<note>**[Code Defect]** Race condition in stdout/stderr collection: Similar to the previous issue, the `stderr` collection uses a simple string concatenation which is susceptible to the same race condition where the 'close' event fires before all 'data' events are processed.
+
+**[Performance]** Similar to stdout, stderr is accumulated using string concatenation (`+=`) inside the event listener. This leads to O(n²) complexity for large error outputs. Synchronous writes to `process.stderr` also pose a risk of blocking.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>345</from>
+<to>358</to>
+<note>**[Code Defect]** Race condition in stdout/stderr collection: The `close` event handler reads from `stdout` and `stderr` variables which may not be fully populated yet. This is the critical point where the bug manifests.
+
+**[Performance]** The `runCommand` method does not handle the 'error' event on the child process. If the child process fails to spawn (e.g., 'node' not found, permission denied), the promise will never resolve or reject, causing a memory leak and hanging the test runner indefinitely. This is a resource leak in the async flow.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>323</from>
+<to>332</to>
+<note>Race condition in stdout/stderr collection: `stdout` and `stderr` variables are declared outside the Promise but modified inside event listeners. Since `child.on('data', ...)` is asynchronous, the `child.on('close', ...)` handler might execute before all data events have been processed, leading to truncated or missing output in the result. This causes flaky tests where assertions on output fail intermittently.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/extensions-install.test.ts</path>
+<side>right</side>
+<from>27</from>
+<to>31</to>
+<note>Empty catch block swallows exceptions. The code attempts to uninstall an extension that may not exist, and silently ignores any errors. This makes debugging difficult if the uninstall command fails for unexpected reasons. Consider adding a comment explaining why the error is safe to ignore, or checking if the extension exists before attempting uninstall.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>312</from>
+<to>361</to>
+<note>The runCommand method in TestRig class is complex and handles multiple responsibilities: spawning a process, managing stdio, collecting output, and handling errors. This violates Single Responsibility Principle. Consider extracting the process spawning and output collection into separate helper methods to improve testability and readability.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/extensions-install.test.ts</path>
+<side>right</side>
+<from>25</from>
+<to>29</to>
+<note>Potential race condition or timing issue: The test writes the extension file, then immediately runs the install command. If the file system write is not fully flushed or if the command execution is too fast, there might be a race condition. However, this is less critical than the stdout race condition. A more significant issue is that `writeFileSync` is synchronous but the subsequent `runCommand` is async. If `runCommand` reads the file before it's fully written (unlikely with sync write, but possible if there's caching), it could fail. More importantly, the test does not wait for the file write to be 'visible' to the spawned process in a way that guarantees consistency across all OS/file systems.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>318</from>
+<to>321</to>
+<note>Command Injection Risk: The `runCommand` method accepts an `args` array and passes it directly to `spawn('node', commandArgs, ...)`. While the first argument is fixed, subsequent arguments are user-controlled (from the test). If an attacker can control the `args` passed to `runCommand` (e.g., via a malicious extension name or path in the test input), they could potentially inject shell metacharacters if the spawn implementation or environment allows it, or exploit argument parsing vulnerabilities in the target application. In a test context, this is lower risk but still a pattern to be aware of if `runCommand` is exposed to external input.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>331</from>
+<to>336</to>
+<note>In the `runCommand` method, stdout and stderr are accumulated as strings using `+=` inside event listeners. For large outputs, this causes O(n²) string concatenation performance degradation. Additionally, writing to `process.stdout`/`process.stderr` synchronously inside the data event handler can block the event loop and cause backpressure issues with the child process.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/extensions-install.test.ts</path>
+<side>right</side>
+<from>25</from>
+<to>26</to>
+<note>Insecure Path Construction: The test constructs a file path using `join(rig.testDir!, 'gemini-extension.json')` and writes a JSON file. If `rig.testDir` is derived from user input or environment variables without sanitization, it could be used for path traversal (e.g., `../../etc`). While `testDir` is likely controlled by the test harness, it's a potential vector if the harness itself is compromised.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/extensions-install.test.ts</path>
+<side>right</side>
+<from>12</from>
+<to>15</to>
+<note>Magic strings for extension content. The extension JSON strings are hardcoded directly in the test file. While not critical, extracting these to named constants with descriptive names (e.g., 'BASE_EXTENSION_CONTENT') would improve readability and make it easier to modify test data.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/extensions-install.test.ts</path>
+<side>right</side>
+<from>17</from>
+<to>20</to>
+<note>Magic strings for extension update content. Similar to the base extension, the update JSON is hardcoded. Consider extracting to a named constant for better readability.</note>
+</notesplit>

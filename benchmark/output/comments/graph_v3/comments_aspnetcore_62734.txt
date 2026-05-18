@@ -1,0 +1,13 @@
+<notesplit>
+<path>src/Identity/Extensions.Core/src/PasswordHasher.cs</path>
+<side>right</side>
+<from>267</from>
+<to>267</to>
+<note>**[Code Defect]** The use of AsSpan(13, saltLength) without validating that 13 + saltLength does not exceed the bounds of hashedPassword will throw an ArgumentOutOfRangeException if the input string is malformed or too short. This is a regression from the previous Buffer.BlockCopy approach which would have thrown a different exception or failed differently, but now it crashes the verification process.
+
+**[Security Vulnerability]** The use of AsSpan(13, saltLength).ToArray() without validating that saltLength is within the bounds of hashedPassword can cause an ArgumentOutOfRangeException, leading to a Denial of Service (DoS) when processing malicious password hashes. The code must verify that 13 + saltLength <= hashedPassword.Length before slicing.
+
+**[Performance]** The use of .ToArray() on a Span creates a new heap allocation for the salt array every time a password is verified. Since the salt is only used for comparison, this allocation is unnecessary and increases GC pressure in a hot path. Use the Span directly for comparison if the underlying comparison method supports it, or reuse a buffer.
+
+**[Maintainability and Readability]** The code uses a magic number '13' to represent the offset of the salt in the hashed password byte array. This reduces readability and makes the code fragile if the header format changes. Define a constant like 'SaltOffset' to clarify the intent.</note>
+</notesplit>

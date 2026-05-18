@@ -1,0 +1,157 @@
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>105</from>
+<to>109</to>
+<note>**[Code Defect]** In hypercore_open_compressed, RelationGetHypercoreInfo(relation) is called to get the info, but the 'relation' argument is not checked for NULL. If a NULL relation is passed, this will cause a segmentation fault (crash). The previous code did not have this function, but callers now use it. It is safer to add a NULL check or ensure callers always pass valid relations.
+
+**[Security Vulnerability]** The new function hypercore_open_compressed in hypercore_handler.c calls RelationGetHypercoreInfo(relation) and immediately uses the result to call table_open. As noted in the comments, table_open can invalidate the rd_amcache, making the HypercoreInfo pointer invalid. Dereferencing an invalid pointer leads to a use-after-free or null pointer dereference, causing a crash (segfault). This is a reliability/security issue (DoS).
+
+**[Performance]** The new function hypercore_open_compressed calls RelationGetHypercoreInfo which accesses the relation's rd_amcache. As noted in the comments, table_open can invalidate rd_amcache, making the retrieved HypercoreInfo potentially invalid immediately after retrieval. This creates a race condition where the pointer might be dangling or stale, leading to undefined behavior or crashes rather than a performance issue, but it's a critical correctness issue that impacts stability.
+
+**[Maintainability and Readability]** The new function hypercore_open_compressed is a thin wrapper around table_open that adds no value. It simply calls table_open with the result of RelationGetHypercoreInfo. This adds an unnecessary layer of indirection, making the code harder to read and maintain without providing any abstraction or benefit.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>710</from>
+<to>710</to>
+<note>**[Security Vulnerability]** The call to hypercore_open_compressed in hypercore_beginscan (line 710) inherits the use-after-free vulnerability. It calls hypercore_open_compressed which dereferences RelationGetHypercoreInfo, then calls table_open which invalidates the cache, then returns. If the caller or subsequent code uses the relation or any derived state that depended on the cache being stable, it may crash.
+
+**[Performance]** The call to hypercore_open_compressed in hypercore_beginscan (line 710) opens the compressed relation. If this function is called frequently (e.g., in a loop or high-throughput scan), the overhead of opening/closing the relation repeatedly could be significant. However, looking at the context, this is likely a one-time setup per scan, so the impact is low. The main issue is the potential invalidation of HypercoreInfo.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>971</from>
+<to>971</to>
+<note>**[Security Vulnerability]** Same vulnerability in hypercore_parallelscan_initialize. The call to hypercore_open_compressed will dereference the cache, call table_open (invalidating cache), and return. This can cause crashes in parallel scan initialization.
+
+Same vulnerability in hypercore_parallelscan_reinitialize. The call to hypercore_open_compressed will dereference the cache, call table_open (invalidating cache), and return. This can cause crashes in parallel scan reinitialization.
+
+Same vulnerability in hypercore_index_fetch_begin. The call to hypercore_open_compressed will dereference the cache, call table_open (invalidating cache), and return. This can cause crashes in index fetch operations.
+
+Same vulnerability in hypercore_tuple_satisfies_snapshot. The call to hypercore_open_compressed will dereference the cache, call table_open (invalidating cache), and return. This can cause crashes in snapshot satisfaction checks.
+
+**[Code Defect]** In hypercore_parallelscan_initialize, `hypercore_open_compressed(rel, AccessShareLock)` is called. If `rel` is NULL, this will crash. This is a potential NULL pointer dereference.
+
+In hypercore_parallelscan_reinitialize, `hypercore_open_compressed(rel, AccessShareLock)` is called. If `rel` is NULL, this will crash. This is a potential NULL pointer dereference.
+
+In hypercore_index_fetch_begin, `hypercore_open_compressed(rel, AccessShareLock)` is called. If `rel` is NULL, this will crash. This is a potential NULL pointer dereference.
+
+In hypercore_tuple_satisfies_snapshot, `hypercore_open_compressed(rel, AccessShareLock)` is called. If `rel` is NULL, this will crash. This is a potential NULL pointer dereference.
+
+**[Performance]** Similar to line 710, hypercore_parallelscan_initialize calls hypercore_open_compressed. Parallel scans might be frequent in large datasets. The same invalidation risk applies.
+
+Similar to line 710, hypercore_parallelscan_reinitialize calls hypercore_open_compressed. Parallel scans might be frequent in large datasets. The same invalidation risk applies.
+
+hypercore_index_fetch_begin calls hypercore_open_compressed. Index fetches can be frequent. The same invalidation risk applies.
+
+hypercore_tuple_satisfies_snapshot calls hypercore_open_compressed. Snapshot checks can be frequent. The same invalidation risk applies.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>1317</from>
+<to>1317</to>
+<note>**[Security Vulnerability]** Same vulnerability in hypercore_fetch_row_version. The call to hypercore_open_compressed will dereference the cache, call table_open (invalidating cache), and return. This can cause crashes in row version fetching.
+
+**[Code Defect]** In hypercore_fetch_row_version, `hypercore_open_compressed(relation, AccessShareLock)` is called. If `relation` is NULL, this will crash. This is a potential NULL pointer dereference.
+
+**[Performance]** hypercore_fetch_row_version calls hypercore_open_compressed. Row version fetches can be frequent. The same invalidation risk applies.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>1549</from>
+<to>1549</to>
+<note>**[Security Vulnerability]** Same vulnerability in hypercore_tuple_delete. The call to hypercore_open_compressed will dereference the cache, call table_open (invalidating cache), and return. This can cause crashes in tuple deletion operations.
+
+**[Code Defect]** In hypercore_tuple_delete, `hypercore_open_compressed(rel, RowExclusiveLock)` is called. If `rel` is NULL, this will crash. This is a potential NULL pointer dereference.
+
+**[Performance]** hypercore_tuple_delete calls hypercore_open_compressed. Deletes can be frequent. The same invalidation risk applies.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>351</from>
+<to>355</to>
+<note>In build_segment_and_orderby_bms, the function signature changed to take HypercoreInfo *hcinfo. The callers of this function (e.g., hypercore_index_build_range_scan) were not shown in the diff but if they still pass the old variable or if the variable is not updated, it will cause a compile error or logic error. However, looking at the diff, the variable name `hsinfo` was changed to `hcinfo` consistently in the function body. The issue is likely in the caller `hypercore_index_build_range_scan` which is not in the diff but is a caller. Wait, the diff shows `build_segment_and_orderby_bms` definition. The callers are not in the diff. Let's look at `initscan` (line 503). It calls `RelationGetHypercoreInfo`. The variable `hsinfo` was renamed to `hcinfo`. This is consistent. The real issue is likely the NULL pointer dereference in `hypercore_open_compressed` or similar.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>right</side>
+<from>117</from>
+<to>119</to>
+<note>In segmentby_qual_walker, `RelationGetHypercoreInfo(qpc->rel)` is called. If `qpc->rel` is NULL, this will crash. The struct `QualProcessState` now has `Relation rel` instead of `const HypercoreInfo *hcinfo`. If `rel` is NULL, it crashes. This is a potential NULL pointer dereference.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>right</side>
+<from>237</from>
+<to>239</to>
+<note>In process_scan_key_quals, `RelationGetHypercoreInfo(qpi->rel)` is called. If `qpi->rel` is NULL, this will crash. The struct `QualProcessState` now has `Relation rel` instead of `const HypercoreInfo *hcinfo`. If `rel` is NULL, it crashes. This is a potential NULL pointer dereference.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>right</side>
+<from>388</from>
+<to>391</to>
+<note>In create_scankeys_from_quals, the function signature changed to take `Relation rel` instead of `const HypercoreInfo *hcinfo`. The struct `QualProcessState` now has `Relation rel`. If `rel` is NULL, subsequent calls to `RelationGetHypercoreInfo(rel)` will crash. This is a potential NULL pointer dereference.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>right</side>
+<from>764</from>
+<to>766</to>
+<note>In cost_columnar_scan, `create_scankeys_from_quals` is called with `state->ss.ss_currentRelation`. If this relation is NULL, it will crash. This is a potential NULL pointer dereference.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>right</side>
+<from>1033</from>
+<to>1036</to>
+<note>In vector_qual_info_hypercore, `RelationGetHypercoreInfo(relation)` is called. If `relation` is NULL, this will crash. This is a potential NULL pointer dereference.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>right</side>
+<from>79</from>
+<to>79</to>
+<note>In file tsl/src/nodes/columnar_scan/columnar_scan.c, the QualProcessState struct changed from storing a HypercoreInfo pointer (hcinfo) to storing a Relation pointer (rel). This is a significant design change that affects how hypercore info is accessed throughout the file. While this might improve testability by injecting the relation, it requires all callers to pass the relation instead of the pre-fetched info, which could be a breaking change for the internal API.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>225</from>
+<to>227</to>
+<note>In lazy_build_hypercore_info_cache, the variable name is changed from hsinfo to hcinfo. While this is a refactoring, the logic remains the same. However, the new function hypercore_open_compressed relies on RelationGetHypercoreInfo which returns this cached info. If the cache is invalidated, the pointer becomes dangling. The root cause is the same as the previous issue but manifests here as the source of the cached data.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>707</from>
+<to>709</to>
+<note>In hypercore_beginscan, the code now uses `hypercore_open_compressed(relation, AccessShareLock)`. If `relation` is NULL, this will crash. The previous code did the same via `hsinfo`. However, `relation` is a parameter. If the caller passes NULL, it crashes. This is a potential NULL pointer dereference.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>218</from>
+<to>225</to>
+<note>Variable renamed from hsinfo to hcinfo. While 'hc' likely stands for 'hypercore', the abbreviation is less clear than the previous 'hs' (hypertable segment) or a more explicit name like 'hypercore_info'. Consistency is improved, but the name itself is still somewhat opaque.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>right</side>
+<from>1036</from>
+<to>1044</to>
+<note>The VectorQualInfoHypercore initialization still includes a redundant 'hcinfo' field assignment that is now unused. This should be removed to match the struct definition change.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>right</side>
+<from>1001</from>
+<to>1004</to>
+<note>The VectorQualInfoHypercore struct still contains a redundant 'hcinfo' field that is no longer used after the refactoring. This dead code should be removed to keep the struct clean and avoid confusion.</note>
+</notesplit>

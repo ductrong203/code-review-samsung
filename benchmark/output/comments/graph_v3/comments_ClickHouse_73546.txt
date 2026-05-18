@@ -1,0 +1,63 @@
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueIFileMetadata.cpp</path>
+<side>right</side>
+<from>295</from>
+<to>295</to>
+<note>The code uses `responses[0]->error` without verifying that `responses` is not empty. `zk_client->tryMulti` might return a non-zero code without populating the `responses` vector, leading to an out-of-bounds access.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueIFileMetadata.cpp</path>
+<side>right</side>
+<from>307</from>
+<to>309</to>
+<note>Similar to the previous issue, `responses[0]` and `responses[1]` are accessed without checking if the `responses` vector contains enough elements. If `tryMulti` fails or returns fewer responses than expected, this will crash.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueIFileMetadata.cpp</path>
+<side>right</side>
+<from>229</from>
+<to>231</to>
+<note>The condition `file_status->retries && file_status->retries >= max_loading_retries` is redundant. If `file_status->retries >= max_loading_retries` is true, `file_status->retries` is implicitly non-zero (assuming retries is non-negative). The check `file_status->retries` adds no value and could be confusing.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueOrderedFileMetadata.cpp</path>
+<side>right</side>
+<from>254</from>
+<to>254</to>
+<note>The code performs a synchronous network call (zk_client->tryGet) inside a loop that is likely executed frequently. If this loop runs often, the latency of multiple ZooKeeper requests will accumulate, potentially blocking the processing thread.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>right</side>
+<from>474</from>
+<to>491</to>
+<note>The `generateImpl` function has grown significantly in complexity, now handling multiple states (Cancelled, Shutdown, Processing) with deeply nested logic. This violates the Single Responsibility Principle and makes the control flow hard to follow. Consider extracting the cancellation and shutdown handling into dedicated private helper methods.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueOrderedFileMetadata.cpp</path>
+<side>right</side>
+<from>250</from>
+<to>257</to>
+<note>The `release` method contains duplicated logic for handling ZooKeeper responses based on whether `MULTI_READ` is enabled. This duplication makes the code harder to maintain. The logic for checking if a file is failed or processed should be unified.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueIFileMetadata.cpp</path>
+<side>right</side>
+<from>303</from>
+<to>303</to>
+<note>The code uses `chassert(false)` in a production-critical path (ZooKeeper interaction failure). In production builds, `chassert` is typically a no-op, meaning the function will return silently after a failed state transition, potentially leaving the system in an inconsistent state regarding file processing ownership.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueIFileMetadata.cpp</path>
+<side>right</side>
+<from>307</from>
+<to>314</to>
+<note>The `resetProcessing` method performs complex ZooKeeper multi-request orchestration and error handling. The logic for checking `responses[0]->error` and `responses[1]->error` is brittle and hard to read. This should be abstracted into a helper that encapsulates the ZooKeeper transaction logic.</note>
+</notesplit>
+<notesplit>
+<path>src/Storages/ObjectStorageQueue/ObjectStorageQueueSource.cpp</path>
+<side>right</side>
+<from>567</from>
+<to>567</to>
+<note>The code uses `processed_files.emplace_back(file_metadata)` inside a loop that runs for every file. If `processed_files` grows indefinitely, this will lead to a memory leak. Ensure there is a mechanism to clear or limit the size of this vector.</note>
+</notesplit>

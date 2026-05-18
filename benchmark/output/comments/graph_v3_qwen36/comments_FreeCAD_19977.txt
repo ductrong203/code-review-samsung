@@ -1,0 +1,241 @@
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>337</from>
+<to>343</to>
+<note>In src/App/Application.cpp, the lines registering App::MaterialPy, App::MetadataPy, App::MeasureManagerPy, App::StringHasherPy, and App::StringIDPy have been changed from using the fully qualified names (e.g., &App::MaterialPy::Type) to unqualified names (e.g., &MaterialPy::Type). Since these types are defined in the App namespace, removing the namespace qualifier causes a compilation error (undefined identifier) unless there are conflicting local definitions, which is unlikely. This breaks the build.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>346</from>
+<to>351</to>
+<note>**[Code Defect]** In src/App/Application.cpp, the lines registering App::PropertyContainerPy, App::ExtensionContainerPy, App::DocumentPy, App::DocumentObjectPy, App::DocumentObjectGroupPy, and App::GeoFeaturePy have been changed from using the fully qualified names (e.g., &App::PropertyContainerPy::Type) to unqualified names (e.g., &PropertyContainerPy::Type). This causes a compilation error (undefined identifier) because these types are defined in the App namespace.
+
+**[Performance]** More `addType` calls for document types. Sequential registration of Python types can be a startup bottleneck if the number of types is large or if registration is expensive.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>354</from>
+<to>359</to>
+<note>**[Code Defect]** In src/App/Application.cpp, the lines registering App::ExtensionPy, App::DocumentObjectExtensionPy, App::GroupExtensionPy, App::GeoFeatureGroupExtensionPy, App::OriginGroupExtensionPy, and App::LinkBaseExtensionPy have been changed from using the fully qualified names (e.g., &App::ExtensionPy::Type) to unqualified names (e.g., &ExtensionPy::Type). This causes a compilation error (undefined identifier) because these types are defined in the App namespace.
+
+**[Performance]** More `addType` calls for extension types. Sequential registration of Python types can be a startup bottleneck if the number of types is large or if registration is expensive.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>340</from>
+<to>340</to>
+<note>**[Maintainability and Readability]** Inconsistent namespace qualification. MeasureManagerPy is missing the 'App::' prefix.
+
+**[Performance]** More `addType` call for MeasureManager. Sequential registration of Python types can be a startup bottleneck if the number of types is large or if registration is expensive.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>342</from>
+<to>342</to>
+<note>**[Maintainability and Readability]** Inconsistent namespace qualification. StringHasherPy is missing the 'App::' prefix.
+
+Inconsistent namespace qualification. StringIDPy is missing the 'App::' prefix.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>346</from>
+<to>346</to>
+<note>**[Maintainability and Readability]** Inconsistent namespace qualification. PropertyContainerPy is missing the 'App::' prefix.
+
+Inconsistent namespace qualification. ExtensionContainerPy is missing the 'App::' prefix.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>348</from>
+<to>348</to>
+<note>**[Maintainability and Readability]** Inconsistent namespace qualification. DocumentPy is missing the 'App::' prefix.
+
+Inconsistent namespace qualification. DocumentObjectPy is missing the 'App::' prefix.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>350</from>
+<to>350</to>
+<note>**[Maintainability and Readability]** Inconsistent namespace qualification. DocumentObjectGroupPy is missing the 'App::' prefix.
+
+Inconsistent namespace qualification. GeoFeaturePy is missing the 'App::' prefix.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>354</from>
+<to>354</to>
+<note>**[Maintainability and Readability]** Inconsistent namespace qualification. ExtensionPy is missing the 'App::' prefix.
+
+Inconsistent namespace qualification. DocumentObjectExtensionPy is missing the 'App::' prefix.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>356</from>
+<to>356</to>
+<note>**[Maintainability and Readability]** Inconsistent namespace qualification. GroupExtensionPy is missing the 'App::' prefix.
+
+Inconsistent namespace qualification. GeoFeatureGroupExtensionPy is missing the 'App::' prefix.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>358</from>
+<to>358</to>
+<note>**[Maintainability and Readability]** Inconsistent namespace qualification. OriginGroupExtensionPy is missing the 'App::' prefix.
+
+Inconsistent namespace qualification. LinkBaseExtensionPy is missing the 'App::' prefix.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>337</from>
+<to>337</to>
+<note>Inconsistent namespace qualification in setupPythonTypes. The refactoring to InterpreterSingleton removed the 'Base::' prefix for some types (MaterialPy, MetadataPy, etc.) but kept it for others (VectorPy, QuantityPy). This inconsistency makes the code harder to read and suggests a lack of clear scoping rules. All calls should consistently use the same qualification style.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>338</from>
+<to>338</to>
+<note>Inconsistent namespace qualification. MetadataPy is missing the 'App::' prefix while other App types retain theirs.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>402</from>
+<to>407</to>
+<note>**[Maintainability and Readability]** The lambda 'setup' captures 'str' by value but uses it in a string concatenation. While this works, the capture of a string literal converted to std::string is slightly verbose. More importantly, the lambda returns the exception pointer but doesn't use it, making the return value redundant. This reduces clarity.
+
+**[Performance]** The lambda `setup` captures `str` by value. While this is a small string, capturing by value in a lambda that is called multiple times in a loop can lead to repeated allocations if the string is not small-string optimized (SSO). For short strings like "Base.", SSO likely applies, so this is a minor concern. However, if the string were longer, this could be a performance issue.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>305</from>
+<to>310</to>
+<note>The `setupPythonTypes` function in Application.cpp calls `Base::InterpreterSingleton::addType` multiple times in a loop-like structure. If `addType` performs expensive operations (like type registration, inheritance resolution, or Python C-API calls), this sequential execution could be a bottleneck during application startup. While this is initialization code, if the number of types grows, this could become significant. However, without seeing `addType` implementation, this is a potential concern rather than a definite bottleneck.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>327</from>
+<to>335</to>
+<note>Similar to the previous issue, more `addType` calls are made sequentially. This is part of the Python type initialization. If `addType` is expensive, this contributes to startup time.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>337</from>
+<to>338</to>
+<note>More `addType` calls for App module types. Sequential registration of Python types can be a startup bottleneck if the number of types is large or if registration is expensive.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>342</from>
+<to>343</to>
+<note>More `addType` calls for StringHasher and StringID. Sequential registration of Python types can be a startup bottleneck if the number of types is large or if registration is expensive.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>378</from>
+<to>379</to>
+<note>More `addType` calls for Quantity and Unit. Sequential registration of Python types can be a startup bottleneck if the number of types is large or if registration is expensive.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>388</from>
+<to>389</to>
+<note>More `addType` calls for ProgressIndicator. Sequential registration of Python types can be a startup bottleneck if the number of types is large or if registration is expensive.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>392</from>
+<to>393</to>
+<note>More `addType` calls for Vector2d. Sequential registration of Python types can be a startup bottleneck if the number of types is large or if registration is expensive.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>579</from>
+<to>581</to>
+<note>The `getDocuments` function now reserves space for the vector before iterating. This is a positive optimization that prevents multiple reallocations when the map is large, improving performance for callers that consume the full list of documents.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>959</from>
+<to>959</to>
+<note>**[Maintainability and Readability]** Variable name 'obj2' is unclear. It was renamed from 'obj' likely to avoid shadowing, but 'obj2' is not descriptive. A more meaningful name like 'docObj' or 'appObj' would improve readability.
+
+**[Security Vulnerability]** The change from `obj` to `obj2` in the loop `for(auto obj2 : doc->getObjects())` is a simple variable rename to avoid shadowing or for clarity. It has no security impact.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>522</from>
+<to>522</to>
+<note>The change from `map<string,Document*>::iterator` to `auto` in `closeDocument` is a modernization that removes an explicit type declaration. While generally safe, it relies on the compiler to infer the correct iterator type from `DocMap`. If `DocMap` type changes in the future, this could silently change behavior or cause compilation errors, but it does not introduce a new security vulnerability.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>558</from>
+<to>558</to>
+<note>The change from `std::map<std::string,Document*>::const_iterator pos;` followed by `pos = DocMap.find(Name);` to `const auto pos = DocMap.find(Name);` in `getDocument` is a safe modernization. It reduces scope and improves readability without affecting security.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>681</from>
+<to>681</to>
+<note>The change from `if(!path || !path[0])` to `if(Base::Tools::isNullOrEmpty(path))` in `getDocumentByPath` is a safe modernization. `isNullOrEmpty` likely performs the same null and empty string checks, possibly more robustly. No security regression is introduced.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>975</from>
+<to>975</to>
+<note>The change from `if(!isMainDoc)` to `if (!isMainDoc) {` and `else if(doc)` to `if (doc) {` in `getDocumentByPath` is a formatting and structural modernization. It improves readability and ensures consistent block scoping. No security impact.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>1062</from>
+<to>1062</to>
+<note>The change from separate declaration and assignment of `pos` to `if (const auto pos = DocMap.find(Name); pos != DocMap.end())` in `setActiveDocument` is a safe modernization. It reduces scope and improves readability. No security impact.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>1167</from>
+<to>1167</to>
+<note>The change from `std::string path = std::string(RESOURCEDIR).c_str();` to `auto path = std::string(RESOURCEDIR);` in `getResourceDir` is a safe modernization. The original code was potentially problematic (calling `c_str()` on a temporary `std::string`), and the new code is correct and safer. No security regression.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>1182</from>
+<to>1182</to>
+<note>The change from `std::string path = std::string(LIBRARYDIR).c_str();` to `auto path = std::string(LIBRARYDIR);` in `getLibraryDir` is a safe modernization. The original code was potentially problematic (calling `c_str()` on a temporary `std::string`), and the new code is correct and safer. No security regression.</note>
+</notesplit>
+<notesplit>
+<path>src/App/Application.cpp</path>
+<side>right</side>
+<from>1196</from>
+<to>1196</to>
+<note>The change from `std::string path = std::string(DOCDIR).c_str();` to `auto path = std::string(DOCDIR);` in `getDocDir` is a safe modernization. The original code was potentially problematic (calling `c_str()` on a temporary `std::string`), and the new code is correct and safer. No security regression.</note>
+</notesplit>

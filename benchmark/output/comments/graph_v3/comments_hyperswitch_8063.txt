@@ -1,0 +1,16 @@
+<notesplit>
+<path>crates/router/src/core/payments/retry.rs</path>
+<side>right</side>
+<from>620</from>
+<to>620</to>
+<note>**[Code Defect]** The parameter name was changed from 'setup_futture_usage_intent' to 'setup_future_usage_intent', but the function body still references the old name 'setup_futture_usage_intent' in the struct initialization at line 688. This will cause a compilation error.
+
+**[Maintainability and Readability]** The parameter name 'setup_future_usage_intent' is descriptive, but the variable name 'setup_futture_usage_intent' was previously used. While the typo is fixed, the variable name is quite long. Consider if a shorter, domain-standard alias is appropriate for this internal helper function.</note>
+</notesplit>
+<notesplit>
+<path>crates/router/src/core/payments.rs</path>
+<side>right</side>
+<from>8290</from>
+<to>8290</to>
+<note>The parameter name 'debit_routing_output' in the trait definition for 'set_co_badged_card_data' is inconsistent with the implementation signatures in the same file. While the rename fixes a typo, it highlights a lack of parameter name consistency across trait implementations, which can confuse developers navigating the codebase.</note>
+</notesplit>

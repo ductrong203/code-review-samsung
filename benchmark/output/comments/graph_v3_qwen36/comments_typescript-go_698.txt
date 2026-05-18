@@ -1,0 +1,83 @@
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>376</from>
+<to>379</to>
+<note>**[Code Defect]** The code explicitly panics for CommandLineOptionTypeListOrElement. This means any command line option of this type will crash the program when help is generated. This is a crash bug that prevents the application from running for valid inputs.
+
+**[Maintainability and Readability]** The function `getValueCandidate` contains a `panic` call for the `CommandLineOptionTypeListOrElement` case. Using panic for control flow or expected states is a severe maintainability issue. It makes the code fragile and hard to test. This should be handled with a proper error return or a default value.
+
+**[Security Vulnerability]** The `getValueCandidate` function contains a `panic` call for `CommandLineOptionTypeListOrElement`. If an attacker can trigger this code path (e.g., by providing a specific compiler option type), it will cause a Denial of Service (DoS) by crashing the compiler process. This is an unhandled error case that should be managed gracefully.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>354</from>
+<to>357</to>
+<note>**[Code Defect]** In showAdditionalInfoOutput, option.DefaultValueDescription is compared to string literals "false" and "n/a". However, DefaultValueDescription is of type *diagnostics.Message (based on line 267 where it's type asserted). Comparing a pointer to a string literal will always be false, making the check ineffective. This is a type mismatch bug.
+
+**[Maintainability and Readability]** The function `showAdditionalInfoOutput` in `outputs.go` uses magic string comparisons (`"false"`, `"n/a"`) to determine if additional info should be shown. These magic strings are unclear and brittle. They should be replaced with named constants or an enum to improve readability and maintainability.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>261</from>
+<to>324</to>
+<note>The function `generateOptionOutput` in `outputs.go` is excessively long (approx 60 lines) and handles multiple responsibilities: calculating default values, determining terminal width, formatting output for wide/narrow terminals, and appending text. This violates Single Responsibility and makes the function hard to read and test. It should be split into smaller helper functions like `formatOptionHeader`, `formatOptionDetails`, and `formatOptionFooter`.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>273</from>
+<to>279</to>
+<note>The code calls option.Elements() in two places: once in the ternary expression on line 263 and again potentially in getValueCandidate. If option.Elements() returns nil or has side effects, this could cause issues. More importantly, the ternary expression uses option.Elements() when Kind is ListOrElement, but getValueCandidate panics on ListOrElement. This inconsistency suggests a logic error.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>296</from>
+<to>318</to>
+<note>The code appends unformatted option descriptions and values directly to the output text without sanitization. If an option description contains malicious content (e.g., ANSI escape codes for terminal manipulation or control characters), it could be rendered directly. While this is a CLI tool, untrusted compiler options could potentially be used for terminal injection or information leakage via side channels.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>331</from>
+<to>340</to>
+<note>The function `formatDefaultValue` in `outputs.go` has a complex nested logic for handling enum types. It iterates over `option.EnumMap().Entries()` to find matching names. This logic is embedded directly in the function without clear separation of concerns. It should be extracted to a helper function like `formatEnumValue` to improve readability.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>334</from>
+<to>338</to>
+<note>In `formatDefaultValue`, iterating over `option.EnumMap().Entries()` creates a new map and iterates it every time this function is called. Since `tsc help` iterates over many options, this repeated allocation and iteration is inefficient. Consider caching the enum map or iterating the original source if available.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>308</from>
+<to>310</to>
+<note>When valueCandidates is not nil, the code appends valueCandidates.valueType and valueCandidates.possibleValues. However, if valueCandidates.possibleValues is empty, it will still append an empty string, potentially causing formatting issues. Also, the space between valueType and possibleValues might be inconsistent.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>286</from>
+<to>286</to>
+<note>The variable `terminalWidth` is initialized to 0 and then checked against 80. The comment mentions `sys.getWidthOfTerminal?.() ?? 0`, implying the value might come from the system. However, the logic `if terminalWidth >= 80` treats 0 as a narrow terminal. This is a magic number (80) without a constant, making it unclear why 80 is the threshold. It should be a named constant like `MinTerminalWidthForWideFormat`.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>267</from>
+<to>267</to>
+<note>In `generateOptionOutput`, `getValueCandidate(option)` is called to populate `valueCandidates`. This function performs a switch and potentially recursive calls. If `showAdditionalInfoOutput` returns false, this computation is wasted. Consider lazy evaluation or checking conditions first.</note>
+</notesplit>
+<notesplit>
+<path>internal/execute/outputs.go</path>
+<side>right</side>
+<from>302</from>
+<to>302</to>
+<note>In the `else` block (small terminal), `text` is appended to repeatedly. While Go's `append` is amortized O(1), constructing large help strings with many `append` calls can cause multiple reallocations. Using a `strings.Builder` would be more efficient for building the final output string.</note>
+</notesplit>

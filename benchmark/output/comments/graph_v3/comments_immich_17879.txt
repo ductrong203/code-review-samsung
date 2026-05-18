@@ -1,0 +1,37 @@
+<notesplit>
+<path>server/src/repositories/job.repository.ts</path>
+<side>right</side>
+<from>210</from>
+<to>210</to>
+<note>**[Code Defect]** The jobId construction uses `item.data.id` and `item.data.recipientId`. If `item.data.recipientId` is undefined or null, the jobId becomes 'id/undefined', which will cause inconsistent job identification and potential failures in job removal or deduplication.
+
+**[Security Vulnerability]** The jobId is constructed using string concatenation of user-controlled input (item.data.id and item.data.recipientId). If these inputs are not properly sanitized, this could lead to unexpected behavior in BullMQ job management, such as ID collisions or path-traversal-like issues if the job ID is used in filesystem-based storage backends.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/album.service.ts</path>
+<side>right</side>
+<from>173</from>
+<to>175</to>
+<note>The loop performs an await inside each iteration, causing sequential execution of event emissions. For albums with many users, this significantly increases latency. Use Promise.all to trigger these events concurrently.</note>
+</notesplit>
+<notesplit>
+<path>server/src/repositories/job.repository.ts</path>
+<side>right</side>
+<from>233</from>
+<to>240</to>
+<note>The method 'removeJob' is marked as @deprecated but is still actively used in 'NotificationService.onAlbumUpdate'. This creates technical debt and confusion for future maintainers. If it is truly deprecated, it should be removed or replaced with a non-deprecated alternative.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/notification.service.ts</path>
+<side>right</side>
+<from>189</from>
+<to>189</to>
+<note>The `onAlbumUpdate` method now removes a job using `id/recipientId`. If `recipientId` is missing in the event payload, this will construct an invalid key, failing to remove any existing jobs and potentially leading to duplicate notifications.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/notification.service.ts</path>
+<side>right</side>
+<from>189</from>
+<to>193</to>
+<note>The string interpolation `${id}/${recipientId}` is used as a unique job identifier. This is a magic string format that is implicitly coupled with the logic in 'JobRepository.getJobOptions'. It would be more maintainable to define a helper method or a constant for generating this job ID to ensure consistency.</note>
+</notesplit>

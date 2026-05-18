@@ -1,0 +1,35 @@
+<notesplit>
+<path>server/create.go</path>
+<side>right</side>
+<from>241</from>
+<to>243</to>
+<note>The check `!fs.ValidPath(fp)` is insufficient to prevent directory traversal attacks because `fs.ValidPath` only checks for illegal characters and path separators, not for `..` components. A malicious user can provide a path like `a/../../b` which `fs.ValidPath` considers valid, but which escapes the intended directory. The `root.Stat(fp)` call later is the actual security boundary, but the early `fs.ValidPath` check is misleading and potentially bypassable if relied upon for security.</note>
+</notesplit>
+<notesplit>
+<path>server/create.go</path>
+<side>right</side>
+<from>241</from>
+<to>241</to>
+<note>The code uses fs.ValidPath(fp) to validate paths, but this function only checks for syntax (e.g., no null bytes, no path separators on Windows). It does not prevent path traversal attacks using '..' components. An attacker can provide a path like 'subdir/../../etc/passwd' which is a valid path string but allows escaping the intended directory.</note>
+</notesplit>
+<notesplit>
+<path>server/create.go</path>
+<side>right</side>
+<from>51</from>
+<to>56</to>
+<note>The path validation logic is duplicated between the CreateHandler (lines 51-56) and the convertFromSafetensors function (lines 239-247). This violates the DRY principle and increases the risk of inconsistent validation rules in the future. Extract this into a shared helper function.</note>
+</notesplit>
+<notesplit>
+<path>server/create.go</path>
+<side>right</side>
+<from>240</from>
+<to>247</to>
+<note>The loop performs a filesystem stat operation for every file in the map. While necessary for security, performing I/O inside a loop can be a bottleneck if the number of files is large. Since the files are already being validated via fs.ValidPath, ensure this is only executed when strictly necessary.</note>
+</notesplit>
+<notesplit>
+<path>server/create.go</path>
+<side>right</side>
+<from>116</from>
+<to>116</to>
+<note>The error handling loop in CreateHandler is becoming brittle. Manually maintaining a slice of errors to check against is error-prone. Consider using a custom error type or a centralized error classification method instead of this manual slice iteration.</note>
+</notesplit>

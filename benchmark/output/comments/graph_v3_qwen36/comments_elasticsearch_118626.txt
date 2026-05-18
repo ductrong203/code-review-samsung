@@ -1,0 +1,56 @@
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumentationServiceImpl.java</path>
+<side>right</side>
+<from>70</from>
+<to>80</to>
+<note>The logic for determining if a method is static or a constructor is duplicated and complex. The code calculates `targetMethodIsStatic` and `methodNameStartIndex` inside an if-else block, but then later recalculates `targetMethodIsCtor` and uses `methodNameStartIndex` again. This duplication increases the risk of inconsistencies and makes the parsing logic harder to follow. It should be refactored into a single, clear parsing step or helper method.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumentationServiceImpl.java</path>
+<side>right</side>
+<from>70</from>
+<to>82</to>
+<note>The method `parseCheckerMethodSignature` now performs multiple `String.lastIndexOf` and `String.indexOf` calls on the same string `checkerMethodName`. Previously, it did two searches; now it does four (lastIndexOf '$$', lastIndexOf '$', indexOf '$', plus substring operations). While likely not a critical bottleneck for a single call, if this method is invoked frequently during class loading or instrumentation, these redundant string scans add up. The logic could be optimized to find the delimiters in a single pass or by caching the indices if the string is reused.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumentationServiceImpl.java</path>
+<side>right</side>
+<from>95</from>
+<to>99</to>
+<note>The variable `targetClassName` is assigned in two different branches (static/ctor vs instance) but the logic is split. In the static/ctor branch, it's assigned early, while in the instance branch, it's assigned later. This split assignment makes the flow harder to trace. It should be assigned in a single location after all necessary information is gathered.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/asm-provider/src/test/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumenterTests.java</path>
+<side>right</side>
+<from>116</from>
+<to>126</to>
+<note>The `MockEntitlementChecker` interface methods have been renamed to use `callerClass` instead of `clazz`. While this improves clarity, the change is widespread across the interface and its implementation. Ensure all callers and related tests are updated consistently to avoid confusion. The diff shows this is done, but the scope of change is large.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumentationServiceImpl.java</path>
+<side>right</side>
+<from>71</from>
+<to>80</to>
+<note>The parsing logic for checker method signatures has been modified to support a new naming convention (e.g., check$ClassName$methodName). However, the validation logic for `classNameStartIndex` and `classNameEndIndex` might be insufficient to prevent path traversal or injection if the class name contains unexpected characters. Specifically, the check `classNameStartIndex >= classNameEndIndex` is present, but there is no explicit validation that the extracted `targetClassName` consists only of valid Java package/class name characters (alphanumeric, underscores, slashes). If an attacker can influence the method signature (e.g., via reflection or dynamic class loading), they might inject malicious class names that could bypass checks or cause unexpected behavior in the instrumentation agent.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumentationServiceImpl.java</path>
+<side>right</side>
+<from>99</from>
+<to>102</to>
+<note>The code extracts `targetClassName` using `checkerMethodName.substring(classNameStartIndex + 1, classNameEndIndex).replace('_', '/')`. While this replaces underscores with slashes, it does not validate that the resulting string is a valid internal class name. If the input contains invalid characters (e.g., spaces, special symbols), it could lead to unexpected behavior or errors in the instrumentation process. This is a potential input validation issue that could be exploited if an attacker can control the method signature.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumentationServiceImpl.java</path>
+<side>right</side>
+<from>99</from>
+<to>99</to>
+<note>The code performs `checkerMethodName.substring(...).replace('_', '/')` to compute `targetClassName`. String replacement creates a new object. If `targetClassName` is used for map lookups (as a key in `MethodKey`), this allocation happens on every check. If this is called frequently, consider caching the result or using a more efficient internal representation if possible.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumenterImpl.java</path>
+<side>right</side>
+<from>155</from>
+<to>155</to>
+<note>The variable `hasReceiver` is calculated but not used in the `InstrumenterImpl.java` file. This suggests dead code or an incomplete refactoring. If it's not needed, it should be removed to avoid confusion.</note>
+</notesplit>

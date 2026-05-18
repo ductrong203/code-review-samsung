@@ -1,0 +1,7 @@
+<notesplit>
+<path>packages/nodes-base/nodes/Keap/ContactTagDescription.ts</path>
+<side>right</side>
+<from>100</from>
+<to>100</to>
+<note>The string 'Tag IDs, multiple IDs can be set separated by comma.' is a user-facing description. While the capitalization fix is correct, the phrasing 'separated by comma' is grammatically weak. It should be 'separated by commas' for better readability.</note>
+</notesplit>

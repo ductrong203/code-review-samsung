@@ -1,0 +1,31 @@
+<notesplit>
+<path>src/core/storage/state.ts</path>
+<side>right</side>
+<from>39</from>
+<to>39</to>
+<note>**[Code Defect]** The `updateSecretsBatch` function iterates over the `updates` object and calls `storeSecret` for each entry. `storeSecret` is an async function that likely performs a VSCode secret storage operation. If `value` is `undefined`, `storeSecret` is still called. If the original implementation of `storeSecret` expects to handle `undefined` by deleting the secret, this is fine, but if it expects a string, passing `undefined` may cause errors or unexpected behavior. More importantly, `Promise.all` will execute these concurrently, which can lead to race conditions if the underlying storage API is not thread-safe or atomic for multiple simultaneous writes.
+
+**[Performance]** Similar to global state, secret updates should filter out undefined values to avoid unnecessary calls to storeSecret, which involves secure storage I/O.
+
+**[Maintainability and Readability]** Similar to global state, secret updates lack individual error handling. Since secrets are sensitive and often involve external storage, failing silently or failing the entire batch without identifying the problematic key makes debugging difficult.
+
+**[Security Vulnerability]** The `updateSecretsBatch` function iterates over an object and calls `storeSecret` for each entry. If `value` is `undefined`, `storeSecret` is called with `undefined`. Depending on the implementation of `storeSecret`, this might lead to unintended deletion of secrets or inconsistent state if the batch is partially successful. Furthermore, passing `undefined` values into a batch operation without explicit handling can lead to data integrity issues.</note>
+</notesplit>
+<notesplit>
+<path>src/core/storage/state.ts</path>
+<side>right</side>
+<from>34</from>
+<to>34</to>
+<note>**[Performance]** The batching implementation includes undefined values in the updates object. If a value is undefined, it will be passed to context.globalState.update, which may trigger unnecessary storage writes or internal overhead. Filter out undefined values before processing.
+
+**[Maintainability and Readability]** The batch update function does not handle potential errors during individual storage operations. If one update fails, the entire Promise.all will reject, potentially leaving the system in an inconsistent state without logging which specific key failed.
+
+**[Code Defect]** Similar to the secrets batching, `updateGlobalStateBatch` uses `Promise.all` to update global state. While `globalState.update` is generally safer than secret storage, batching many updates concurrently can lead to inconsistent state if the underlying storage implementation (e.g., file-based JSON) is not designed for concurrent write operations, potentially leading to lost updates or file corruption.</note>
+</notesplit>
+<notesplit>
+<path>src/core/storage/state.ts</path>
+<side>right</side>
+<from>67</from>
+<to>67</to>
+<note>The added performance monitoring variables (firstBatchStart, secondBatchStart, processingStart) are declared but never used or logged, creating dead code that clutters the function.</note>
+</notesplit>

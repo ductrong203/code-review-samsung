@@ -1,0 +1,51 @@
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>11</from>
+<to>11</to>
+<note>**[Code Defect]** The type guard is incorrect. Checking for the existence of 'href' on a URL object is unreliable as it may be undefined or inherited. A more robust check is using 'instanceof URL'.
+
+The type guard is incorrect. Checking for the existence of 'url' on a Request object is unreliable. A more robust check is using 'instanceof Request'.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/broadcast-channel.ts</path>
+<side>right</side>
+<from>11</from>
+<to>11</to>
+<note>The service worker accepts a URL string from a BroadcastChannel and constructs a new URL object using event.origin as the base. This is vulnerable to open redirect or SSRF if the origin is not strictly validated, as an attacker could potentially influence the URL construction to point to arbitrary internal or external resources.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>11</from>
+<to>12</to>
+<note>The type predicates isURL and isRequest rely on checking for the existence of specific properties ('href' and 'url') which is brittle. If the object structure changes or if a different object type happens to have these properties, the logic will fail. Use 'instanceof' checks instead for better type safety.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/fetch-event.ts</path>
+<side>right</side>
+<from>22</from>
+<to>22</to>
+<note>The check 'APP_RESOURCES.includes(url.pathname)' performs an O(n) linear search on every fetch event. As the number of static assets grows, this becomes increasingly inefficient. Convert APP_RESOURCES to a Set for O(1) lookup performance.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>45</from>
+<to>45</to>
+<note>The fetch call in getCachedOrFetch is performed without validating the destination URL. If this service worker is used in a context where it might fetch cross-origin resources, it could lead to SSRF. Ensure that the request URL is strictly validated against an allowlist of expected domains.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>51</from>
+<to>56</to>
+<note>The catch block in getCachedOrFetch returns a generic 499 status with a confusing message. This swallows the actual error, making debugging difficult. It should at least log the error or rethrow it if the caller needs to handle it.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/cache.ts</path>
+<side>right</side>
+<from>52</from>
+<to>55</to>
+<note>The catch block returns a Response with status 499, but the 'Response' constructor does not accept 'undefined' as the first argument in all environments. It should be 'null' or an empty string.</note>
+</notesplit>

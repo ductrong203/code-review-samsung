@@ -1,0 +1,35 @@
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>right</side>
+<from>12</from>
+<to>12</to>
+<note>The detectEncoding function reads the entire file into memory as a Buffer before performing detection. For large files, this can lead to significant memory pressure. While there is a 300KB check later in extractTextFromFile, the detectEncoding function itself is called with the full buffer, and it should ideally be optimized to only read the first few kilobytes (e.g., 4-8KB) required for encoding detection.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>right</side>
+<from>15</from>
+<to>16</to>
+<note>The function detectEncoding uses 'any' type casting for the jschardet result. This bypasses type safety and makes the code fragile if the library's return structure changes. It should be replaced with a proper interface or type guard.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>right</side>
+<from>11</from>
+<to>26</to>
+<note>The detectEncoding function uses jschardet.detect(fileBuffer), which returns an object containing 'encoding' and 'confidence'. The current implementation checks for a string return or a property named 'encoding', but it ignores the 'confidence' score. If jschardet returns an encoding with very low confidence, the code will proceed to decode using that potentially incorrect encoding, leading to garbled text.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>right</side>
+<from>18</from>
+<to>23</to>
+<note>The error handling logic inside detectEncoding is nested and slightly redundant. The check for fileExtension and isBinaryFile can be simplified to improve readability.</note>
+</notesplit>
+<notesplit>
+<path>src/integrations/misc/extract-text.ts</path>
+<side>right</side>
+<from>11</from>
+<to>26</to>
+<note>The `detectEncoding` function uses `jschardet` to guess file encoding. If an attacker can control the file content, they may be able to trigger incorrect encoding detection (e.g., UTF-7 or other legacy encodings) to bypass security filters or cause downstream processing errors. Always validate or sanitize the output of encoding detection before using it in sensitive operations.</note>
+</notesplit>

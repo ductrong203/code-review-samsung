@@ -1,0 +1,85 @@
+<notesplit>
+<path>packages/testing/playwright/composables/TestEntryComposer.ts</path>
+<side>right</side>
+<from>100</from>
+<to>101</to>
+<note>In `packages/testing/playwright/composables/TestEntryComposer.ts`, the `withUser` method calls `this.n8n.page.context().browser()!`. If the Playwright test is running in a mode where the browser instance is not directly accessible (e.g., some CI environments or specific configurations), `browser()` returns `undefined`. The non-null assertion `!` causes a runtime crash. Additionally, if `context()` is null/undefined, it will crash before reaching `browser()`. This is a high-risk crash in the test infrastructure.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/composables/TestEntryComposer.ts</path>
+<side>right</side>
+<from>99</from>
+<to>106</to>
+<note>**[Performance]** Memory leak: The `withUser` method creates a new Playwright browser context (`browser.newContext()`) but never closes it. In long-running test suites, this will accumulate browser contexts, leading to excessive memory usage and potential file descriptor exhaustion. The context must be stored and closed in a `afterEach` or `finally` block.
+
+**[Maintainability and Readability]** The `withUser` method in `TestEntryComposer.ts` creates a new browser context and page but never closes the context when the promise resolves or if an error occurs. This will lead to browser context leaks and resource exhaustion during test runs. The context should be tracked and closed, or the method should return a wrapper that ensures cleanup.
+
+**[Security Vulnerability]** The `withUser` method in TestEntryComposer creates a new browser context and page for multi-user testing. However, it does not clear cookies or storage from the previous context before creating the new one. This could lead to session fixation or cross-context contamination if the browser context is not properly isolated. The method also does not validate the user object structure before use, which could lead to unexpected behavior if an invalid user object is passed.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/pages/SettingsUsersPage.ts</path>
+<side>right</side>
+<from>70</from>
+<to>70</to>
+<note>In `packages/testing/playwright/pages/SettingsUsersPage.ts`, the `clickDeleteUser` method uses `.filter({ visible: true })` on the delete button. If the button is not visible (e.g., due to UI state or timing), the locator will be empty, and calling `.click()` on an empty locator will throw an error or behave unpredictably. This is a fragile selector for a button that might be hidden or require interaction to become visible.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/composables/TestEntryComposer.ts</path>
+<side>right</side>
+<from>100</from>
+<to>105</to>
+<note>In `packages/testing/playwright/composables/TestEntryComposer.ts`, the `withUser` method creates a new browser context but does not store a reference to it. This new context will be garbage collected as soon as the function returns, causing the page to become invalid or the context to close unexpectedly. This leads to flaky tests or crashes when the returned `n8nPage` instance is used.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/tests/ui/18-user-management.spec.ts</path>
+<side>right</side>
+<from>17</from>
+<to>22</to>
+<note>In `packages/testing/playwright/tests/ui/18-user-management.spec.ts`, the test 'should prevent non-owners to access UM settings' creates a user via `n8n.api.users.create()` but does not log in as that user. It then checks if the user can access the UM settings page. However, the current user (owner) is still logged in. The test logic seems flawed: it expects that creating a user prevents the *current* user (owner) from accessing UM settings, which is incorrect. The test should likely log in as the new user and then check access.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/pages/SettingsUsersPage.ts</path>
+<side>right</side>
+<from>55</from>
+<to>55</to>
+<note>**[Maintainability and Readability]** The `transferData` method in `SettingsUsersPage.ts` contains a hardcoded string `'delete all data'` for the placeholder text. This magic string should be extracted to a constant for better maintainability and to avoid typos if the UI text changes.
+
+The `deleteData` method in `SettingsUsersPage.ts` contains a hardcoded string `'delete all data'` for the placeholder text. This magic string should be extracted to a constant for better maintainability and to avoid typos if the UI text changes.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/services/user-api-helper.ts</path>
+<side>right</side>
+<from>29</from>
+<to>29</to>
+<note>**[Security Vulnerability]** Hardcoded default password 'PlaywrightTest123' is used for all test users created via the API helper. While this is test code, using a predictable, hardcoded password across all test instances creates a security risk if test credentials are accidentally committed to production or shared. If an attacker gains access to the test environment, they can easily guess the password for any newly created test user.
+
+**[Maintainability and Readability]** The `create` method in `UserApiHelper.ts` uses a hardcoded password `'PlaywrightTest123'` for all users created without a specified password. This is a magic string that reduces readability and might be a security risk if logs are exposed. It should be a named constant.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/tests/ui/18-user-management.spec.ts</path>
+<side>right</side>
+<from>145</from>
+<to>148</to>
+<note>In `packages/testing/playwright/tests/ui/18-user-management.spec.ts`, the test 'should change user email' is cut off in the diff, but the line `const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789',` is incomplete. This will cause a syntax error.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/services/user-api-helper.ts</path>
+<side>right</side>
+<from>36</from>
+<to>41</to>
+<note>Redundant API call: The `create` method performs two sequential API requests (POST to `/rest/invitations` and POST to `/rest/invitations/:id/accept`) to create a single user. If this helper is used in loops or high-frequency tests, this doubles the network overhead. Consider batching user creation if multiple users are needed.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/pages/SettingsPersonalPage.ts</path>
+<side>right</side>
+<from>140</from>
+<to>140</to>
+<note>The `changeTheme` method in `SettingsPersonalPage.ts` takes a string parameter for theme selection. This should be an enum or union type to prevent invalid theme names from being passed. Currently, it accepts any string, which can lead to runtime errors if an invalid theme name is used.</note>
+</notesplit>
+<notesplit>
+<path>packages/testing/playwright/pages/SettingsUsersPage.ts</path>
+<side>right</side>
+<from>34</from>
+<to>40</to>
+<note>The `transferData` method in SettingsUsersPage uses `force: true` for clicking radio buttons, which bypasses Playwright's visibility and stability checks. While this is test code, using force clicks can lead to flaky tests and may mask underlying UI issues. Additionally, the method fills 'delete all data' in a placeholder field without validating that the correct element is being targeted, which could lead to incorrect test behavior.</note>
+</notesplit>

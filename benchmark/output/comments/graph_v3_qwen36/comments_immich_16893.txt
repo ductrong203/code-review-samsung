@@ -1,0 +1,58 @@
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>34</from>
+<to>40</to>
+<note>The `deleteOldCaches` function in the service worker iterates over all cache keys and deletes them one by one. This is a synchronous loop of asynchronous operations that blocks the service worker's activation event. For applications with many caches, this can significantly delay the activation process, preventing the new service worker from taking control of clients immediately.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>69</from>
+<to>86</to>
+<note>The service worker uses a global `pendingLoads` map to track in-flight requests but does not handle the `message` event listener cleanup. If the service worker is terminated and reactivated (e.g., during updates), the old listener might persist or cause issues if not properly scoped. More importantly, the `broadcast` channel is created at the top level, but the `onmessage` handler is assigned directly. This is generally fine, but the lack of error handling in the message handler (e.g., if `event.data` is malformed) means a single bad message could crash the listener, stopping all cancel/preload functionality silently. The `try/catch` in `immichAsset` handles fetch errors, but the message handler does not.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>75</from>
+<to>76</to>
+<note>The code creates a new URL object from `urlstring` without checking if it is a valid URL. If `urlstring` is malformed (e.g., empty or invalid characters), `new URL()` will throw a TypeError. This exception is not caught within the `onmessage` handler, which could crash the service worker's message handling or prevent subsequent messages from being processed.</note>
+</notesplit>
+<notesplit>
+<path>web/src/lib/utils/sw-messaging.ts</path>
+<side>right</side>
+<from>1</from>
+<to>8</to>
+<note>**[Maintainability and Readability]** The `sw-messaging.ts` file creates a `BroadcastChannel` instance at module scope. This means every time this module is imported, a new channel is created. If imported in multiple components, multiple channels are created, which is inefficient and potentially confusing. The channel should be a singleton.
+
+**[Performance]** The `BroadcastChannel` is created globally. If this module is imported multiple times or if the service worker is restarted frequently, multiple channels might be created, though `BroadcastChannel` is typically singletons per origin. However, if the channel is not closed properly, it could lead to resource leaks. In a service worker, the channel should be closed when the worker is terminated, but this is handled by the browser. The main concern is if the channel is created unnecessarily or if there are multiple instances.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>9</from>
+<to>9</to>
+<note>The `immichAsset` function creates a new `AbortController` for every fetch request and stores it in `pendingLoads`. If a request is cancelled, it is removed from the map. However, if a request completes successfully or fails without being cancelled, the `finally` block removes it from the map. This is correct, but if the `fetch` call throws an error before the `pendingLoads.set` line (which it doesn't here, but generally), or if the map grows unbounded due to some edge case, it could be a leak. More importantly, the `pendingLoads` map is not bounded. If many images are loaded and cancelled rapidly, the map could grow large if `delete` is not called promptly or if there's a race condition. However, the main issue here is that `pendingLoads` is a global Map that persists for the lifetime of the service worker. If there are many concurrent or sequential loads, this map could grow large, consuming memory.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>69</from>
+<to>69</to>
+<note>The `BroadcastChannel` is instantiated with a hardcoded string 'immich'. If multiple tabs or contexts use different service workers or if the app is embedded in an iframe, this could lead to cross-talk or security issues. While likely safe in this context, it's a magic string that should be documented or centralized.</note>
+</notesplit>
+<notesplit>
+<path>web/src/service-worker/index.ts</path>
+<side>right</side>
+<from>77</from>
+<to>83</to>
+<note>In the 'cancel' branch, the code retrieves `pending` from `pendingLoads` and calls `abort()`. However, it then unconditionally calls `pendingLoads.delete(url.toString())`. If `pending` was `undefined` (because the URL wasn't in the map), this line still executes and attempts to delete a non-existent key (harmless but sloppy). More importantly, if `pending` exists, it deletes it. But if `pending` is undefined, the code proceeds to the `else if` for 'preload' because there is no `else` or `return` after the `if (pending)` block. Wait, looking closer: `if (pending) { ... } else if (event.data.type === 'preload')`. This logic is actually correct for the 'cancel' type. However, if `event.data.type` is 'cancel' but `pending` is undefined, it falls through to the `else if`. Since `event.data.type` is still 'cancel', the `else if` condition `event.data.type === 'preload'` will be false, so it won't execute preload. This is logically safe but confusing. A bigger issue is that if `pending` is undefined, we do nothing, which is correct. But if the type is 'cancel' and pending exists, we abort and delete. This seems fine. Let's look for other issues. Ah, if `pending` is undefined, the code does NOT enter the `if` block, so it skips to `else if`. Since type is 'cancel', `else if` is false. So it exits. This is correct. No bug here in logic flow. But wait, if `pending` is undefined, we don't delete anything. That's fine. The real issue is likely the URL parsing one above.</note>
+</notesplit>
+<notesplit>
+<path>web/src/lib/components/assets/thumbnail/image-thumbnail.svelte</path>
+<side>right</side>
+<from>64</from>
+<to>72</to>
+<note>The `mount` function now returns an `ActionReturn` object with a `destroy` method. However, the `url` variable used in `cancelImageUrl(url)` is defined in the component's scope. If the component is reused or if `url` changes, the `destroy` closure might capture the wrong `url` if not careful. In Svelte, this is usually fine due to how actions work, but it's worth noting that the `url` must be stable or the action must be re-run if `url` changes.</note>
+</notesplit>

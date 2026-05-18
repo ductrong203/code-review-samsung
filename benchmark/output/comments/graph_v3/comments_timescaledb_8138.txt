@@ -1,0 +1,53 @@
+<notesplit>
+<path>tsl/src/compression/compression_dml.c</path>
+<side>right</side>
+<from>561</from>
+<to>568</to>
+<note>**[Performance]** The code performs a table_tuple_delete inside a loop without batching or efficient handling of the command ID. In PostgreSQL, repeated calls to table_tuple_delete can lead to significant overhead due to index updates and WAL logging for every single row. If this is processing a large number of rows, it should ideally be batched or handled via a bulk operation.
+
+**[Security Vulnerability]** The code performs a table_tuple_delete on a compressed tuple using a CommandId obtained via GetCurrentCommandId(true). In PostgreSQL, using the current command ID for tuple deletion during a scan can lead to visibility issues or incorrect tuple processing if the scan is not properly synchronized with the command counter, potentially causing data integrity failures or unexpected behavior in concurrent environments.
+
+**[Maintainability and Readability]** The manual call to table_tuple_delete inside decompress_batch_next_row duplicates logic that was previously encapsulated in delete_compressed_tuple. This violates the DRY principle and makes the DML logic harder to maintain.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression_dml.c</path>
+<side>right</side>
+<from>552</from>
+<to>553</to>
+<note>The 'writer' variable is initialized with 'bulk_writer_build(out_rel, 0)'. However, if the loop continues or exits early, the 'writer' might not be properly closed if the function returns or errors out before reaching the end of the loop. Specifically, the error handling path at line 575 calls 'bulk_writer_close(&writer)', but the early return at line 551 also needs to ensure the writer is closed to prevent resource leaks.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>1948</from>
+<to>1948</to>
+<note>The 'writer' is initialized but not checked for potential failures. More importantly, the 'bulk_writer_close' is called at the end of the function, but if 'row_decompressor_decompress_row_to_table' fails or throws an error, the writer might remain open. While Postgres handles memory cleanup via contexts, the bulk writer likely manages catalog locks or state that should be explicitly closed.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression.c</path>
+<side>right</side>
+<from>254</from>
+<to>254</to>
+<note>The function signature was changed to accept a float4, but the caller in compress_chunk passes 'in_rel->rd_rel->reltuples', which is a float4. However, the logic inside the function now ignores the relation object entirely. If the caller passes a negative or zero value, the logic might behave unexpectedly compared to the previous implementation which checked for NULL relations. The logic is sound for valid inputs, but the change in signature removes the ability to perform safety checks on the relation object itself.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression.h</path>
+<side>right</side>
+<from>124</from>
+<to>132</to>
+<note>The BulkWriter struct mixes high-level state (CommandId, BulkInsertState) with low-level configuration (insert_options). This violates the Single Responsibility Principle as it acts as both a configuration object and a runtime state container.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>1948</from>
+<to>1956</to>
+<note>The code calls GetCurrentCommandId(true) inside a loop or potentially high-frequency path. While not extremely expensive, calling this repeatedly in a tight loop is redundant. The CommandId should be fetched once before entering the loop.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/compression/compression.c</path>
+<side>right</side>
+<from>250</from>
+<to>250</to>
+<note>The function signature for calculate_reltuples_to_report was changed to accept a float4, but the parameter name 'reltuples' is ambiguous. Renaming it to 'total_reltuples' would improve clarity regarding what this value represents.</note>
+</notesplit>

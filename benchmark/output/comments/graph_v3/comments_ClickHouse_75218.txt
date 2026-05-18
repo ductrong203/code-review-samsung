@@ -1,0 +1,39 @@
+<notesplit>
+<path>src/Analyzer/Identifier.cpp</path>
+<side>right</side>
+<from>62</from>
+<to>62</to>
+<note>**[Code Defect]** The logic for updating `full_name` in `popLast` is incorrect. When `parts.pop_back()` is called, the `full_name` string is resized by subtracting the length of the removed part plus a potential separator. However, `full_name` is not updated to remove the trailing separator if one existed, leading to a corrupted `full_name` string (e.g., trailing dots or incorrect characters).
+
+**[Maintainability and Readability]** The use of 'static_cast<size_t>(is_not_last)' is a bit cryptic. While functional, it relies on the implicit conversion of a boolean to an integer. Using an explicit conditional or a named constant would improve readability.</note>
+</notesplit>
+<notesplit>
+<path>src/Analyzer/Identifier.cpp</path>
+<side>right</side>
+<from>75</from>
+<to>75</to>
+<note>**[Maintainability and Readability]** Similar to popLast, the use of 'static_cast<size_t>(is_not_last)' in popFirst is less readable than a simple conditional.
+
+**[Code Defect]** The `popFirst` method for `IdentifierView` uses `full_name_view.remove_prefix(part_size + is_not_last)`. If `is_not_last` is true, it assumes a single character separator ('.'). If the separator is missing or different, this will corrupt the view. Furthermore, `IdentifierView` relies on `parts_start_it` and `parts_end_it` which are iterators into a container that must outlive the view; if the underlying container is modified, these iterators become invalid.</note>
+</notesplit>
+<notesplit>
+<path>src/Analyzer/Identifier.cpp</path>
+<side>right</side>
+<from>43</from>
+<to>49</to>
+<note>The popFirst method creates a new vector, reserves memory, and performs multiple string moves. This is an O(N) operation where N is the number of parts. Since this is a frequently used utility in the Analyzer, repeated calls to popFirst on large identifiers will cause excessive allocations. If possible, use an index-based offset or a view instead of modifying the underlying vector.</note>
+</notesplit>
+<notesplit>
+<path>src/Analyzer/Identifier.cpp</path>
+<side>right</side>
+<from>33</from>
+<to>36</to>
+<note>The constructor for Identifier(std::string && full_name_) performs a full string split and vector allocation every time it is called. If this is called in a tight loop or during query parsing, the repeated heap allocations for the vector and string parts can be a performance bottleneck. Consider if the split can be deferred or if a view-based approach is sufficient.</note>
+</notesplit>
+<notesplit>
+<path>src/Analyzer/Identifier.cpp</path>
+<side>right</side>
+<from>46</from>
+<to>50</to>
+<note>The popFirst method performs a manual vector copy and re-join operation. This is inefficient and verbose. Since the class maintains a full_name string that must stay in sync with the parts vector, this logic is prone to desynchronization. Consider using a more efficient data structure or a view-based approach if possible, or at least encapsulate the synchronization logic.</note>
+</notesplit>

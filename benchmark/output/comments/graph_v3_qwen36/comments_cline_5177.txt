@@ -1,0 +1,39 @@
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1321</from>
+<to>1334</to>
+<note>**[Code Defect]** The `await` keyword is placed before `this.say(...)` but the subsequent `this.checkpointTracker.commit().then(...)` is not awaited. This means the function returns immediately after saying 'checkpoint_created', but the git commit and message update happen asynchronously in the background. If the calling code (like `executeCommandTool`) expects the checkpoint to be fully committed before proceeding, it will proceed with stale state. The comment even acknowledges this: 'NOTE: the attempt completion flow is different... we must make sure that the checkpoint hash is present'. However, this `saveCheckpoint` call doesn't ensure that.
+
+The `findLastIndex` call inside the `.then()` callback searches for a message with `say === 'checkpoint_created'`. Since `this.say('checkpoint_created')` was called just before, this message should exist. However, if the UI updates or message state is managed asynchronously, there might be a race condition where the message isn't immediately visible in `getClineMessages()` when the `.then()` callback executes, especially if `getClineMessages()` reflects a state that hasn't been flushed yet. This could lead to `lastCheckpointMessageIndex` being -1, causing the hash update to be silently skipped.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1318</from>
+<to>1320</to>
+<note>The comment block explaining the non-blocking behavior is excessively long (3 lines) and contains complex logic details that should be in a separate docstring or method-level documentation. This makes the code harder to read and maintain. The comment mixes implementation details with usage constraints for other callers.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1322</from>
+<to>1334</to>
+<note>**[Maintainability and Readability]** The `saveCheckpoint` method in `Task` class now has a fire-and-forget async pattern without error handling for the `.then()` callback. If `checkpointTracker.commit()` fails or the subsequent `updateClineMessage` fails, the error is silently swallowed. This makes debugging difficult and violates the principle of explicit error handling.
+
+The `saveCheckpoint` method in `Task` class uses a complex nested structure with `findLastIndex` and conditional checks inside an async callback. This deep nesting and complex logic within a callback reduces readability and maintainability. The logic should be extracted to a helper method.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1324</from>
+<to>1327</to>
+<note>In saveCheckpoint(), findLastIndex iterates over all cline messages to find the last checkpoint_created message. This is an O(n) linear scan performed every time a checkpoint is saved. If the message list grows large, this becomes a bottleneck. Consider maintaining a reference to the last checkpoint message index or using a more efficient lookup structure.</note>
+</notesplit>
+<notesplit>
+<path>src/core/task/index.ts</path>
+<side>right</side>
+<from>1329</from>
+<to>1332</to>
+<note>Inside the .then() callback, updateClineMessage is called with a new object containing only lastCheckpointHash. This creates a new object allocation on every checkpoint commit. While minor, in high-frequency checkpoint scenarios, this adds up. Consider reusing or minimizing object creation if this path is hot.</note>
+</notesplit>

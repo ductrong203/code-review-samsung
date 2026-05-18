@@ -1,0 +1,34 @@
+<notesplit>
+<path>src/config.c</path>
+<side>right</side>
+<from>545</from>
+<to>548</to>
+<note>**[Security Vulnerability]** Memory leak in command renaming: When renaming a command, the code frees `cmd->current_name` if it differs from `cmd->fullname`, but fails to free the old `cmd->fullname` before assigning a new value to `cmd->fullname` (which is not shown in the diff but implied by the logic of renaming). More critically, looking at the diff, `cmd->fullname` is being assigned `sdsdup(argv[2])` but the old `fullname` is never freed. This causes a memory leak every time a command is renamed via config.
+
+**[Performance]** Memory leak: `cmd->current_name` is assigned a new SDS string via `sdsdup` without freeing the previous value if it was not equal to `fullname`. If `current_name` was previously set to a different value (e.g., a previous rename), the condition `cmd->current_name != cmd->fullname` might be true, freeing the old value. However, if `current_name` is currently pointing to `fullname` (the initial state), the condition is false, so `sdsfree` is skipped, but `sdsdup` creates a new string. The original pointer `cmd->current_name` (which is `fullname`) is NOT freed, but it is shared with `fullname`, so freeing it would be wrong. The leak occurs if `current_name` is a distinct allocated string that is NOT `fullname`. The code frees it if it's not `fullname`. This seems correct. Wait. If `current_name` is `fullname`, we don't free. We assign a new string. The old `fullname` is still referenced by `fullname`. So no leak. If `current_name` is something else, we free it. Then assign new. No leak. Is there a leak? No. But there is a performance issue: `sdsdup` is called every time, even if the name hasn't changed. This is unnecessary allocation.
+
+Potential memory leak: `cmd->current_name` is assigned a new SDS string via `sdsdup` without freeing the previous value if it was not equal to `fullname`. The condition `if (cmd->current_name != cmd->fullname)` only frees if they differ, but if `current_name` was previously set to a different renamed value, that old value is leaked.
+
+**[Maintainability and Readability]** In src/config.c, the logic to free `cmd->current_name` is placed inside the `if (sdslen(argv[2]) != 0)` block. This means if a command is renamed to an empty string (effectively disabling it), the old `current_name` string is leaked. The free operation should be unconditional or handled outside the length check to ensure memory safety.</note>
+</notesplit>
+<notesplit>
+<path>src/server.c</path>
+<side>right</side>
+<from>522</from>
+<to>525</to>
+<note>Potential NULL pointer dereference: `hashtableCommandGetCurrentName` casts the element to `struct serverCommand *` and accesses `current_name`. If `element` is NULL or malformed, this will crash. While likely safe in internal hashtable usage, it's a risk if the hashtable is manipulated externally or if the struct layout changes unexpectedly.</note>
+</notesplit>
+<notesplit>
+<path>src/server.c</path>
+<side>right</side>
+<from>527</from>
+<to>530</to>
+<note>Potential NULL pointer dereference: `hashtableCommandGetOriginalName` casts the element to `struct serverCommand *` and accesses `fullname`. Similar to the previous issue, if `element` is NULL, this will crash.</note>
+</notesplit>
+<notesplit>
+<path>src/server.c</path>
+<side>right</side>
+<from>522</from>
+<to>530</to>
+<note>In src/server.c, the functions `hashtableCommandGetCurrentName` and `hashtableCommandGetOriginalName` are simple accessors. They lack the `static` keyword, making them part of the global symbol table unnecessarily. Since they are only used by the `hashtableType` definitions in the same file, they should be static to reduce namespace pollution.</note>
+</notesplit>

@@ -1,0 +1,14 @@
+<notesplit>
+<path>shell/browser/ui/file_dialog_linux.cc</path>
+<side>right</side>
+<from>52</from>
+<to>54</to>
+<note>The code now conditionally adds the extension description override only when the filter does NOT contain the wildcard '*'. However, if a filter contains both '*' and specific extensions (e.g., ['*', '.txt']), the description override is skipped entirely. This means the filter name won't be associated with any extension group in the UI, potentially causing the filter to be invisible or mislabeled in the file dialog. The original code always added the description override, ensuring the name was always present.</note>
+</notesplit>
+<notesplit>
+<path>shell/browser/ui/file_dialog_linux.cc</path>
+<side>right</side>
+<from>50</from>
+<to>56</to>
+<note>The loop body has inconsistent structure: the 'All files' wildcard case modifies only one field (include_all_files) while the else branch modifies two fields (extension_description_overrides and extensions). This makes the logic harder to follow. It would be more maintainable to initialize the common fields (name override) outside the conditional or use a consistent pattern for both branches.</note>
+</notesplit>

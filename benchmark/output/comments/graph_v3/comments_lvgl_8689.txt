@@ -1,0 +1,58 @@
+<notesplit>
+<path>src/others/xml/lv_xml_utils.c</path>
+<side>right</side>
+<from>267</from>
+<to>269</to>
+<note>**[Maintainability and Readability]** The pointer arithmetic `src++` inside `lv_xml_split_str` is incorrect because `src` is a pointer to a pointer (`char **`). Incrementing `src` moves the pointer to the next pointer in memory, not the next character in the string. This will lead to memory corruption or crashes.
+
+**[Code Defect]** The pointer increment `src++` inside `lv_xml_split_str` increments the pointer to the pointer (the address of the pointer), not the pointer itself. This will lead to undefined behavior or memory corruption when accessing `*src` afterwards.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/parsers/lv_xml_obj_parser.c</path>
+<side>right</side>
+<from>903</from>
+<to>903</to>
+<note>Similar to the style parser, this allocates memory for `dsc_array` and attaches it to the object via `LV_EVENT_DELETE`. However, if `lv_obj_set_style_grid_column_dsc_array` is called multiple times on the same object, the previous array is leaked because the event callback only frees the pointer upon object deletion, not upon property update.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/lv_xml_style.c</path>
+<side>right</side>
+<from>295</from>
+<to>295</to>
+<note>The code allocates memory for `dsc_array` using `lv_malloc` but does not store a reference to it in a way that allows for later deallocation when the style is destroyed or updated. This leads to a memory leak every time `style_grid_column_dsc_array` or `style_grid_row_dsc_array` is set via XML.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/parsers/lv_xml_obj_parser.c</path>
+<side>right</side>
+<from>922</from>
+<to>922</to>
+<note>The `dsc_array` is allocated with `lv_malloc` but is passed to `lv_obj_add_event_cb` with `lv_event_free_user_data_cb`. This is correct for memory management, but the `dsc_array` is also passed to `lv_obj_set_style_grid_column_dsc_array` or `lv_obj_set_style_grid_row_dsc_array`. If the style system expects the array to persist, freeing it on `LV_EVENT_DELETE` might cause a use-after-free if the style is still in use by other objects or the renderer.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/parsers/lv_xml_obj_parser.c</path>
+<side>right</side>
+<from>897</from>
+<to>920</to>
+<note>The logic for parsing grid descriptor arrays is duplicated in both lv_xml_style.c and lv_xml_obj_parser.c. This violates the DRY principle. This logic should be extracted into a shared utility function.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/parsers/lv_xml_obj_parser.c</path>
+<side>right</side>
+<from>900</from>
+<to>908</to>
+<note>Similar to the style parser, this performs a double-pass over the string to count spaces before allocation. This is inefficient for long strings.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/lv_xml_style.c</path>
+<side>right</side>
+<from>287</from>
+<to>311</to>
+<note>The logic for parsing grid descriptor arrays is duplicated in both lv_xml_style.c and lv_xml_obj_parser.c. This violates the DRY (Don't Repeat Yourself) principle and increases maintenance burden. This logic should be extracted into a shared utility function.</note>
+</notesplit>
+<notesplit>
+<path>src/others/xml/lv_xml_style.c</path>
+<side>right</side>
+<from>292</from>
+<to>300</to>
+<note>The code iterates through the string twice: once to count spaces for allocation and once to split and parse. This can be optimized by using a dynamic array (e.g., a linked list or a growing buffer) to avoid the double-pass and the need to pre-calculate the size.</note>
+</notesplit>

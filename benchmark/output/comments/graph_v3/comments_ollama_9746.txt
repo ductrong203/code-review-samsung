@@ -1,0 +1,67 @@
+<notesplit>
+<path>server/internal/cache/blob/cache.go</path>
+<side>right</side>
+<from>450</from>
+<to>450</to>
+<note>The checkWriter.Write method uses w.w (the underlying writer) to write data, but it fails to update the hash 'w.h' with the data being written. The original implementation used io.Copy to both the file and the hash, but the new implementation separates the writing logic, causing the hash verification to be skipped or incorrect.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/cache/blob/chunked.go</path>
+<side>right</side>
+<from>56</from>
+<to>56</to>
+<note>The Put method creates a checkWriter but does not actually perform the final hash verification check. The checkWriter is designed to verify the hash upon completion, but the current implementation of Put does not call a 'Close' or 'Verify' method on the checkWriter to ensure the written data matches the expected digest.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/cache/blob/cache.go</path>
+<side>right</side>
+<from>541</from>
+<to>541</to>
+<note>**[Maintainability and Readability]** The use of panic() for error handling in absJoin is dangerous and non-idiomatic for library code. It forces the entire application to crash on a filesystem error that could potentially be handled or logged gracefully.
+
+**[Security Vulnerability]** The use of panic() in absJoin can lead to a Denial of Service (DoS) if an attacker can influence the input path, causing the server process to crash.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/registry/server.go</path>
+<side>right</side>
+<from>293</from>
+<to>299</to>
+<note>The pushUpdate function iterates over the entire progress map and encodes every layer's status on every update. As the number of layers grows, this becomes an O(N) operation per update, leading to excessive CPU usage and redundant network traffic. It should only encode the specific layer that changed.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/registry/server.go</path>
+<side>right</side>
+<from>302</from>
+<to>302</to>
+<note>**[Performance]** A ticker with a 1-hour interval is initialized but never used effectively for the intended purpose of coalescing updates. This creates an unnecessary object allocation in the hot path of the request handler.
+
+**[Maintainability and Readability]** The ticker is initialized with time.Hour but intended for frequent updates, and the start function is defined as a sync.OnceFunc but never actually invoked in the provided snippet, leading to dead code or broken progress reporting.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/registry/server.go</path>
+<side>right</side>
+<from>303</from>
+<to>306</to>
+<note>The 'start' variable is defined as a sync.OnceFunc that triggers a ticker reset, but it is never actually called in the provided code snippet. This means the progress updates will never start being pushed to the client.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/cache/blob/chunked.go</path>
+<side>right</side>
+<from>32</from>
+<to>32</to>
+<note>The file is opened with 0o666 permissions, which allows world-writable access on many systems. This could allow other users on the system to modify the cached blob data.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/registry/server.go</path>
+<side>right</side>
+<from>201</from>
+<to>204</to>
+<note>The comment describes the API design as 'Gross' and 'awkward'. While honest, such comments should focus on the technical reason for the design choice rather than subjective frustration.</note>
+</notesplit>
+<notesplit>
+<path>server/internal/cache/blob/chunked.go</path>
+<side>right</side>
+<from>12</from>
+<to>12</to>
+<note>The TODO comment suggests moving the Chunk type definition, which indicates a potential architectural coupling issue between the cache and chunks packages.</note>
+</notesplit>

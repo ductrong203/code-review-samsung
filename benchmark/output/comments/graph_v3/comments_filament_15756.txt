@@ -1,0 +1,14 @@
+<notesplit>
+<path>packages/panels/resources/lang/pt_BR/pages/auth/password-reset/reset-password.php</path>
+<side>right</side>
+<from>17</from>
+<to>17</to>
+<note>The 'validation_attribute' is used for error messages. Changing it from 'password' to 'senha' may cause inconsistencies if the underlying validation logic or other language files expect the English key for internal mapping or if it breaks consistency with other validation messages that might still reference 'password'. Ensure that the validation engine correctly maps this localized string.</note>
+</notesplit>
+<notesplit>
+<path>packages/panels/resources/lang/pt_BR/pages/auth/register.php</path>
+<side>right</side>
+<from>30</from>
+<to>30</to>
+<note>Similar to the reset-password file, changing 'validation_attribute' to 'senha' in the registration form may lead to inconsistent error messages if the validation system relies on the previous key. Ensure that the validation framework handles this localization correctly without breaking error reporting.</note>
+</notesplit>

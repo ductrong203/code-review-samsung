@@ -1,0 +1,44 @@
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>126</from>
+<to>127</to>
+<note>**[Security Vulnerability]** The code attempts to call 'executeFixedStringConst' with a template parameter, but the function call is truncated and incomplete in the provided diff. This results in a compilation error or, if partially implemented elsewhere, potentially undefined behavior or memory corruption due to incomplete logic handling.
+
+**[Code Defect]** The final else-if condition for `fixed_str2_col && col_str1_const` is truncated and incomplete, leading to a compilation error.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>105</from>
+<to>128</to>
+<note>The executeImpl function uses a long chain of if-else if statements to dispatch execution based on column types. This pattern is hard to maintain and error-prone as new column types are added. It should be refactored using a dispatcher or a visitor pattern to handle column type combinations more cleanly.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>45</from>
+<to>46</to>
+<note>The error message 'Function {} requires 2 or 5 arguments' is technically correct but lacks clarity for the user. It should explicitly state that the optional arguments must be provided as a group (offset1, offset2, num_bytes) to avoid confusion.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>94</from>
+<to>94</to>
+<note>The code creates a temporary std::string object inside the loop for every row when calling executeStringConst. This causes unnecessary heap allocations and memory copies for each row. Use StringRef or getDataAt() to access the constant string data without creating a new string object.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>98</from>
+<to>98</to>
+<note>Similar to the previous issue, constructing a temporary std::string inside the execution loop for constant arguments leads to excessive heap allocations. Pass the StringRef directly to the execution helper.</note>
+</notesplit>
+<notesplit>
+<path>src/Functions/FunctionStringCompare.cpp</path>
+<side>right</side>
+<from>71</from>
+<to>78</to>
+<note>The lambda 'prepare_string_args' is defined inside executeImpl but is only used twice. It captures nothing and returns a tuple of pointers. This adds unnecessary abstraction overhead and makes the code harder to read. It should be replaced with direct calls to checkAndGetColumn.</note>
+</notesplit>

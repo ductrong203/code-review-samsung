@@ -1,0 +1,48 @@
+<notesplit>
+<path>tests-unit/server_test/test_cache_control.py</path>
+<side>right</side>
+<from>255</from>
+<to>255</to>
+<note>The test file ends abruptly with an incomplete decorator '@pytest.mark.para', which will cause a syntax error and prevent the test suite from running.</note>
+</notesplit>
+<notesplit>
+<path>middleware/cache_middleware.py</path>
+<side>right</side>
+<from>29</from>
+<to>33</to>
+<note>**[Performance]** The middleware performs multiple string operations (endswith) on every single request path. This is inefficient for high-traffic endpoints. Converting the path to lowercase once and using a set for O(1) lookup of extensions would be more performant.
+
+**[Maintainability and Readability]** The cache control logic for static assets (js, css, json) uses hardcoded string checks. This is fragile and violates the Open/Closed principle as adding new file types requires modifying the middleware function. Consider using a configuration list or a set of extensions.</note>
+</notesplit>
+<notesplit>
+<path>middleware/cache_middleware.py</path>
+<side>right</side>
+<from>43</from>
+<to>43</to>
+<note>**[Security Vulnerability]** The middleware uses `response.headers.setdefault` which only sets the header if it does not already exist. If a downstream handler or another middleware has already set a 'Cache-Control' header (e.g., to 'no-store' for sensitive data), this middleware will silently fail to override it, potentially leading to sensitive images being cached by public proxies or browsers.
+
+**[Maintainability and Readability]** The middleware uses setdefault() which silently ignores existing Cache-Control headers. This can lead to unexpected behavior if other parts of the application (or other middlewares) have already set specific cache policies. It is safer to explicitly check if the header exists before overriding or appending.</note>
+</notesplit>
+<notesplit>
+<path>middleware/cache_middleware.py</path>
+<side>right</side>
+<from>46</from>
+<to>46</to>
+<note>**[Security Vulnerability]** Similar to the 404 case, using `setdefault` for success responses (200-206, 301, 308) allows existing 'Cache-Control' headers to persist. If a resource is intended to be private or non-cacheable, this middleware might inadvertently force it to be cached publicly.
+
+**[Maintainability and Readability]** Similar to the 404 case, using setdefault() here may override existing cache headers set by other logic. It is better to check for the header's existence first.</note>
+</notesplit>
+<notesplit>
+<path>middleware/cache_middleware.py</path>
+<side>right</side>
+<from>38</from>
+<to>38</to>
+<note>The check `request.path.lower().endswith(IMG_EXTENSIONS)` creates a new lowercase string object for every single request that passes through the middleware. This increases memory allocation pressure in high-throughput scenarios.</note>
+</notesplit>
+<notesplit>
+<path>middleware/cache_middleware.py</path>
+<side>right</side>
+<from>34</from>
+<to>34</to>
+<note>Using setdefault() for 'no-cache' may override more restrictive headers. It is safer to check for the header's existence first.</note>
+</notesplit>

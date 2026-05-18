@@ -1,0 +1,48 @@
+<notesplit>
+<path>packages/cli/src/config/extensions/extensionEnablement.ts</path>
+<side>right</side>
+<from>102</from>
+<to>102</to>
+<note>**[Code Defect]** The regex conversion logic for glob patterns is flawed. Replacing '/*' with '(/.*)?' is incorrect because it creates an optional group that matches empty strings or paths that don't start with a slash, potentially leading to incorrect extension enablement/disablement matches.
+
+**[Security Vulnerability]** The globToRegex function uses a regex replacement that is vulnerable to ReDoS (Regular Expression Denial of Service). The pattern `(\/?)\*` replaced with `($1.*)?` can lead to catastrophic backtracking when processing deeply nested or crafted path strings, especially since it is applied to user-controlled input.
+
+**[Maintainability and Readability]** The regex replacement logic `.replace(/(\/?)\*/g, '($1.*)?')` is complex and lacks comments. Regex-based path matching is notoriously difficult to debug; consider adding a comment explaining the transformation or using a dedicated glob-to-regex library.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/extensions/extensionEnablement.ts</path>
+<side>right</side>
+<from>60</from>
+<to>62</to>
+<note>The asRegex() method compiles a new RegExp object every time it is called. Since this is used inside a loop in isEnabled() to check every override rule for a given path, this causes excessive object creation and redundant regex compilation. The regex should be cached or pre-compiled.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/extensions/extensionEnablement.ts</path>
+<side>right</side>
+<from>83</from>
+<to>88</to>
+<note>**[Code Defect]** The `ensureLeadingAndTrailingSlash` function uses `charAt(0)` and `charAt(length - 1)` which are safe, but the logic `result = '/' + result` and `result = result + '/'` can result in double slashes if the input already contains them, leading to inconsistent path matching.
+
+**[Maintainability and Readability]** The function `ensureLeadingAndTrailingSlash` uses manual string manipulation with `charAt` and `length`. This is error-prone and less readable than modern template literals or path normalization utilities.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/commands/extensions/disable.ts</path>
+<side>right</side>
+<from>19</from>
+<to>23</to>
+<note>The logic for determining the scope is duplicated in both disable.ts and enable.ts. This violates DRY principles and makes the CLI harder to maintain if scope handling logic changes. Extract this into a shared helper function.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/commands/extensions/enable.ts</path>
+<side>right</side>
+<from>19</from>
+<to>23</to>
+<note>The logic for determining the scope is duplicated in both enable.ts and disable.ts. This violates DRY principles. Extract this into a shared helper function.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/extensions/extensionEnablement.ts</path>
+<side>right</side>
+<from>130</from>
+<to>135</to>
+<note>The isEnabled() method iterates through all overrides and calls Override.fromFileRule(rule) for every single rule on every check. This creates a new Override object for every rule in the config on every call, which is inefficient. The config should store pre-parsed Override objects or the parsing should be hoisted.</note>
+</notesplit>

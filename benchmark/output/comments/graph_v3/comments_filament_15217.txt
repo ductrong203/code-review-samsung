@@ -1,0 +1,14 @@
+<notesplit>
+<path>packages/forms/src/Commands/FileGenerators/Concerns/CanGenerateModelForms.php</path>
+<side>right</side>
+<from>93</from>
+<to>93</to>
+<note>The match expression performs multiple string operations (str() calls) inside a loop or conditional block. These operations are expensive when executed repeatedly. Moving the static string checks to a pre-computed array or using a more efficient lookup structure would improve performance.</note>
+</notesplit>
+<notesplit>
+<path>packages/tables/src/Commands/FileGenerators/Concerns/CanGenerateModelTables.php</path>
+<side>right</side>
+<from>143</from>
+<to>146</to>
+<note>The logic for handling 'date' and 'time' columns is duplicated. Both blocks perform identical operations (initializing arrays for the type and sortable). This violates the DRY principle and makes the code harder to maintain as more types are added.</note>
+</notesplit>

@@ -1,0 +1,28 @@
+<notesplit>
+<path>src/networking.c</path>
+<side>right</side>
+<from>2770</from>
+<to>2770</to>
+<note>The original code handled the case where c->querybuf might be NULL by checking it before access. The new logic only checks c->querybuf inside the 'else' block, but if server.hide_user_data_from_log is false and c->querybuf is NULL, the code will attempt to access c->querybuf in the 'else' block, potentially causing a null pointer dereference.</note>
+</notesplit>
+<notesplit>
+<path>src/networking.c</path>
+<side>right</side>
+<from>2770</from>
+<to>2770</to>
+<note>The code uses snprintf to format the query buffer into a fixed-size buffer 'buf' of 256 bytes. If the query buffer contains a very long string, the output is truncated. While snprintf prevents a buffer overflow, the logic for handling the truncation in the 'else' block (lines 2773-2776) relies on manual pointer arithmetic and length calculations that could potentially lead to out-of-bounds reads if the query buffer is modified concurrently or if the length calculations are incorrect.</note>
+</notesplit>
+<notesplit>
+<path>src/networking.c</path>
+<side>right</side>
+<from>2779</from>
+<to>2783</to>
+<note>The loop iterating over the buffer to replace non-printable characters is redundant when hide_user_data_from_log is enabled, as the buffer is already set to a constant string '*redacted*'.</note>
+</notesplit>
+<notesplit>
+<path>src/networking.c</path>
+<side>right</side>
+<from>2767</from>
+<to>2776</to>
+<note>The nested if-else structure for populating the 'buf' variable is becoming complex. The logic for formatting the query buffer dump should be separated from the logic that decides whether to redact it, improving the readability of the main flow.</note>
+</notesplit>

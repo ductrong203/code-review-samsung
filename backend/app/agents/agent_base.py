@@ -184,6 +184,7 @@ class ReviewAgent(ABC):
     ) -> List[Finding]:
         """Invoke the LLM once and parse its findings."""
         prompt_vars = self._build_prompt_vars(context)
+        self._log_prompt_size(prompt_vars)
         raw_output = self.chain.invoke(prompt_vars)
         label_text = f" ({label})" if label else ""
 
@@ -203,6 +204,49 @@ class ReviewAgent(ABC):
                 f"Raw output preview: {raw_output[:500]}"
             )
         return findings
+
+    def _log_prompt_size(self, prompt_vars: Dict[str, str]) -> None:
+        """Log rendered prompt size before invoking the model."""
+        try:
+            system_text = self.get_system_prompt().format(**prompt_vars)
+            human_text = self.get_review_prompt().format(**prompt_vars)
+        except Exception:
+            logger.debug("[%s] Could not render prompt for size logging", self.name)
+            return
+
+        prompt_text = f"{system_text}\n\n{human_text}"
+        approx_tokens = max(1, len(prompt_text) // 4)
+        exact_tokens = None
+        try:
+            exact_tokens = self.llm.get_num_tokens(prompt_text)
+        except Exception:
+            pass
+
+        parts = {
+            "title": len(prompt_vars.get("title", "")),
+            "description": len(prompt_vars.get("description", "")),
+            "file_context": len(prompt_vars.get("file_context", "")),
+            "graph_context": len(prompt_vars.get("graph_context", "")),
+            "repo_structure": len(prompt_vars.get("repo_structure", "")),
+        }
+        graph_counts = {
+            "changed_functions": prompt_vars.get("graph_context", "").count("- Changed `"),
+            "related_context_items": prompt_vars.get("graph_context", "").count("caller ")
+            + prompt_vars.get("graph_context", "").count("callee "),
+        }
+        token_text = (
+            f"exact_tokens={exact_tokens}"
+            if exact_tokens is not None
+            else f"approx_tokens={approx_tokens}"
+        )
+        logger.info(
+            "[%s] Input prompt size: chars=%s, %s, parts=%s, graph_counts=%s",
+            self.name,
+            len(prompt_text),
+            token_text,
+            parts,
+            graph_counts,
+        )
 
     def _build_prompt_vars(self, context: ReviewContext) -> Dict[str, str]:
         """Build prompt template variables from context with optimized token usage."""
@@ -237,7 +281,7 @@ class ReviewAgent(ABC):
         if context.graph_context:
             gc = context.graph_context
             parts = ["### Graph Analysis"]
-            for fn in gc.get("changed_functions", [])[:8]:
+            for fn in gc.get("changed_functions", []) or []:
                 callers = self._format_graph_nodes(fn.get("callers", []), limit=3)
                 callees = self._format_graph_nodes(fn.get("callees", []), limit=3)
                 tests = self._format_graph_nodes(fn.get("tests", []), limit=3)
@@ -254,23 +298,26 @@ class ReviewAgent(ABC):
                 if tests:
                     parts.append(f"  tests: {tests}")
             if gc.get("affected_flows"):
-                flow_names = [f.get("name", "") for f in gc["affected_flows"][:5]]
+                flow_names = [f.get("name", "") for f in gc["affected_flows"]]
                 parts.append(f"Affected flows: {flow_names}")
             if gc.get("test_gaps"):
                 gaps = [
                     f"{g.get('name', '')} [{g.get('file', '')}:{g.get('line_start', '?')}]"
-                    for g in gc["test_gaps"][:5]
+                    for g in gc["test_gaps"]
                 ]
                 parts.append(f"Untested changed functions: {gaps}")
             if gc.get("related_context"):
-                related = self._format_graph_nodes(gc["related_context"], limit=10)
+                related = self._format_graph_nodes(
+                    gc["related_context"],
+                    limit=len(gc["related_context"]),
+                )
                 parts.append(f"Related repo context: {related}")
             if gc.get("overall_risk") is not None:
                 parts.append(f"Overall risk score: {gc['overall_risk']:.2f}")
             if gc.get("review_priorities"):
                 priorities = [
                     f"{p.get('name', '')} [{p.get('file', '')}:{p.get('line_start', '?')}]"
-                    for p in gc["review_priorities"][:5]
+                    for p in gc["review_priorities"]
                 ]
                 parts.append(f"Review priorities: {priorities}")
             graph_section = "\n".join(parts)

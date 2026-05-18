@@ -1,0 +1,30 @@
+<notesplit>
+<path>src/Mod/BIM/ArchStairs.py</path>
+<side>right</side>
+<from>1271</from>
+<to>1271</to>
+<note>**[Code Defect]** The sed replacement changed 'allow' to 'allow one' inside a comment, but the original comment was 'allow tolerance Part.LineSegment / edge.toShape() allow?'. The replacement resulted in 'allow one tolerance Part.LineSegment / edge.toShape() allow?'. The word 'allow' at the end is now orphaned and grammatically incorrect, suggesting the sed command was too aggressive and replaced the second 'allow' as well, or the original comment was malformed. The intended fix should likely be 'allow for tolerance' or similar, but the current text is nonsensical.
+
+**[Maintainability and Readability]** The sed replacement for 'allow to' -> 'allow one to' was applied incorrectly to a code comment containing a technical variable name 'tol'. The comment now reads 'allow one tolerance' instead of 'allow tolerance', which is grammatically incorrect and confusing. The fix should be 'allow tolerance' or 'allow for tolerance'.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/BIM/Resources/ui/preferences-ifc-export.ui</path>
+<side>right</side>
+<from>174</from>
+<to>175</to>
+<note>The sed replacement changed 'allows to import' to 'enables importing' and 'allows to give' to 'allows giving'. This is inconsistent. 'Enables importing' is good, but 'allows giving' is awkward. It should be 'allows providing' or 'allows the user to provide'. The inconsistency between 'enables' and 'allows' in the same tooltip reduces readability.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemMeshShapeNetgenObject.cpp</path>
+<side>right</side>
+<from>62</from>
+<to>72</to>
+<note>The sed replacement changed 'allows to define' to 'allows defining'. While grammatically smoother, it introduces inconsistency with other property descriptions in the same file that still use 'allows to define' or similar structures. For maintainability, consistency in documentation style is preferred. Specifically, 'allows defining' is less parallel than 'allows the user to define'.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemMeshShapeNetgenObject.cpp</path>
+<side>right</side>
+<from>65</from>
+<to>77</to>
+<note>The sed replacement changed 'allows to define' to 'allows defining'. While grammatically better, the original text 'allows to define' was also grammatically incorrect ('allows one to define' is correct). The fix 'allows defining' is acceptable, but note that 'radiuses' was changed to 'radii' in the third property description, which is a good correction. However, the first two properties still use 'allows defining' which is slightly less standard than 'allows one to define' or 'allows defining'. This is a minor style/grammar issue rather than a functional bug, but it's a direct result of the sed command.</note>
+</notesplit>

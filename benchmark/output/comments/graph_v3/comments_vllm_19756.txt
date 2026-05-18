@@ -1,0 +1,30 @@
+<notesplit>
+<path>vllm/multimodal/profiling.py</path>
+<side>right</side>
+<from>262</from>
+<to>264</to>
+<note>The logic for calculating total_mm_tokens when mm_counts is provided is incorrect. It uses set intersection (&) on the keys of max_tokens_per_item and mm_counts, which ignores modalities present in mm_counts but missing from max_tokens_per_item, and vice versa. This leads to an underestimation of total tokens if keys do not match perfectly, potentially bypassing the safety check.</note>
+</notesplit>
+<notesplit>
+<path>vllm/multimodal/profiling.py</path>
+<side>right</side>
+<from>261</from>
+<to>262</to>
+<note>**[Performance]** The set intersection operation `max_tokens_per_item.keys() & mm_counts.keys()` creates a new set object on every call. While small, this is inside a profiling path that may be executed frequently. Using a simple loop or checking keys directly is more memory-efficient.
+
+**[Security Vulnerability]** The code performs a dictionary intersection using `max_tokens_per_item.keys() & mm_counts.keys()`. If `mm_counts` contains keys not present in `max_tokens_per_item`, those modalities are silently ignored in the `total_mm_tokens` calculation. This could lead to an underestimation of the total token count, potentially bypassing sequence length checks and causing runtime failures or memory corruption during inference.</note>
+</notesplit>
+<notesplit>
+<path>vllm/multimodal/profiling.py</path>
+<side>right</side>
+<from>261</from>
+<to>264</to>
+<note>The logic for calculating total_mm_tokens is duplicated and slightly complex. It can be simplified using a generator expression or a helper method to improve readability.</note>
+</notesplit>
+<notesplit>
+<path>vllm/multimodal/processing.py</path>
+<side>right</side>
+<from>1116</from>
+<to>1118</to>
+<note>The docstring contains a typo ('should respect to the model') and slightly awkward phrasing. It should be corrected to 'should respect the model's maximum sequence length'.</note>
+</notesplit>

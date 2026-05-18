@@ -1,0 +1,56 @@
+<notesplit>
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>318</from>
+<to>321</to>
+<note>The `runCommand` method uses `spawn` with `shell: false` (default) but passes user-controlled arguments directly to the command. While `spawn` is generally safer than `exec`, if `this.bundlePath` or the `args` array contain malicious input or path traversal sequences, it could lead to command injection or execution of unintended binaries if the environment is not strictly controlled.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>326</from>
+<to>329</to>
+<note>The code accesses child.stdin without checking if it exists. If the spawn process fails to open the stdin stream, this will throw a TypeError, causing the test to crash instead of failing gracefully.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>323</from>
+<to>332</to>
+<note>The runCommand method uses string concatenation (stdout += data) to accumulate output from child processes. For large outputs, this creates many intermediate string objects, leading to excessive memory allocation and garbage collection pressure. Use an array to collect buffers and join them at the end.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/extensions-install.test.ts</path>
+<side>right</side>
+<from>27</from>
+<to>31</to>
+<note>The test uses a try-catch block with an empty catch to ignore potential errors during uninstallation. This hides failures that might indicate the test environment is not in the expected state, making debugging harder. Use a specific error check or log the error if it occurs.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>348</from>
+<to>354</to>
+<note>The runCommand method swallows the stdout when the process exits with a non-zero code, only returning the stderr in the rejected error. This makes it difficult to diagnose why a command failed if the relevant error context was printed to stdout.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>331</from>
+<to>331</to>
+<note>The code accesses child.stdout without checking if it exists. While stdio: 'pipe' usually guarantees this, it is safer to use optional chaining or a null check to prevent crashes if the stream is unavailable.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>338</from>
+<to>338</to>
+<note>The code accesses child.stderr without checking if it exists. Similar to stdout, this should be accessed safely to prevent potential crashes.</note>
+</notesplit>
+<notesplit>
+<path>integration-tests/test-helper.ts</path>
+<side>right</side>
+<from>326</from>
+<to>331</to>
+<note>The code uses non-null assertion operators (!) on child.stdin, child.stdout, and child.stderr. While likely safe here, it is safer to use optional chaining or explicit null checks to avoid potential runtime errors if the spawn configuration changes.</note>
+</notesplit>

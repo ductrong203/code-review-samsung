@@ -1,0 +1,51 @@
+<notesplit>
+<path>tsl/src/bgw_policy/job.c</path>
+<side>right</side>
+<from>392</from>
+<to>396</to>
+<note>The function `continuous_agg_split_refresh_window` is called with 4 arguments, but the function definition in `refresh.c` and `refresh.h` shows it only accepts 3 arguments (cagg, original_refresh_window, buckets_per_batch). The new parameter `refresh_newest_first` has not been added to the function signature in `refresh.h` or the implementation in `refresh.c` in this diff, causing a compilation error or undefined behavior if the header wasn't updated. Wait, looking at `refresh.h` diff, it IS updated. However, looking at `refresh.c` diff, the function signature IS updated. So this is likely correct. Let me re-examine. Ah, the `refresh.h` diff shows the signature update. The `refresh.c` diff shows the implementation update. So the call in `job.c` is correct. No bug here.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/continuous_aggs/refresh.c</path>
+<side>right</side>
+<from>1145</from>
+<to>1147</to>
+<note>The `psprintf` call uses two `%s` placeholders but only provides two arguments. However, the first `%s` is for `range_end DESC` or `range_start ASC` and the second is for `DESC` or `ASC`. The logic is: `refresh_newest_first ? "range_end DESC" : "range_start ASC"` and `refresh_newest_first ? "DESC" : "ASC"`. This is correct. No bug.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/continuous_aggs/refresh.c</path>
+<side>right</side>
+<from>1145</from>
+<to>1147</to>
+<note>SQL Injection via user-controlled boolean parameter in query construction. The `refresh_newest_first` boolean is used directly in `psprintf` to construct the SQL query string (`range_end DESC` or `range_start ASC`). While these specific values are safe, the pattern of injecting user-controlled logic into SQL query structure without validation is a high-risk anti-pattern. If the source of `refresh_newest_first` were ever to change to accept arbitrary strings, this would become a critical SQL injection vulnerability. Currently, it is a boolean, but the construction method is fragile.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/bgw_policy/job.c</path>
+<side>right</side>
+<from>508</from>
+<to>508</to>
+<note>**[Code Defect]** In `policy_refresh_cagg_read_and_validate_config`, `refresh_newest_first` is read from the config. If the config does not contain `refresh_newest_first`, `policy_refresh_cagg_get_refresh_newest_first` returns `true` (default). However, if the config is corrupted or missing other fields, the function might proceed with uninitialized or default values. This is a minor issue as the default is well-defined. No critical bug.
+
+**[Security Vulnerability]** Missing Input Validation for `refresh_newest_first`. The code reads `refresh_newest_first` from the JSONB config using `policy_refresh_cagg_get_refresh_newest_first`. There is no explicit validation that the value is a valid boolean or within expected bounds before using it. If the JSONB config is malformed or contains unexpected types, it could lead to undefined behavior or crashes in downstream logic.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/continuous_aggs/refresh.c</path>
+<side>right</side>
+<from>1145</from>
+<to>1147</to>
+<note>The function `psprintf` is called on every execution of `continuous_agg_split_refresh_window` to construct the SQL query string. Since this function is called for every policy refresh execution, this creates unnecessary memory allocation and string formatting overhead on every call. The query template is static and only depends on a boolean flag.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/bgw_policy/continuous_aggregate_api.c</path>
+<side>right</side>
+<from>171</from>
+<to>181</to>
+<note>The function `policy_refresh_cagg_get_refresh_newest_first` sets `res = true` if `found` is false. This is the default value. However, if `ts_jsonb_get_bool_field` fails to parse the value (e.g., invalid type), it might set `found` to false and `res` to an undefined state before this check. Looking at `ts_jsonb_get_bool_field`, if the key is not found, `found` is false and `res` is not modified. If the key is found but the value is not a boolean, `found` might be false or true depending on implementation. Assuming standard behavior, this is safe. No bug.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/continuous_aggs/refresh.c</path>
+<side>right</side>
+<from>1201</from>
+<to>1207</to>
+<note>The loop iterates over `SPI_processed` rows, fetching data using `SPI_getbinval`. While this is standard SPI usage, if `SPI_processed` is very large, this loop can become a bottleneck. However, without knowing the typical size of `SPI_processed`, this is a potential medium issue. The loop itself is O(N) which is optimal for reading N rows, but the repeated calls to `SPI_getbinval` and `palloc` inside the loop add up.</note>
+</notesplit>

@@ -1,0 +1,37 @@
+<notesplit>
+<path>libs/entitlement/src/main/java/org/elasticsearch/entitlement/runtime/policy/PolicyManager.java</path>
+<side>right</side>
+<from>312</from>
+<to>313</to>
+<note>**[Code Defect]** The variable 'pathFileSystemClass' is declared but only used once in the logger call. The check 'path.getFileSystem().getClass() != DEFAULT_FILESYSTEM_CLASS' is performed twice (once in the assignment, once in the if condition). This is redundant and slightly inefficient.
+
+**[Maintainability and Readability]** The method isPathOnDefaultFilesystem performs redundant work by calling path.getFileSystem().getClass() twice. This is inefficient and slightly reduces readability.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/src/main/java/org/elasticsearch/entitlement/runtime/policy/PolicyManager.java</path>
+<side>right</side>
+<from>311</from>
+<to>325</to>
+<note>The newly introduced isPathOnDefaultFilesystem method creates a security bypass. By returning 'false' for any Path not belonging to the default FileSystem, the checkFileRead and checkFileWrite methods effectively disable all entitlement enforcement for non-default filesystems. An attacker could potentially use custom FileSystem implementations (e.g., ZipFileSystem, MemoryFileSystem) to bypass file access restrictions and read/write sensitive files that should be protected by the policy.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/src/main/java/org/elasticsearch/entitlement/runtime/policy/PolicyManager.java</path>
+<side>right</side>
+<from>317</from>
+<to>317</to>
+<note>The `isPathOnDefaultFilesystem` method performs a `path.toString()` call inside the `logger.trace` lambda. While `logger.trace` is usually guarded, if the logging framework evaluates the lambda or if the string formatting is executed before the trace level check, this creates unnecessary string allocations and object conversions on every file access check.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/src/main/java/org/elasticsearch/entitlement/runtime/policy/FileAccessTree.java</path>
+<side>right</side>
+<from>206</from>
+<to>206</to>
+<note>The `checkPath` method uses `String.join(",", paths)` inside a `logger.trace` call. This creates a new string and an array copy on every call to `checkPath`, which is likely a hot path. Even if the logger is at trace level, the string concatenation occurs before the logger decides whether to output the message.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/src/main/java/org/elasticsearch/entitlement/runtime/policy/PolicyManager.java</path>
+<side>right</side>
+<from>314</from>
+<to>321</to>
+<note>The logging inside isPathOnDefaultFilesystem uses path.toString() and class names inside a lambda. While the lambda is correct for performance, the logic is verbose and could be simplified by using a helper or cleaner string formatting to improve maintainability.</note>
+</notesplit>

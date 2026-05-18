@@ -1,0 +1,88 @@
+<notesplit>
+<path>server/src/queries/person.repository.sql</path>
+<side>right</side>
+<from>26</from>
+<to>26</to>
+<note>**[Code Defect]** The SQL query for PersonRepository.delete uses `in $1` instead of `in ($1)`. This is invalid SQL syntax for passing an array parameter to an IN clause. It should be `in ($1)` to correctly handle the array of IDs.
+
+**[Security Vulnerability]** SQL Injection vulnerability introduced in PersonRepository.delete query. The change from `in ($1)` to `in $1` removes the parameter binding for the array of IDs. This means the array is interpolated directly into the SQL string, allowing an attacker to inject arbitrary SQL commands if they can control the person IDs being deleted.</note>
+</notesplit>
+<notesplit>
+<path>server/src/dtos/person.dto.ts</path>
+<side>right</side>
+<from>249</from>
+<to>261</to>
+<note>**[Maintainability and Readability]** The `mapFaces` function now manually destructures and assigns properties from the `face` object instead of using the `mapFacesWithoutPerson` helper. This duplicates the logic of `mapFacesWithoutPerson` (id, imageHeight, imageWidth, boundingBoxX1, boundingBoxX2, boundingBoxY1, boundingBoxY2, sourceType). This violates DRY principles and makes maintenance harder: if a new field is added to `AssetFace`, it must be updated in two places.
+
+**[Performance]** The `mapFaces` function manually destructures and reconstructs the face object properties instead of using object spread or a mapper. While this is a minor issue, it involves more property access and assignment than necessary. Using `mapFacesWithoutPerson` and spreading it would be cleaner and potentially slightly faster.</note>
+</notesplit>
+<notesplit>
+<path>server/src/dtos/person.dto.ts</path>
+<side>right</side>
+<from>249</from>
+<to>256</to>
+<note>The `mapFaces` function now destructures `face.person?.ownerId` directly. However, the `AssetFace` type in `database.ts` defines `person` as `Person | null`. If `face.person` is null, accessing `ownerId` will throw a TypeError. The previous code used `AssetFaceEntity` which likely had a different structure or the optional chaining was more robust. The new code assumes `face.person` might be undefined/null but doesn't handle it safely before accessing `ownerId`.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/person.service.ts</path>
+<side>right</side>
+<from>551</from>
+<to>551</to>
+<note>The `handleGeneratePersonThumbnail` function now calls `this.personRepository.getDataForThumbnailGenerationJob(id)`. If this repository method is not implemented or returns undefined/null, the subsequent destructuring `const { ownerId, x1, y1, x2, y2, oldWidth, oldHeight } = data;` will fail if `data` is null/undefined. The code checks `if (!data)` but if `data` is an empty object or missing fields, it might cause issues later. More critically, if `getDataForThumbnailGenerationJob` is not yet implemented in the repository, this will crash.</note>
+</notesplit>
+<notesplit>
+<path>server/src/dtos/asset-response.dto.ts</path>
+<side>right</side>
+<from>74</from>
+<to>78</to>
+<note>The function `peopleWithFaces` iterates over faces and uses `find` to locate a person in the `result` array for every face. This creates an O(n*m) complexity where n is the number of faces and m is the number of unique people. For assets with many faces, this becomes a performance bottleneck. It should be optimized to O(n+m) by building a lookup map of person IDs to DTOs first.</note>
+</notesplit>
+<notesplit>
+<path>server/src/dtos/person.dto.ts</path>
+<side>right</side>
+<from>251</from>
+<to>258</to>
+<note>Inefficient data handling in mapFaces function. The new implementation manually copies fields from the face object instead of using spread operator or mapping utility. While not a direct security vulnerability, this increases the risk of future bugs where new fields might be inadvertently exposed or omitted, potentially leading to information disclosure or missing authorization checks if fields are skipped.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/person.service.ts</path>
+<side>right</side>
+<from>378</from>
+<to>381</to>
+<note>The `iou` function now accepts an anonymous object type `{ boundingBoxX1: number; boundingBoxX1: number; boundingBoxX2: number; boundingBoxY2: number }`. This is not self-documenting. It should be replaced with a named type like `BoundingBox` or `FaceBox` to improve readability.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/person.service.ts</path>
+<side>right</side>
+<from>457</from>
+<to>457</to>
+<note>The `getFaceForFacialRecognitionJob` method is called, but if it returns `undefined` (which is possible if the face is not found, despite the `TODO` comment suggesting it should throw), the code checks `if (!face || !face.asset)`. However, the new repository method `getFaceForFacialRecognitionJob` might return `undefined` instead of throwing, which is handled. But the `face.asset` access might be problematic if `face` is an object that doesn't have an `asset` property in the expected shape, depending on the SQL query result. The SQL query selects `asset` as a subquery, so it should be present. The main risk is if the SQL query fails or returns unexpected data.</note>
+</notesplit>
+<notesplit>
+<path>server/src/cores/storage.core.ts</path>
+<side>right</side>
+<from>87</from>
+<to>87</to>
+<note>The function `getPersonThumbnailPath` now accepts a generic object type `{ id: string; ownerId: string }`. This is an anonymous type that is not reusable or self-documenting. It should be replaced with a named interface or type (e.g., `PersonId`) to improve readability and allow reuse across the codebase.</note>
+</notesplit>
+<notesplit>
+<path>server/src/cores/storage.core.ts</path>
+<side>right</side>
+<from>137</from>
+<to>137</to>
+<note>The function `movePersonFile` accepts an anonymous object type `{ id: string; ownerId: string; thumbnailPath: string }`. This reduces readability and reusability. It should be replaced with a named interface or type.</note>
+</notesplit>
+<notesplit>
+<path>server/src/dtos/asset-response.dto.ts</path>
+<side>right</side>
+<from>74</from>
+<to>75</to>
+<note>The function `peopleWithFaces` has a TODO comment indicating it is inefficient. While this is a known issue, the comment itself is a good practice for maintainability. However, the function name `peopleWithFaces` is slightly misleading as it processes faces to build people, not just returns people with faces. Consider renaming to `buildPeopleWithFaces` for clarity.</note>
+</notesplit>
+<notesplit>
+<path>server/src/database.ts</path>
+<side>right</side>
+<from>211</from>
+<to>239</to>
+<note>The `Person` and `AssetFace` types are defined in `database.ts`. These types are now used across multiple files (DTOs, services, repositories). It is good that they are centralized, but the comment in `asset-response.dto.ts` suggests inefficiency. Ensure these types are well-documented and consistent with the database schema to avoid drift.</note>
+</notesplit>

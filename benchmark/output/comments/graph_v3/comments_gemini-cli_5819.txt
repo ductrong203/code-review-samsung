@@ -1,0 +1,56 @@
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>451</from>
+<to>453</to>
+<note>The `textResponse` variable is accumulated across the entire stream, but `this.onMessage` is called only once after the stream finishes. If the model generates multiple chunks, the user receives one large concatenated message instead of incremental updates, defeating the purpose of 'incremental output streaming'.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>440</from>
+<to>449</to>
+<note>The `runNonInteractive` loop is becoming overly complex with mixed responsibilities: streaming text, handling function calls, and checking termination conditions. This violates the Single Responsibility Principle. Consider extracting the streaming and response processing logic into a dedicated helper method.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>545</from>
+<to>548</to>
+<note>The code performs JSON.stringify on tool arguments inside a loop for every tool call. This is an expensive operation that can cause significant overhead if tools are called frequently or with large argument objects. Consider logging only when necessary or using a more efficient serialization strategy.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>300</from>
+<to>315</to>
+<note>The `create` method creates a new `ToolRegistry` and iterates through all tools in `options.toolConfig.tools` to register them. If this method is called frequently, the overhead of re-instantiating the registry and re-registering tools becomes a bottleneck. Consider caching the registry or reusing existing instances.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>305</from>
+<to>325</to>
+<note>The `create` method performs manual tool registry population and validation. This logic is complex and duplicates registry management concerns. It should be delegated to the `ToolRegistry` class or a dedicated factory to improve maintainability.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>469</from>
+<to>483</to>
+<note>The logic to check for goal completion via `emitted_vars` is placed after `processFunctionCalls` but before the model's final turn check. If a tool call emits a variable that satisfies the goal, the loop breaks, but the `functionCalls` array is still processed in the next block, potentially leading to redundant or conflicting tool executions.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>552</from>
+<to>558</to>
+<note>The `onMessage` callback is used to stream tool execution details, including tool arguments, directly to the user. If these arguments contain sensitive information (e.g., file paths, API keys, or PII), they are being leaked into the streaming output without redaction. This could expose sensitive data to unauthorized observers of the sub-agent's progress stream.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/core/subagent.ts</path>
+<side>right</side>
+<from>544</from>
+<to>559</to>
+<note>The `processFunctionCalls` method contains hardcoded formatting logic for tool execution messages. This couples the execution logic with UI/presentation concerns. Consider moving the message formatting to a dedicated formatter or passing a callback that handles the presentation.</note>
+</notesplit>

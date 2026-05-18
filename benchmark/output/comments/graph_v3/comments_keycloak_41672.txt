@@ -1,0 +1,14 @@
+<notesplit>
+<path>adapters/saml/wildfly/wildfly-subsystem/src/main/java/org/keycloak/subsystem/adapter/saml/extension/KeycloakDependencyProcessor.java</path>
+<side>right</side>
+<from>38</from>
+<to>41</to>
+<note>The module identifier strings are duplicated across multiple classes (KeycloakDependencyProcessor and KeycloakDependencyProcessorWildFly). This violates the DRY principle and creates a maintenance burden where updating a module name requires changes in multiple locations. These should be centralized in a single constant provider class or enum.</note>
+</notesplit>
+<notesplit>
+<path>adapters/saml/wildfly/wildfly-subsystem/src/main/java/org/keycloak/subsystem/adapter/saml/extension/KeycloakDependencyProcessorWildFly.java</path>
+<side>right</side>
+<from>35</from>
+<to>35</to>
+<note>The constant KEYCLOAK_ELYTRON_ADAPTER is defined locally in KeycloakDependencyProcessorWildFly, while other related module constants are defined in the parent class KeycloakDependencyProcessor. This inconsistency makes it harder for developers to locate where module definitions are managed.</note>
+</notesplit>

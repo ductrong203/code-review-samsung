@@ -1,0 +1,18 @@
+<notesplit>
+<path>comfy/ldm/flux/math.py</path>
+<side>right</side>
+<from>25</from>
+<to>25</to>
+<note>The condition in rope() is becoming overly complex and hard to read. As more device-specific checks are added, this will become a maintenance burden. Consider abstracting this into a helper function like 'is_cpu_fallback_device(device)'.</note>
+</notesplit>
+<notesplit>
+<path>comfy/model_management.py</path>
+<side>right</side>
+<from>993</from>
+<to>998</to>
+<note>**[Code Defect]** The function is_directml_enabled is redundant and unnecessarily verbose. It can be simplified to return the boolean value of the global variable directly.
+
+**[Performance]** The function is_directml_enabled performs a redundant check on a global variable. Since directml_enabled is already a boolean, the if-else block can be simplified to a direct return, reducing branch overhead.
+
+**[Maintainability and Readability]** The function is_directml_enabled uses an explicit if-else block to return a boolean value from a global variable. This can be simplified to a direct return of the variable's truthiness.</note>
+</notesplit>

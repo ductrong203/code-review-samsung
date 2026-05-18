@@ -1,0 +1,46 @@
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumentationServiceImpl.java</path>
+<side>right</side>
+<from>133</from>
+<to>133</to>
+<note>**[Code Defect]** The logic for calculating `hasReceiver` is inverted. The expression `(targetMethodIsStatic || targetMethodIsCtor) == false` evaluates to true only if the method is an instance method. However, the variable name `hasReceiver` implies it should be true for instance methods (which have a 'this' receiver) and false for static/ctor methods. The current implementation sets `hasReceiver` to true for instance methods, but the logic is confusingly derived. More importantly, this variable is unused in the method, leading to dead code.
+
+**[Maintainability and Readability]** The variable 'hasReceiver' is calculated but never used within the 'parseCheckerMethodSignature' method. Unused variables clutter the code and confuse maintainers about the method's intent.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumentationServiceImpl.java</path>
+<side>right</side>
+<from>71</from>
+<to>80</to>
+<note>The logic for parsing the checker method name is becoming complex and hard to follow due to manual index manipulation. This increases the risk of off-by-one errors. Consider extracting the parsing logic into a dedicated helper method or a small parser class to improve readability.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumentationServiceImpl.java</path>
+<side>right</side>
+<from>113</from>
+<to>113</to>
+<note>The code uses Arrays.stream(...).skip(1).map(...).toList() inside a method that is likely called frequently during instrumentation. Stream creation and pipeline overhead are significantly slower than a simple loop or manual collection for small lists.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumentationServiceImpl.java</path>
+<side>right</side>
+<from>128</from>
+<to>128</to>
+<note>Similar to the previous issue, using a stream pipeline for parameter mapping is inefficient for a method that is part of the instrumentation logic. This should be replaced with a simple loop to reduce memory pressure and CPU cycles.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumenterImpl.java</path>
+<side>right</side>
+<from>155</from>
+<to>155</to>
+<note>The code uses Stream.of(...).map(...).toList() inside the instrumentation loop. This is executed for every method being instrumented, leading to excessive object creation and performance degradation during class transformation.</note>
+</notesplit>
+<notesplit>
+<path>libs/entitlement/asm-provider/src/main/java/org/elasticsearch/entitlement/instrumentation/impl/InstrumenterImpl.java</path>
+<side>right</side>
+<from>155</from>
+<to>155</to>
+<note>**[Code Defect]** The variable `hasReceiver` is calculated but never used in the `instrumentClass` method. This is dead code that adds unnecessary complexity to the instrumentation logic.
+
+**[Maintainability and Readability]** The variable 'hasReceiver' is calculated but never used in the 'instrumentClass' method. This adds unnecessary noise to the code.</note>
+</notesplit>

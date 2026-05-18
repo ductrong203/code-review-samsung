@@ -1,0 +1,23 @@
+<notesplit>
+<path>src/Disks/DiskLocalCheckThread.cpp</path>
+<side>right</side>
+<from>88</from>
+<to>89</to>
+<note>The metrics are updated at the end of the run() method, but the disk status (readonly/broken) can be modified in multiple branches of the logic. If the thread exits early (e.g., due to need_stop) or if the logic flow does not reach the end of the function, the metrics will not be updated, leading to stale or incorrect metric values.</note>
+</notesplit>
+<notesplit>
+<path>src/Disks/DiskLocalCheckThread.cpp</path>
+<side>right</side>
+<from>42</from>
+<to>45</to>
+<note>**[Performance]** The function diskStatusChange is called in every iteration of the disk check loop. While the overhead is minimal, it can be inlined to avoid function call overhead in a hot background thread.
+
+**[Maintainability and Readability]** The function diskStatusChange is a simple utility that could be marked as static or moved to an anonymous namespace to limit its scope to this translation unit, preventing potential symbol collisions.</note>
+</notesplit>
+<notesplit>
+<path>src/Common/CurrentMetrics.cpp</path>
+<side>right</side>
+<from>440</from>
+<to>440</to>
+<note>There is a typo in the metric description: 'Number of disks disks that were marked as broken'. The word 'disks' is repeated.</note>
+</notesplit>

@@ -1,0 +1,50 @@
+<notesplit>
+<path>src/services/auth/AuthService.ts</path>
+<side>right</side>
+<from>33</from>
+<to>33</to>
+<note>**[Code Defect]** The `authNonce` is now generated at class instantiation time (line 33). However, the getter `get authNonce()` (line 139) returns `this._authNonce`. If any code path initializes `_authNonce` to null before the constructor runs, or if the getter is accessed before the constructor completes, it could return null. More critically, the type of `authNonce` getter changed from `string | null` to `string`, but the internal field `_authNonce` is still typed as `string | null`. This creates a type mismatch where the getter promises a non-null string but the backing field can be null. If `_authNonce` is ever null (e.g., during initialization or if reset elsewhere), accessing it as a string will cause runtime issues or unexpected behavior.
+
+**[Maintainability and Readability]** The `authNonce` is generated using `crypto.randomBytes(32).toString('hex')` directly in the class property declaration. This logic is duplicated from the previous implementation where it was generated inside `createAuthRequest`. If the generation logic ever needs to change (e.g., length, encoding), it must be updated in multiple places. Extract this to a constant or a private static method for better maintainability.
+
+**[Security Vulnerability]** The auth nonce is now generated once at instantiation and never reset. While this fixes the race condition, it means the nonce is valid for the entire session lifetime. If an attacker intercepts the nonce (e.g., via network sniffing if not using HTTPS or secure storage), they can reuse it indefinitely until the extension is reloaded. Consider implementing a nonce expiration or rotation mechanism for higher security.
+
+**[Performance]** The `authNonce` is now generated at class instantiation time (`crypto.randomBytes(32).toString("hex")`). While this is a one-time cost, cryptographic random number generation is relatively expensive. If `AuthService` is instantiated frequently (e.g., in tests or per-request scenarios), this could become a bottleneck. Consider lazy initialization or caching if instantiation is frequent.</note>
+</notesplit>
+<notesplit>
+<path>src/services/auth/AuthService.ts</path>
+<side>right</side>
+<from>186</from>
+<to>186</to>
+<note>**[Performance]** The `createAuthRequest` method now uses the `URL` object for query construction. While this is more robust, creating a new `URL` object and setting search params is slightly more verbose and potentially slower than simple string concatenation or `Uri.parse` for a single request. However, this is a minor trade-off for correctness.
+
+**[Code Defect]** The `createAuthRequest` method now uses `URL` object for query construction. However, if `this._config.URI` is undefined or null, `new URL(this._config.URI)` will throw a TypeError. The previous code did not have this explicit check, but it also didn't handle it gracefully. Now, if `URI` is not configured, it throws an error. This is a change in behavior from potentially failing silently or earlier to throwing a specific error. While this is an improvement in error handling, it's a potential crash point if `URI` is not set.</note>
+</notesplit>
+<notesplit>
+<path>src/extension.ts</path>
+<side>right</side>
+<from>310</from>
+<to>310</to>
+<note>The code checks `if (authService.authNonce !== state)` and then shows a warning message. However, the warning message text is `Store token returned from ${uri.path}`. This message is confusing and potentially misleading because it doesn't explain that the state mismatch might be due to a previous auth attempt or external login. It just says 'Store token returned from...'. While not a crash, this is a poor user experience and might lead users to incorrectly proceed or cancel. A better message would explain the mismatch.</note>
+</notesplit>
+<notesplit>
+<path>src/extension.ts</path>
+<side>right</side>
+<from>313</from>
+<to>317</to>
+<note>The code prompts the user to confirm a state mismatch, but the warning message includes `uri.path` which could be manipulated by an attacker controlling the redirect URI to perform phishing. The message 'Store token returned from /path' might be used to trick users into trusting a malicious callback. Ensure the displayed path is sanitized or use a more generic message.</note>
+</notesplit>
+<notesplit>
+<path>src/extension.ts</path>
+<side>right</side>
+<from>319</from>
+<to>319</to>
+<note>The log message `User declined to continue with auth callback due to state mismatch` is verbose and contains technical details ('state mismatch') that might not be necessary for a simple log. It could be simplified for readability while retaining the essential information.</note>
+</notesplit>
+<notesplit>
+<path>src/extension.ts</path>
+<side>right</side>
+<from>315</from>
+<to>315</to>
+<note>The string literal `Store` in `showWarningMessage` is used as a button label but lacks context. It is unclear what 'Store' refers to without reading the surrounding code. Consider using a more descriptive label like 'Continue with Store' or extracting the source name from the URI path for clarity.</note>
+</notesplit>

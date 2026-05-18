@@ -1,0 +1,51 @@
+<notesplit>
+<path>server/src/services/person.service.ts</path>
+<side>right</side>
+<from>551</from>
+<to>551</to>
+<note>**[Code Defect]** The variable 'data' is redeclared in the function scope, shadowing the function argument 'data' (which was renamed to '{ id }' in the signature). This will cause a runtime error or incorrect behavior when accessing the job ID.
+
+**[Maintainability and Readability]** The variable name 'data' is used for the result of 'getDataForThumbnailGenerationJob', which shadows the 'data' parameter of the function. This reduces readability and increases the risk of bugs.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/person.service.ts</path>
+<side>right</side>
+<from>557</from>
+<to>557</to>
+<note>The variable 'data' is used here, but it refers to the result of the repository call (which was shadowed). If the variable is renamed to 'thumbnailData', this line must be updated to match.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/person.service.ts</path>
+<side>right</side>
+<from>559</from>
+<to>559</to>
+<note>The variable 'data' is used here, but it refers to the result of the repository call (which was shadowed). If the variable is renamed to 'thumbnailData', this line must be updated to match.</note>
+</notesplit>
+<notesplit>
+<path>server/src/queries/person.repository.sql</path>
+<side>right</side>
+<from>26</from>
+<to>26</to>
+<note>The SQL query uses an incorrect syntax for the 'IN' clause. In Kysely/Postgres, 'in $1' expects a single array parameter, but if the driver or query builder expects a list of values, this can lead to SQL injection or query failure if the input is not properly handled as an array. Ensure the parameter is passed as a single array object.</note>
+</notesplit>
+<notesplit>
+<path>server/src/dtos/asset-response.dto.ts</path>
+<side>right</side>
+<from>75</from>
+<to>91</to>
+<note>The peopleWithFaces function uses an O(n*m) nested loop approach to match faces to people. For large datasets, this will cause significant performance degradation. It should be refactored to use a Map for O(n) lookup.</note>
+</notesplit>
+<notesplit>
+<path>server/src/dtos/asset-response.dto.ts</path>
+<side>right</side>
+<from>75</from>
+<to>75</to>
+<note>The function 'peopleWithFaces' uses a nested loop structure (O(N*M)) to map faces to people, which is inefficient. While the TODO acknowledges this, it should be refactored to use a Map for O(N+M) lookup performance.</note>
+</notesplit>
+<notesplit>
+<path>server/src/services/person.service.ts</path>
+<side>right</side>
+<from>378</from>
+<to>381</to>
+<note>The 'iou' function signature uses an inline object type for the 'face' parameter. This makes the code harder to reuse and less readable. Define a named interface for the bounding box or the face object.</note>
+</notesplit>

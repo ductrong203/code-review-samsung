@@ -1,0 +1,86 @@
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>right</side>
+<from>102</from>
+<to>103</to>
+<note>**[Code Defect]** Potential NullPointerException in getUnConfiguredDependency. The code calls extensions.findSupplierByType(typeClass) which can return null if no supplier is found. The subsequent call to supplier.getAnnotationClass() will throw a NullPointerException. The original code checked for Optional.isPresent() before accessing the supplier.
+
+**[Security Vulnerability]** Null Pointer Exception vulnerability in getUnConfiguredDependency. The code calls extensions.findSupplierByType(typeClass) which can return null if no supplier is found. The subsequent call to supplier.getAnnotationClass() will throw a NullPointerException. This causes the test framework to crash unexpectedly during dependency resolution, leading to a Denial of Service for test execution.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>right</side>
+<from>239</from>
+<to>241</to>
+<note>Potential NullPointerException in createRequestedInstance. The code calls extensions.findSupplierByType(valueType) which can return null. The subsequent call to supplier.getAnnotationClass() will throw a NullPointerException if supplier is null.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>right</side>
+<from>125</from>
+<to>131</to>
+<note>The code attempts to create requested instances for always-enabled value types but does not handle the case where createRequestedInstance returns null or throws an exception if the supplier is not found. If a type in alwaysEnabledValueTypes has no corresponding supplier, this will likely cause a NullPointerException or fail silently, leading to inconsistent test behavior.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>right</side>
+<from>102</from>
+<to>104</to>
+<note>The getUnConfiguredDependency method now assumes the supplier is never null (no null check after findSupplierByType). If no supplier is found, supplier.getAnnotationClass() will throw a NullPointerException. The previous code handled the absence of a supplier gracefully by returning null.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>right</side>
+<from>233</from>
+<to>236</to>
+<note>Null Pointer Exception vulnerability in createRequestedInstance. The code calls extensions.findSupplierByAnnotation(annotation) which can return null. The subsequent call to supplier.getAnnotationClass() will throw a NullPointerException. This crashes the test framework when processing annotations that have no matching supplier.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>right</side>
+<from>239</from>
+<to>243</to>
+<note>Null Pointer Exception vulnerability in createRequestedInstance. The code calls extensions.findSupplierByType(valueType) which can return null. The subsequent call to supplier.getAnnotationClass() will throw a NullPointerException. This crashes the test framework when resolving value types without a supplier.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Extensions.java</path>
+<side>right</side>
+<from>20</from>
+<to>26</to>
+<note>The Extensions class constructor performs multiple heavy operations (loading extensions via ServiceLoader, parsing configs, filtering suppliers) and instantiates a logger. This violates the Single Responsibility Principle and makes the class hard to test (tight coupling to static ServiceLoader and Config). It should be refactored to use dependency injection for its dependencies.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Extensions.java</path>
+<side>right</side>
+<from>40</from>
+<to>43</to>
+<note>The method findSupplierByType performs a linear stream search over all suppliers for every lookup. In a test framework where this is called frequently during dependency resolution, this results in O(N) complexity per lookup. If the number of suppliers grows, this becomes a significant bottleneck. A HashMap lookup would be O(1).</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Extensions.java</path>
+<side>right</side>
+<from>45</from>
+<to>48</to>
+<note>The method findSupplierByAnnotation performs a linear stream search over all suppliers for every annotation lookup. This is called during test setup for every field/annotation. This results in O(N) complexity per lookup. A HashMap lookup would be O(1).</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Registry.java</path>
+<side>right</side>
+<from>231</from>
+<to>244</to>
+<note>The findRequestedInstance method has a complex nested loop structure that is hard to read. It iterates over annotations and then over suppliers for each annotation. This can be simplified by using the new findSupplierByAnnotation method from Extensions.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/Extensions.java</path>
+<side>right</side>
+<from>85</from>
+<to>87</to>
+<note>The method loadAlwaysEnabledValueTypes is not called anywhere in the class, making it dead code. It was likely added for the new feature but the integration point (Registry.findRequestedInstances) was not updated to use this method, or the method is unused.</note>
+</notesplit>
+<notesplit>
+<path>test-framework/core/src/main/java/org/keycloak/test/framework/injection/AbstractInterceptorHelper.java</path>
+<side>right</side>
+<from>32</from>
+<to>32</to>
+<note>The logIntercepted call is executed inside the interception loop for every single interception. If a value is intercepted by many suppliers, this results in a large number of logging calls in a hot path. This can cause significant I/O overhead and slow down test execution.</note>
+</notesplit>

@@ -1,0 +1,37 @@
+<notesplit>
+<path>packages/cli/src/config/config.ts</path>
+<side>right</side>
+<from>374</from>
+<to>375</to>
+<note>**[Maintainability and Readability]** The logic for determining 'interactive' mode is becoming complex and relies on multiple disparate properties (argv, process.stdin, question length). This logic should be encapsulated within a dedicated helper function or a factory method to improve readability and maintainability.
+
+**[Security Vulnerability]** The logic for determining 'interactive' mode relies on process.stdin.isTTY and the presence of a prompt. If an attacker can manipulate the environment or input stream, they might bypass tool exclusion (e.g., ShellTool, EditTool) in non-interactive contexts. Relying on TTY state for security-critical tool authorization is fragile.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/gemini.tsx</path>
+<side>right</side>
+<from>304</from>
+<to>308</to>
+<note>The variable 'config' is used in 'validateNonInteractiveAuth' but it was initialized before the logic that determines if the CLI is interactive or not. Since 'config.isInteractive()' depends on the 'interactive' flag passed to the Config constructor, and the 'config' object passed to 'validateNonInteractiveAuth' was created before this flag was correctly calculated in 'loadCliConfig', the configuration object used for non-interactive validation may have stale or incorrect state.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/config/config.ts</path>
+<side>right</side>
+<from>355</from>
+<to>357</to>
+<note>The error message 'Config was already initialized' is generic. Including the state or context of the object would make debugging easier if this error occurs in production.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/config.ts</path>
+<side>right</side>
+<from>538</from>
+<to>541</to>
+<note>The mergeExcludeTools function creates a new Set by spreading arrays and then iterates over extensions to add more items. While functional, this performs redundant array allocations and Set operations. Since this is called during CLI configuration loading, it should be optimized to avoid unnecessary intermediate array creation.</note>
+</notesplit>
+<notesplit>
+<path>packages/cli/src/config/config.ts</path>
+<side>right</side>
+<from>377</from>
+<to>380</to>
+<note>The 'extraExcludes' logic uses hardcoded tool names. If these tool names change in the core package, this code will break silently. These should be referenced via a shared constant or configuration mapping if possible.</note>
+</notesplit>

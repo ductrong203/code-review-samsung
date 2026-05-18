@@ -14,7 +14,10 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # --- LLM Provider ---
-    LLM_PROVIDER: str = Field(default="ollama", description="LLM provider: 'ollama' or 'gemini'")
+    LLM_PROVIDER: str = Field(
+        default="ollama",
+        description="LLM provider: 'ollama', 'gemini', or 'qwen'",
+    )
 
     # --- Ollama ---
     OLLAMA_BASE_URL: str = Field(default="http://localhost:11434", description="Ollama server URL")
@@ -23,6 +26,16 @@ class Settings(BaseSettings):
     # --- Gemini ---
     GEMINI_API_KEY: str = Field(default="", description="Google Gemini API key")
     GEMINI_MODEL: str = Field(default="gemini-3-flash-preview", description="Gemini model name")
+
+    # --- Qwen / OpenAI-compatible endpoint ---
+    QWEN_BASE_URL: str = Field(default="", description="OpenAI-compatible Qwen server URL")
+    QWEN_API_KEY: str = Field(default="dummy", description="Qwen API key placeholder")
+    QWEN_MODEL: str = Field(default="Qwen3.6-35B", description="Qwen model name")
+    QWEN_TIMEOUT_SECONDS: int = Field(default=120, description="Qwen request timeout")
+    QWEN_ENABLE_THINKING: bool = Field(
+        default=False,
+        description="Enable Qwen reasoning/thinking output when supported",
+    )
 
     # --- GitHub ---
     GITHUB_TOKEN: str = Field(default="", description="GitHub personal access token (optional)")

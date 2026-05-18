@@ -1,0 +1,30 @@
+<notesplit>
+<path>packages/core/src/tools/grep.ts</path>
+<side>right</side>
+<from>104</from>
+<to>107</to>
+<note>**[Security Vulnerability]** The path validation logic uses `startsWith` on raw strings, which is vulnerable to path traversal. An attacker could provide a path like `/root/../etc/passwd` which might pass the check if the root directory is `/root/`. The `isWithinRoot` utility should be used instead of manual `startsWith` checks to ensure proper normalization and boundary enforcement.
+
+**[Maintainability and Readability]** The manual path validation logic in `resolveAndValidatePath` duplicates the functionality of the newly centralized `isWithinRoot` utility. This violates DRY principles and increases the risk of inconsistent security checks across tools.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/utils/fileUtils.ts</path>
+<side>right</side>
+<from>39</from>
+<to>40</to>
+<note>The change from path.normalize to path.resolve in isWithinRoot causes a logic error. path.resolve resolves relative paths against process.cwd() if they are not absolute, which can lead to incorrect security validation if the input path is relative. The original implementation correctly handled normalization of already-absolute paths. Reverting to path.normalize is safer for security checks.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/utils/fileUtils.ts</path>
+<side>right</side>
+<from>39</from>
+<to>40</to>
+<note>The use of path.resolve() inside isWithinRoot() performs expensive filesystem-related path resolution on every call. Since this function is used in hot paths like file validation and tool execution, this adds unnecessary I/O overhead. path.normalize() is sufficient for string-based path comparison.</note>
+</notesplit>
+<notesplit>
+<path>packages/core/src/tools/read-many-files.ts</path>
+<side>right</side>
+<from>309</from>
+<to>316</to>
+<note>The manual security check in `execute` duplicates the logic now encapsulated in `isWithinRoot`. This should be refactored to use the shared utility for consistency.</note>
+</notesplit>

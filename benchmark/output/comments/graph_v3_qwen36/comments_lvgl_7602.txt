@@ -1,0 +1,111 @@
+<notesplit>
+<path>src/misc/lv_text.c</path>
+<side>right</side>
+<from>432</from>
+<to>432</to>
+<note>**[Code Defect]** The condition 'txt[i] != '\0' && i < length' is evaluated left-to-right. If i >= length, txt[i] is accessed, causing an out-of-bounds read. The correct order is 'i < length && txt[i] != '\0''.
+
+**[Performance]** The loop condition `while(txt[i] != '\0' && i < length)` performs a bounds check `txt[i] != '\0'` on every iteration before calling `lv_text_encoded_letter_next_2`. Since `i < length` is already checked, accessing `txt[i]` is safe as long as `i < length`. However, checking for null terminator inside the loop adds a redundant memory read and branch per character. The original `while(i < length)` was sufficient if the caller guarantees a null-terminated string within the length, or if `lv_text_encoded_letter_next_2` handles bounds. If `txt` is not guaranteed to be null-terminated before `length`, this check is necessary for safety, but it adds overhead to a hot path (text rendering).
+
+**[Maintainability and Readability]** The loop condition `while(txt[i] != '\0' && i < length)` is order-dependent. If `txt` is NULL, this will crash before checking `i < length`. While the function likely assumes valid input, relying on short-circuit evaluation with a potential NULL pointer is risky. It is safer to check for NULL at the start of the function or ensure `i < length` is checked first if `txt` might be NULL but `length` is 0.</note>
+</notesplit>
+<notesplit>
+<path>src/misc/lv_text.c</path>
+<side>right</side>
+<from>432</from>
+<to>435</to>
+<note>In lv_text_get_width (src/misc/lv_text.c), the loop condition was changed to 'while(txt[i] != '\0' && i < length)'. However, lv_text_encoded_letter_next_2 is called inside the loop with '&i' as the offset. If txt[i] is not null but the string is shorter than 'length', the function lv_text_encoded_letter_next_2 will read past the valid string data (out-of-bounds read) because it relies on finding a null terminator or valid UTF-8 sequences. The check 'txt[i] != '\0'' is insufficient to prevent OOB read if 'length' exceeds the actual string length. The original 'i < length' was safer if 'length' was guaranteed to be strlen, but with the new condition, if 'length' is larger than strlen, it will read garbage. More critically, if 'txt' is not null-terminated within 'length', it reads OOB.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/widgets/test_label.c</path>
+<side>right</side>
+<from>59</from>
+<to>59</to>
+<note>**[Maintainability and Readability]** In file `tests/src/test_cases/widgets/test_label.c`, the magic number `0` replaces the enum `LV_STYLE_STATE_CMP_SAME`. This reduces readability and maintainability as `0` has no semantic meaning compared to the explicit enum constant.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/widgets/test_label.c</path>
+<side>right</side>
+<from>186</from>
+<to>186</to>
+<note>**[Maintainability and Readability]** In file `tests/src/test_cases/widgets/test_label.c`, the magic number `0` replaces the enum `LV_STYLE_STATE_CMP_SAME`. This reduces readability and maintainability as `0` has no semantic meaning compared to the explicit enum constant.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/widgets/test_label.c</path>
+<side>right</side>
+<from>313</from>
+<to>313</to>
+<note>**[Maintainability and Readability]** In file `tests/src/test_cases/widgets/test_label.c`, the magic number `0` replaces the enum `LV_STYLE_STATE_CMP_SAME`. This reduces readability and maintainability as `0` has no semantic meaning compared to the explicit enum constant.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/widgets/test_label.c</path>
+<side>right</side>
+<from>87</from>
+<to>87</to>
+<note>In file `tests/src/test_cases/widgets/test_label.c`, the magic number `0` replaces the enum `LV_STYLE_STATE_CMP_SAME`. This reduces readability and maintainability as `0` has no semantic meaning compared to the explicit enum constant.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/widgets/test_label.c</path>
+<side>right</side>
+<from>115</from>
+<to>115</to>
+<note>In file `tests/src/test_cases/widgets/test_label.c`, the magic number `0` replaces the enum `LV_STYLE_STATE_CMP_SAME`. This reduces readability and maintainability as `0` has no semantic meaning compared to the explicit enum constant.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/widgets/test_label.c</path>
+<side>right</side>
+<from>157</from>
+<to>157</to>
+<note>In file `tests/src/test_cases/widgets/test_label.c`, the magic number `0` replaces the enum `LV_STYLE_STATE_CMP_SAME`. This reduces readability and maintainability as `0` has no semantic meaning compared to the explicit enum constant.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/widgets/test_label.c</path>
+<side>right</side>
+<from>214</from>
+<to>214</to>
+<note>In file `tests/src/test_cases/widgets/test_label.c`, the magic number `0` replaces the enum `LV_STYLE_STATE_CMP_SAME`. This reduces readability and maintainability as `0` has no semantic meaning compared to the explicit enum constant.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/widgets/test_label.c</path>
+<side>right</side>
+<from>242</from>
+<to>242</to>
+<note>In file `tests/src/test_cases/widgets/test_label.c`, the magic number `0` replaces the enum `LV_STYLE_STATE_CMP_SAME`. This reduces readability and maintainability as `0` has no semantic meaning compared to the explicit enum constant.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/widgets/test_label.c</path>
+<side>right</side>
+<from>284</from>
+<to>284</to>
+<note>In file `tests/src/test_cases/widgets/test_label.c`, the magic number `0` replaces the enum `LV_STYLE_STATE_CMP_SAME`. This reduces readability and maintainability as `0` has no semantic meaning compared to the explicit enum constant.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/widgets/test_label.c</path>
+<side>right</side>
+<from>341</from>
+<to>341</to>
+<note>In file `tests/src/test_cases/widgets/test_label.c`, the magic number `0` replaces the enum `LV_STYLE_STATE_CMP_SAME`. This reduces readability and maintainability as `0` has no semantic meaning compared to the explicit enum constant.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/widgets/test_label.c</path>
+<side>right</side>
+<from>369</from>
+<to>369</to>
+<note>In file `tests/src/test_cases/widgets/test_label.c`, the magic number `0` replaces the enum `LV_STYLE_STATE_CMP_SAME`. This reduces readability and maintainability as `0` has no semantic meaning compared to the explicit enum constant.</note>
+</notesplit>
+<notesplit>
+<path>tests/src/test_cases/widgets/test_label.c</path>
+<side>right</side>
+<from>411</from>
+<to>411</to>
+<note>In file `tests/src/test_cases/widgets/test_label.c`, the magic number `0` replaces the enum `LV_STYLE_STATE_CMP_SAME`. This reduces readability and maintainability as `0` has no semantic meaning compared to the explicit enum constant.</note>
+</notesplit>
+<notesplit>
+<path>src/misc/lv_text.c</path>
+<side>right</side>
+<from>652</from>
+<to>655</to>
+<note>**[Performance]** The added null/empty check `if(txt == NULL || txt[*i] == '\0')` is a good safety fix but introduces a branch. In a hot path like `lv_text_utf8_next` which might be called frequently for every character, this branch is negligible compared to the UTF-8 decoding logic. However, if `txt` is known to be valid and non-null by contract, this check is redundant. Given it's a fix for OOB read, it's justified, but worth noting as a branch in a performance-critical path.
+
+**[Maintainability and Readability]** The added null/empty check uses a multi-line block for a simple guard. This increases vertical space for a trivial check. It can be condensed for better readability.</note>
+</notesplit>

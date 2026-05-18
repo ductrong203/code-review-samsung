@@ -1,0 +1,44 @@
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>108</from>
+<to>108</to>
+<note>**[Code Defect]** The function hypercore_open_compressed calls RelationGetHypercoreInfo(relation), which retrieves data from rd_amcache. However, table_open() can trigger cache invalidations that clear rd_amcache. Accessing the result of RelationGetHypercoreInfo after table_open() is a use-after-free/dangling pointer risk. The OID must be extracted before calling table_open().
+
+**[Security Vulnerability]** The function hypercore_open_compressed calls RelationGetHypercoreInfo(relation) and immediately uses the result to call table_open. As noted in the function's own comment, table_open can trigger cache invalidations that free the HypercoreInfo structure. This creates a Use-After-Free (UAF) vulnerability where the pointer returned by RelationGetHypercoreInfo becomes dangling before it is dereferenced by the table_open call.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/hypercore/hypercore_handler.c</path>
+<side>right</side>
+<from>105</from>
+<to>109</to>
+<note>The function hypercore_open_compressed calls RelationGetHypercoreInfo(relation) and immediately uses the result. As noted in the function's own comment, table_open() can invalidate the rd_amcache, which contains the HypercoreInfo. This creates a dangling pointer risk if the compiler or future refactoring reorders these operations. The function should be designed to be safe against cache invalidation.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>right</side>
+<from>117</from>
+<to>117</to>
+<note>The function segmentby_qual_walker is called during query planning/processing. Calling RelationGetHypercoreInfo inside the loop (via the added line) is inefficient as it performs a cache lookup/validation. This should be hoisted outside the loop.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>right</side>
+<from>237</from>
+<to>237</to>
+<note>The function process_scan_key_quals (or similar walker) calls RelationGetHypercoreInfo inside a loop. This is a performance bottleneck during query planning. The info should be retrieved once per scan/plan node.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>right</side>
+<from>117</from>
+<to>119</to>
+<note>The function segmentby_qual_walker repeatedly calls RelationGetHypercoreInfo(qpc->rel) inside a loop or conditional block. Since this function is potentially expensive and the result can be invalidated by table operations, it is better to fetch it once at the start of the function or process.</note>
+</notesplit>
+<notesplit>
+<path>tsl/src/nodes/columnar_scan/columnar_scan.c</path>
+<side>right</side>
+<from>237</from>
+<to>239</to>
+<note>Similar to the previous issue, RelationGetHypercoreInfo is called inside a function that might be invoked frequently. Fetching this info once at the entry point of the function is safer and more efficient.</note>
+</notesplit>

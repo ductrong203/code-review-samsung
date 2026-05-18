@@ -1,0 +1,49 @@
+<notesplit>
+<path>src/Mod/Sketcher/Gui/Command.cpp</path>
+<side>right</side>
+<from>1053</from>
+<to>1053</to>
+<note>The loop condition 'i <= (addedConstraints - baseConstraints)' combined with the index access 'i + baseConstraints' can lead to an out-of-bounds access if 'addedConstraints' is greater than or equal to the size of the constraints vector. The loop should be strictly less than the count of added constraints.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/CAM/PathSimulator/AppGL/DlgCAMSimulator.cpp</path>
+<side>right</side>
+<from>49</from>
+<to>52</to>
+<note>The class DlgCAMSimulator manages a raw pointer 'mMillSimulator' but does not follow the Rule of Three/Five. While a destructor was added, the copy constructor and copy assignment operator are missing, which will lead to double-free errors if the object is copied. Use std::unique_ptr instead of manual memory management.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Sketcher/Gui/Command.cpp</path>
+<side>right</side>
+<from>1051</from>
+<to>1053</to>
+<note>The logic 'addedConstraints - baseConstraints < 0' is used to throw an error. If 'addedConstraints' is less than 'baseConstraints', it implies an inconsistent state. However, throwing an exception inside a loop or command execution without proper cleanup can lead to resource leaks or inconsistent document states.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/Geometry.cpp</path>
+<side>right</side>
+<from>472</from>
+<to>472</to>
+<note>The use of std::time(nullptr) as a seed for a random number generator is insecure because it is predictable. An attacker can guess the seed if they know the approximate time the application started, leading to predictable 'random' values. Use a cryptographically secure source of randomness like std::random_device.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Part/App/modelRefine.cpp</path>
+<side>right</side>
+<from>1075</from>
+<to>1079</to>
+<note>The commented-out reserve() call was likely intended to prevent multiple reallocations during the vector insertion. While the comment suggests it might not be an improvement, removing the reservation entirely can lead to O(N) reallocations and data copies as the vector grows. If the size of the group is known, reserving the total capacity upfront is a standard performance optimization.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/Fem/App/FemVTKTools.cpp</path>
+<side>right</side>
+<from>1566</from>
+<to>1568</to>
+<note>The code throws a generic 'Base::FileException' when 'node == -1'. This error message is vague and does not provide context about which file or what specific condition failed, making debugging difficult for the end user.</note>
+</notesplit>
+<notesplit>
+<path>src/Mod/TechDraw/App/EdgeWalker.cpp</path>
+<side>right</side>
+<from>453</from>
+<to>458</to>
+<note>The constructor manually initializes members that are already initialized in the header file (using C++11 member initialization). This is redundant and creates a maintenance burden if new members are added.</note>
+</notesplit>

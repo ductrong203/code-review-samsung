@@ -1,0 +1,44 @@
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/struct/DBSObjectFilter.java</path>
+<side>right</side>
+<from>221</from>
+<to>230</to>
+<note>Code Duplication: The `fillIncludePatterns` method is a direct copy-paste of the logic previously embedded in the `matches` method. This violates DRY principles. The same duplication exists for `fillExcludePatterns`. These should be consolidated or the original inline logic should be kept to avoid maintaining two identical blocks.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/struct/DBSObjectFilter.java</path>
+<side>right</side>
+<from>232</from>
+<to>241</to>
+<note>Code Duplication: The `fillExcludePatterns` method is structurally identical to `fillIncludePatterns` except for variable names (`exclude` vs `include`, `exc` vs `inc`). This violates DRY principles. These two methods should be parameterized into a single generic method to reduce maintenance burden.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/struct/DBSObjectFilter.java</path>
+<side>right</side>
+<from>216</from>
+<to>219</to>
+<note>**[Performance]** The `atLeastOneNameMatchesPattern` method uses `Arrays.stream(names).anyMatch(...)` which creates a new Stream object and an Iterator for every call. In a tight loop filtering many objects (like `loadTreeItems`), this generates significant garbage. A simple enhanced for-loop over the `names` array would be more efficient and avoid allocation.
+
+**[Security Vulnerability]** The method `atLeastOneNameMatchesPattern` uses `Arrays.stream(names)` without validating if `names` is null. If a caller passes a null array, this will throw a NullPointerException. While not a direct security exploit, it can lead to Denial of Service (DoS) via application crash if untrusted input reaches this point.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/struct/DBSObjectFilter.java</path>
+<side>right</side>
+<from>190</from>
+<to>214</to>
+<note>Naming & Clarity: The method `matchesAny` is potentially misleading. It checks if the filter matches ANY of the provided names, but it still applies both include and exclude logic. A name like `matchesAnyName` or `matchesWithArgs` would be more descriptive of its specific behavior compared to the existing `matches` method.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/navigator/DBNDatabaseNode.java</path>
+<side>right</side>
+<from>730</from>
+<to>733</to>
+<note>The code calls `overloadedObject.getOverloadedName()` without checking if the result is null. If `getOverloadedName()` returns null, it is passed to `filter.matchesAny()`, which eventually passes it to `matchesPattern`. If `matchesPattern` does not handle nulls gracefully, this could cause a crash or unexpected behavior.</note>
+</notesplit>
+<notesplit>
+<path>plugins/org.jkiss.dbeaver.model/src/org/jkiss/dbeaver/model/navigator/DBNDatabaseNode.java</path>
+<side>right</side>
+<from>729</from>
+<to>733</to>
+<note>The code checks `childItem instanceof DBPOverloadedObject` and then casts it. While correct, repeated `instanceof` checks in a loop over many items can be slightly optimized if the type is known. However, the main concern here is that `overloadedObject.getOverloadedName()` is called inside the loop. If this method is expensive or triggers lazy loading, it could be a bottleneck. Assuming it's cheap, this is a minor issue.</note>
+</notesplit>

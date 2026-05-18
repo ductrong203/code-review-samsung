@@ -1,0 +1,46 @@
+<notesplit>
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>79</from>
+<to>93</to>
+<note>**[Performance]** The `retryConnect` function in `client.go` contains an infinite `for` loop that spawns a new goroutine every time `Connect` fails. Since `Connect` is called during initialization and potentially elsewhere, this creates an unbounded number of goroutines if the NATS server is unreachable, leading to a resource leak (goroutine leak) and eventual OOM crash.
+
+**[Code Defect]** The `retryConnect` function contains an infinite `for` loop with no exit condition other than a successful connection. If the NATS server is permanently unavailable, this goroutine will run forever, consuming resources and potentially causing memory leaks or goroutine leaks in the application.
+
+**[Security Vulnerability]** The retryConnect function in pkg/gofr/datasource/pubsub/nats/client.go contains an infinite loop without a maximum retry limit or exponential backoff. If the NATS server is unreachable, this goroutine will continuously attempt reconnection, consuming CPU and network resources. This creates a Denial of Service (DoS) vector against the application's resources.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>47</from>
+<to>53</to>
+<note>The `Connect` method now calls `c.establishConnection()` synchronously. If it fails, it starts a `go c.retryConnect()` goroutine but immediately returns the error. This creates a race condition: the caller receives an error and likely stops using the client, while the background goroutine continues to run, potentially modifying shared state (`c.connManager`, etc.) after the caller has discarded or cleaned up the client. This leads to data races or panics.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>142</from>
+<to>155</to>
+<note>The `Subscribe` function contains a `for` loop that sleeps and retries indefinitely if the client is not connected. This blocks the calling goroutine indefinitely, preventing the context from being respected for cancellation. This is a performance and responsiveness issue, potentially causing goroutine leaks if the caller doesn't handle cancellation properly.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>142</from>
+<to>152</to>
+<note>In `Subscribe`, if `checkClient` returns an error (e.g., client not connected), the code sleeps and then returns `errClientNotConnected`. However, the loop continues indefinitely if the error is not handled correctly or if the client state changes. More critically, if `checkClient` fails, it returns an error, but the loop structure suggests it might be intended to retry. The current logic returns immediately on failure, which might be correct, but the `time.Sleep` before return is misleading. If the intention is to retry, it should continue the loop. If not, the sleep is unnecessary.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>133</from>
+<to>139</to>
+<note>The `checkClient` function is called at the start of every `Publish`, `Subscribe`, `CreateTopic`, etc. call. While necessary for safety, if the client is frequently disconnected, this adds overhead. More importantly, `checkClient` calls `isConnected()` which might involve locking or checking internal state. If this check is expensive, it becomes a bottleneck in high-throughput scenarios.</note>
+</notesplit>
+<notesplit>
+<path>pkg/gofr/datasource/pubsub/nats/client.go</path>
+<side>right</side>
+<from>18</from>
+<to>18</to>
+<note>The default retry timeout was reduced from 10 seconds to 2 seconds. While not a direct vulnerability, aggressive retry intervals can contribute to resource exhaustion or amplification attacks if the service is targeted, especially combined with the infinite loop in retryConnect.</note>
+</notesplit>

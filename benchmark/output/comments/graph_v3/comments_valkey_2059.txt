@@ -1,0 +1,51 @@
+<notesplit>
+<path>src/cli_common.c</path>
+<side>right</side>
+<from>447</from>
+<to>447</to>
+<note>The function valkeyConnectWrapper modifies the 'options' struct but fails to apply the 'connect_timeout' when the connection type is VALKEY_CONN_RDMA. This causes RDMA connections to ignore the user-provided timeout, potentially leading to indefinite hangs.</note>
+</notesplit>
+<notesplit>
+<path>src/cli_common.c</path>
+<side>right</side>
+<from>450</from>
+<to>450</to>
+<note>The use of assert(0) in a production-facing connection wrapper is a security risk. If an attacker can trigger this code path (e.g., by passing an invalid connection type enum), it will cause an immediate process crash, leading to a Denial of Service (DoS).</note>
+</notesplit>
+<notesplit>
+<path>src/cli_common.c</path>
+<side>right</side>
+<from>450</from>
+<to>454</to>
+<note>The use of assert(0) for runtime error handling in valkeyConnectWrapper is dangerous. If RDMA support is missing or an invalid connection type is passed, the application will crash. Replace with proper error logging and return NULL to allow the caller to handle the failure gracefully.</note>
+</notesplit>
+<notesplit>
+<path>src/cli_common.c</path>
+<side>right</side>
+<from>454</from>
+<to>454</to>
+<note>The use of assert(0) in the default case of the connection wrapper is a security risk. If an attacker can influence the connection type enum, they can trigger a process crash, resulting in a Denial of Service (DoS).</note>
+</notesplit>
+<notesplit>
+<path>src/valkey-benchmark.c</path>
+<side>right</side>
+<from>391</from>
+<to>395</to>
+<note>**[Performance]** The manual invocation of writeHandler for RDMA connections inside resetClient bypasses the event loop's scheduling mechanism. This can lead to CPU starvation or unfair scheduling if the RDMA write operation is blocking or synchronous, as it is executed directly within the event loop's context management logic rather than being scheduled as an event.
+
+**[Maintainability and Readability]** The comment 'RDMA context always writable, but it can't be invoked by AE_WRITABLE' suggests a workaround for an architectural mismatch. This logic is fragile and hard to maintain. It should be abstracted into a connection-type-specific handler rather than hardcoding conditional logic inside the event loop setup.</note>
+</notesplit>
+<notesplit>
+<path>src/valkey-cli.c</path>
+<side>right</side>
+<from>2827</from>
+<to>2832</to>
+<note>The call to valkeyInitiateRdma() inside the argument parsing loop is a side effect that makes the CLI harder to test and initialize. Configuration parsing should ideally be separated from resource initialization.</note>
+</notesplit>
+<notesplit>
+<path>src/valkey-benchmark.c</path>
+<side>right</side>
+<from>826</from>
+<to>826</to>
+<note>The code calls writeHandler directly for RDMA connections. However, writeHandler expects an event loop context and file descriptor arguments that are not properly initialized or passed in this context, which may lead to undefined behavior or crashes.</note>
+</notesplit>
