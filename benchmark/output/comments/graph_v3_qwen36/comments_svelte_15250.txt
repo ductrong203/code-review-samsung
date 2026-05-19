@@ -1,0 +1,63 @@
+<notesplit>
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>66</from>
+<to>66</to>
+<note>In `packages/svelte/src/internal/client/dom/blocks/if.js`, line 59 contains `if (hydrate_index !== hydrate_index)`. This is always false because a number is never unequal to itself. This check was likely intended to detect NaN (e.g., `isNaN(hydrate_index)`), but as written, it never triggers. Consequently, if `parseInt` returns NaN (e.g., for an invalid comment format), the code proceeds with `hydrate_index` as NaN, leading to incorrect hydration logic or silent failures.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>66</from>
+<to>69</to>
+<note>In the `update_branch` function within `if.js`, the logic `if (hydrate_index !== hydrate_index)` is a tautology that is always false (NaN !== NaN is true, but hydrate_index is parsed as int). This check is intended to detect NaN but is written incorrectly. It should check `Number.isNaN(hydrate_index)` or `hydrate_index !== hydrate_index` if it were NaN, but since it's assigned an int, it's always false. This makes the error handling for invalid hydration comments ineffective.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>60</from>
+<to>66</to>
+<note>In `packages/svelte/src/internal/client/dom/blocks/if.js`, the logic for parsing `hydrate_index` from the comment data is flawed. Specifically, `parseInt(data.substring(1))` is used. If the comment is `<!--[1-->`, `substring(1)` yields `1-->`. `parseInt` stops at the first non-digit, so it correctly parses `1`. However, if the comment format changes or contains unexpected characters, `parseInt` might return NaN. More critically, the subsequent check `if (hydrate_index !== hydrate_index)` (line 59) is always false, so the error handling block (lines 60-63) is unreachable. This means invalid hydration comments are not handled gracefully.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>20</from>
+<to>20</to>
+<note>The function signature for `if_block` changed from `(node, fn, elseif = false)` to `(node, fn, [root_index, hydrate_index] = [0, 0])`. This is a breaking change in the API contract. Callers passing a boolean `false` for `elseif` will now receive an array `[0, 0]` or undefined, potentially causing runtime errors if they rely on the previous boolean behavior or if they pass a boolean where an array is expected. This is a significant structural change that affects maintainability and compatibility.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>60</from>
+<to>71</to>
+<note>In the `update_branch` function within `if.js`, the hydration index parsing logic performs `parseInt` and `substring` operations on every hydration check. While not O(n^2), repeated string parsing and integer conversion in a hot path (hydration) is less efficient than necessary. The logic `if (hydrate_index !== hydrate_index)` is also a redundant NaN check that could be simplified.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>103</from>
+<to>103</to>
+<note>In `packages/svelte/src/internal/client/dom/blocks/if.js`, line 103: `alternate_effect = branch(() => fn(anchor, [root_index + 1, hydrate_index]));`. When `fn` is called for an `else if` block, it receives `[root_index + 1, hydrate_index]`. However, `hydrate_index` might be `Infinity` (for the initial `else`) or a specific number. If `hydrate_index` is `Infinity`, passing it to subsequent `else if` blocks might cause issues if they expect a number. The logic for `hydrate_index` propagation needs to be consistent. Specifically, if `hydrate_index` is `Infinity` (meaning we are in an `else` block), subsequent `else if` blocks (which are technically `else if` after an `else`? No, `else if` cannot follow `else` in Svelte syntax, but the structure might be nested). Wait, Svelte's `{:else if}` follows `{#if}` or another `{:else if}`. It cannot follow `{:else}`. So `hydrate_index` being `Infinity` for the `else` block is correct, and it won't be passed to further `else if` blocks because there are none. However, if `hydrate_index` is a number, it is passed to the next `else if`. This seems correct. But wait, if `hydrate_index` is `Infinity`, and we are in an `else` block, and then we have an `else if`? No, that's invalid syntax. So this is likely fine. But the `hydrate_index` for the `else` block is `Infinity`. If we have `{#if} {:else if} {:else}`, the `else if` gets `[1, hydrate_index]`. If the first `if` is false, we go to `else if`. If `else if` is false, we go to `else`. The `else` block's `fn` is called with `[0, 0]` (from the initial `if_block` call). Wait, no. The `else` block is the `alternate` of the last `else if`. So it gets `[root_index + 1, hydrate_index]` from the `else if` block. If `hydrate_index` was `0` (from the initial `if`), then the `else` block gets `[1, 0]`. This seems inconsistent. The `else` block should probably get `[0, Infinity]` or similar to indicate it's the final fallback. This might lead to incorrect hydration comment matching.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>83</from>
+<to>83</to>
+<note>The variable `hydrate_index` is assigned `-1` at line 83 after a mismatch is detected. This is a minor optimization to prevent further hydration checks in subsequent `else if` blocks, but it relies on the caller not reusing the same mutable state object incorrectly. It's a valid optimization but low impact.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/compiler/phases/3-transform/client/visitors/IfBlock.js</path>
+<side>right</side>
+<from>27</from>
+<to>29</to>
+<note>In `IfBlock.js`, the logic `nodes.length === 1 && nodes[0].type === 'IfBlock' && nodes[0].elseif` is repeated in both the client and server visitors. This duplication increases the risk of inconsistencies if the condition for identifying an `else if` chain changes. It should be abstracted into a helper function or constant.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/compiler/phases/3-transform/server/visitors/IfBlock.js</path>
+<side>right</side>
+<from>21</from>
+<to>21</to>
+<note>In `server/visitors/IfBlock.js`, the while loop condition `alt && alt.nodes.length === 1 && alt.nodes[0].type === 'IfBlock' && alt.nodes[0].elseif` is identical to the one in the client visitor. This duplication should be abstracted to ensure consistency between client and server code generation.</note>
+</notesplit>

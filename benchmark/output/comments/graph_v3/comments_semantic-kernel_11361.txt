@@ -1,0 +1,20 @@
+<notesplit>
+<path>dotnet/samples/Demos/ModelContextProtocolPlugin/Program.cs</path>
+<side>right</side>
+<from>85</from>
+<to>85</to>
+<note>**[Code Defect]** The call to agent.InvokeAsync(...).FirstAsync() is unsafe. If the agent returns an empty stream or fails to produce a message, FirstAsync() will throw an InvalidOperationException. Additionally, ChatCompletionAgent.InvokeAsync returns an IAsyncEnumerable<ChatMessageContent>, and calling FirstAsync() without ensuring the stream is not empty is a common source of runtime crashes.
+
+**[Maintainability and Readability]** The hardcoded prompt string is duplicated from line 70. This violates the DRY (Don't Repeat Yourself) principle, making the code harder to maintain if the prompt needs to be updated in both locations.
+
+**[Performance]** The code uses .FirstAsync() on the IAsyncEnumerable returned by agent.InvokeAsync. If the agent returns a stream of multiple messages or chunks, this approach ignores subsequent content, potentially leading to incomplete responses or resource leaks if the underlying stream is not properly disposed of after the first item.</note>
+</notesplit>
+<notesplit>
+<path>dotnet/samples/Demos/ModelContextProtocolPlugin/Program.cs</path>
+<side>right</side>
+<from>81</from>
+<to>81</to>
+<note>**[Security Vulnerability]** The agent is configured with FunctionChoiceBehavior.Auto() without explicit function filtering or authorization constraints. This allows the LLM to autonomously invoke any available plugin functions, potentially leading to unauthorized actions if the kernel contains sensitive tools or plugins.
+
+**[Maintainability and Readability]** The 'Arguments' property is initialized with a new 'KernelArguments' object containing 'PromptExecutionSettings'. This configuration is complex and should ideally be extracted to a descriptive variable or a factory method to improve readability.</note>
+</notesplit>

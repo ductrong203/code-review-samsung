@@ -1,0 +1,28 @@
+<notesplit>
+<path>packages/svelte/src/compiler/phases/2-analyze/index.js</path>
+<side>right</side>
+<from>435</from>
+<to>455</to>
+<note>The `maybe_runes` logic in `analyze_component` is highly complex and relies on deep AST traversal. This logic is hard to maintain and prone to errors. It should be extracted into a named helper function (e.g., `is_ambiguous_runes_component`) to improve readability and testability.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/compiler/phases/2-analyze/index.js</path>
+<side>right</side>
+<from>436</from>
+<to>453</to>
+<note>The `maybe_runes` calculation performs multiple O(n) operations (spread/some/some) inside the component analysis phase. Specifically, iterating over `module.scope.references` and `instance.ast.body` for every component being analyzed can become a bottleneck during large-scale compilations. These checks should be cached or optimized to avoid redundant traversals of the AST.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/compiler/phases/2-analyze/index.js</path>
+<side>right</side>
+<from>448</from>
+<to>453</to>
+<note>The logic for detecting `export let` in `analyze_component` is incomplete. It checks for `ExportNamedDeclaration` with `VariableDeclaration` of kind `let`, but fails to account for `export let { a, b } = ...` (destructuring) or `export let a = 1, b = 2;` (multiple declarations), which are valid Svelte legacy exports. This may cause components using these patterns to be incorrectly identified as `maybe_runes`.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/compiler/phases/3-transform/client/visitors/shared/utils.js</path>
+<side>right</side>
+<from>373</from>
+<to>376</to>
+<note>The comment explains that the code is in an 'in-between-mode' and 'Kind of an in-between-mode'. This indicates a design smell where the state machine for component modes has become ambiguous. While the fix is necessary for compatibility, the comment highlights that the underlying state management is becoming difficult to reason about.</note>
+</notesplit>

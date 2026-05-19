@@ -1,0 +1,32 @@
+<notesplit>
+<path>lib/internal/bootstrap/realm.js</path>
+<side>right</side>
+<from>328</from>
+<to>332</to>
+<note>**[Code Defect]** The implementation of getAllBuiltinModuleIds creates a shallow copy of canBeRequiredByUsersWithoutSchemeList, but then uses ArrayPrototypePushApply to append the prefixed modules. Since ArrayFrom returns a new array, this is safe, but the logic is inefficient and potentially confusing. More importantly, the use of ArrayPrototypePushApply on an array created by ArrayFrom is correct, but the function name implies it returns all IDs, yet it mixes raw names and 'node:' prefixed names, which may break consumers expecting a uniform format.
+
+**[Performance]** The getAllBuiltinModuleIds method creates multiple intermediate arrays using ArrayFrom and mapping, which increases memory allocation and GC pressure during the bootstrap phase. It is more efficient to pre-calculate the size and use a single loop or push directly to a pre-allocated array.
+
+**[Maintainability and Readability]** The method name `getAllBuiltinModuleIds` is misleading because it returns a mix of raw module names and 'node:' prefixed names, rather than a consistent set of IDs. This inconsistency forces callers to perform manual filtering or prefix checking, increasing the risk of bugs throughout the codebase.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-process-get-builtin.mjs</path>
+<side>right</side>
+<from>54</from>
+<to>58</to>
+<note>The loop logic in test-process-get-builtin.mjs is flawed. It iterates over 'ids' (which includes 'test'), but the condition 'if (!id.startsWith('node:'))' skips the 'test' module entirely, meaning the test never actually verifies the 'node:test' module as intended by the PR's goal of including prefix-only modules.</note>
+</notesplit>
+<notesplit>
+<path>lib/repl.js</path>
+<side>right</side>
+<from>134</from>
+<to>134</to>
+<note>The filter logic `(e) => e[0] !== '_' && !StringPrototypeStartsWith(e, 'node:')` is becoming complex and fragile. As more module types are added, this manual filtering logic will likely be duplicated in multiple places, violating the DRY principle.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-repl-tab-complete.js</path>
+<side>right</side>
+<from>298</from>
+<to>298</to>
+<note>The use of `.filter((lib) => !lib.startsWith('node:'))` inside the test logic duplicates the filtering logic found in the main application code. This makes the test brittle if the definition of 'builtin' or 'prefixed' changes.</note>
+</notesplit>

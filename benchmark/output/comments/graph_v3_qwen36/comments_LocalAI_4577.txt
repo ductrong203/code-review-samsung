@@ -1,0 +1,108 @@
+<notesplit>
+<path>core/http/endpoints/openai/chat.go</path>
+<side>right</side>
+<from>44</from>
+<to>52</to>
+<note>**[Maintainability and Readability]** Code duplication: The logic to construct `schema.OpenAIUsage` and conditionally add timing fields is repeated in `process` (lines 47-53), `processTools` (lines 99-105), and `CompletionEndpoint` (lines 186-192). This should be abstracted into a helper function to maintain consistency.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/completion.go</path>
+<side>right</side>
+<from>35</from>
+<to>43</to>
+<note>**[Performance]** Redundant struct initialization in a hot path. The `schema.OpenAIUsage` struct is created every time the callback is invoked. This allocation can be avoided by reusing a pre-allocated struct or calculating fields directly.
+
+**[Maintainability and Readability]** Code duplication: The logic to construct `schema.OpenAIUsage` and conditionally add timing fields is repeated in `process` (lines 36-42), `processTools` (lines 99-105), and `CompletionEndpoint` (lines 186-192). This should be abstracted into a helper function to maintain consistency.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/edit.go</path>
+<side>right</side>
+<from>72</from>
+<to>80</to>
+<note>**[Performance]** Redundant struct initialization in a hot path. The `schema.OpenAIUsage` struct is created every time the callback is invoked. This allocation can be avoided by reusing a pre-allocated struct or calculating fields directly.
+
+**[Maintainability and Readability]** Code duplication: The logic to construct `schema.OpenAIUsage` and conditionally add timing fields is repeated in `process` (lines 36-42), `processTools` (lines 99-105), `CompletionEndpoint` (lines 186-192), and `EditEndpoint` (lines 72-78). This should be abstracted into a helper function to maintain consistency.</note>
+</notesplit>
+<notesplit>
+<path>backend/cpp/llama/grpc-server.cpp</path>
+<side>right</side>
+<from>2417</from>
+<to>2422</to>
+<note>Code duplication: The logic to extract 'timings' from result_json and set reply fields is copy-pasted in two locations (lines 2417-2420 and 2464-2467). This violates DRY principles and increases maintenance burden if the JSON structure changes.</note>
+</notesplit>
+<notesplit>
+<path>backend/cpp/llama/grpc-server.cpp</path>
+<side>right</side>
+<from>2465</from>
+<to>2470</to>
+<note>Code duplication: The logic to extract 'timings' from result_json and set reply fields is copy-pasted in two locations (lines 2417-2420 and 2464-2467). This violates DRY principles and increases maintenance burden if the JSON structure changes.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/completion.go</path>
+<side>right</side>
+<from>187</from>
+<to>195</to>
+<note>Code duplication: The logic to construct `schema.OpenAIUsage` and conditionally add timing fields is repeated in `process` (lines 36-42), `processTools` (lines 99-105), and `CompletionEndpoint` (lines 186-192). This should be abstracted into a helper function to maintain consistency.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/chat.go</path>
+<side>right</side>
+<from>44</from>
+<to>52</to>
+<note>Redundant struct initialization in a hot path. The `schema.OpenAIUsage` struct is created with `PromptTokens`, `CompletionTokens`, and `TotalTokens` every time the callback is invoked (potentially thousands of times per request). This allocation can be avoided by reusing a pre-allocated struct or calculating fields directly if the compiler doesn't optimize it.</note>
+</notesplit>
+<notesplit>
+<path>core/http/app.go</path>
+<side>right</side>
+<from>92</from>
+<to>99</to>
+<note>The MachineTag is set as a response header for every request without validation. If the tag contains user-controlled characters (e.g., from a misconfigured env var or if it becomes user-controllable later), it could lead to HTTP Response Splitting (CRLF injection) or header injection attacks. The code does not sanitize the MachineTag value before setting it.</note>
+</notesplit>
+<notesplit>
+<path>backend/cpp/llama/grpc-server.cpp</path>
+<side>right</side>
+<from>2418</from>
+<to>2420</to>
+<note>Repeated JSON object lookups in the hot path. `result.result_json.at("timings")` is called twice. Since `at()` performs a lookup, this should be cached to a local variable to avoid redundant hash map lookups for every inference request.</note>
+</notesplit>
+<notesplit>
+<path>backend/cpp/llama/grpc-server.cpp</path>
+<side>right</side>
+<from>2466</from>
+<to>2468</to>
+<note>Repeated JSON object lookups in the hot path. `result.result_json.at("timings")` is called twice. This should be cached to a local variable to avoid redundant hash map lookups for every inference request.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/chat.go</path>
+<side>right</side>
+<from>185</from>
+<to>185</to>
+<note>**[Security Vulnerability]** The 'LocalAI-Extra-Usage' header is used as an opt-in flag for extra timing data. While currently just a string check, if this header value is ever used in logic or logging without validation, it could be a vector for log injection or logic flaws. Currently, it's just checked for emptiness, which is low risk, but worth noting as an input point.
+
+**[Maintainability and Readability]** Magic string: The header name "LocalAI-Extra-Usage" is used as a magic string in multiple files (chat.go, completion.go, edit.go). This should be defined as a constant to ensure consistency and ease of maintenance.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/completion.go</path>
+<side>right</side>
+<from>70</from>
+<to>70</to>
+<note>**[Security Vulnerability]** Same as chat.go: The 'LocalAI-Extra-Usage' header is used as an opt-in flag. It is currently only checked for emptiness, which is safe, but if used elsewhere, it needs validation.
+
+**[Maintainability and Readability]** Magic string: The header name "LocalAI-Extra-Usage" is used as a magic string in multiple files (chat.go, completion.go, edit.go). This should be defined as a constant to ensure consistency and ease of maintenance.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/edit.go</path>
+<side>right</side>
+<from>29</from>
+<to>29</to>
+<note>**[Security Vulnerability]** Same as chat.go: The 'LocalAI-Extra-Usage' header is used as an opt-in flag. It is currently only checked for emptiness, which is safe, but if used elsewhere, it needs validation.
+
+**[Maintainability and Readability]** Magic string: The header name "LocalAI-Extra-Usage" is used as a magic string in multiple files (chat.go, completion.go, edit.go). This should be defined as a constant to ensure consistency and ease of maintenance.</note>
+</notesplit>
+<notesplit>
+<path>core/http/app.go</path>
+<side>right</side>
+<from>92</from>
+<to>98</to>
+<note>Missing documentation: The middleware function added in app.go (lines 92-99) that sets the Machine-Tag header lacks documentation. This makes it harder for future maintainers to understand its purpose and behavior.</note>
+</notesplit>

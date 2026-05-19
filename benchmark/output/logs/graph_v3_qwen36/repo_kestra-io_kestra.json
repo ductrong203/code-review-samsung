@@ -1,0 +1,75 @@
+{
+  "run_name": "graph_v3_qwen36",
+  "repo": "kestra-io/kestra",
+  "dataset_path": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\dataset\\positive_samples.json",
+  "extension_base": "http://localhost:8100/api",
+  "backend_url": "",
+  "started_at": "2026-05-19T12:46:13",
+  "comments_output_dir": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36",
+  "results": [
+    {
+      "pr_url": "https://github.com/kestra-io/kestra/pull/7191",
+      "pr_id": "kestra_7191",
+      "status": "success",
+      "num_comments": 4,
+      "elapsed_seconds": 132.73,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 13,
+        "overall_risk": 0.5,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_kestra_7191.txt"
+    },
+    {
+      "pr_url": "https://github.com/kestra-io/kestra/pull/7381",
+      "pr_id": "kestra_7381",
+      "status": "success",
+      "num_comments": 11,
+      "elapsed_seconds": 121.06,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 18,
+        "overall_risk": 0.4,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_kestra_7381.txt"
+    },
+    {
+      "pr_url": "https://github.com/kestra-io/kestra/pull/6844",
+      "pr_id": "kestra_6844",
+      "status": "success",
+      "num_comments": 9,
+      "elapsed_seconds": 68.17,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 1,
+        "overall_risk": 0.3,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_kestra_6844.txt"
+    }
+  ],
+  "initial_graph_status": {
+    "repo": "kestra-io/kestra",
+    "registered": true,
+    "local_path": "E:\\My_Project\\samsung\\kestra",
+    "main_graph_ready": true
+  },
+  "finished_at": "2026-05-19T12:51:43",
+  "summary": {
+    "selected": 3,
+    "success": 3,
+    "skipped": 0,
+    "errors": 0
+  }
+}

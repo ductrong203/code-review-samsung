@@ -1,0 +1,49 @@
+<notesplit>
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>69</from>
+<to>69</to>
+<note>The hydration logic for `else if` blocks relies on `parseInt(data.substring(1))`. If the comment data is exactly `<!--[-->` (the first block), `data.substring(1)` is `!--]`, and `parseInt` will return `NaN`. The subsequent check `hydrate_index !== hydrate_index` correctly identifies `NaN`, but the logic `hydrate_index = condition ? Infinity : -1` is ambiguous. If `condition` is false, `hydrate_index` becomes -1, which is treated as a valid index in the hydration logic, potentially causing incorrect hydration state.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>59</from>
+<to>71</to>
+<note>The logic for parsing hydration indices inside update_branch is complex and relies on magic string manipulation (substring, parseInt). This is fragile and hard to read. It should be encapsulated into a helper function like 'parse_hydration_index(comment_data)' to improve readability and maintainability.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>83</from>
+<to>83</to>
+<note>Setting `hydrate_index = -1` inside the mismatch block is intended to ignore subsequent hydration, but since `hydrate_index` is a local variable captured by the `update_branch` closure, this modification might not propagate correctly if `update_branch` is called multiple times or if the closure state is stale. Given the complexity of the hydration state machine, this manual reset is fragile.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/compiler/phases/3-transform/server/visitors/IfBlock.js</path>
+<side>right</side>
+<from>19</from>
+<to>32</to>
+<note>The while loop in IfBlock.js manually traverses the AST to flatten if/else-if structures. This logic is tightly coupled to the AST structure and is difficult to follow. It should be abstracted into a helper function that handles the 'else-if' chain transformation to keep the main visitor clean.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>65</from>
+<to>65</to>
+<note>The use of `parseInt(data.substring(1))` on a comment node's data without strict validation can lead to unexpected behavior if the hydration comment is malformed or maliciously crafted. While `hydrate_index` is checked for NaN, relying on substring parsing of DOM comment content for control flow logic in hydration is a potential vector for DOM-based injection or state corruption if an attacker can influence the initial HTML structure.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>65</from>
+<to>70</to>
+<note>The hydration logic inside update_branch performs string parsing (substring and parseInt) on every branch update. While this is only active during hydration, it adds overhead to the initial page load. If the template contains many nested {:else if} blocks, this parsing happens repeatedly for each branch.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/internal/client/dom/blocks/if.js</path>
+<side>right</side>
+<from>20</from>
+<to>20</to>
+<note>The parameter name '[root_index, hydrate_index]' is a tuple used as a configuration object. Using a named object or a dedicated type would be more readable than relying on positional array destructuring, which is prone to errors if the order is changed.</note>
+</notesplit>

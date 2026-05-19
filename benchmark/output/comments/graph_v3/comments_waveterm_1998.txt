@@ -1,0 +1,63 @@
+<notesplit>
+<path>pkg/remote/fileshare/fsutil/fsutil.go</path>
+<side>right</side>
+<from>31</from>
+<to>31</to>
+<note>The change to GetParentPathString returns an empty string for root paths instead of the separator. This breaks path navigation logic in callers that expect a valid path prefix or separator, likely causing invalid path construction in file operations.</note>
+</notesplit>
+<notesplit>
+<path>pkg/remote/fileshare/s3fs/s3fs.go</path>
+<side>right</side>
+<from>715</from>
+<to>715</to>
+<note>The code performs a recursive delete operation using a user-provided prefix. If the prefix is not properly sanitized or validated, an attacker could trigger a deletion of unintended objects in the S3 bucket by providing a path that resolves to a broader scope than intended.</note>
+</notesplit>
+<notesplit>
+<path>pkg/remote/fileshare/s3fs/s3fs.go</path>
+<side>right</side>
+<from>713</from>
+<to>713</to>
+<note>The variable 'err' is declared but not initialized before being used in the 'if recursive' block, and the subsequent code (which appears truncated in the diff) suggests an incomplete implementation of the recursive delete logic, potentially leading to silent failures or incorrect state.</note>
+</notesplit>
+<notesplit>
+<path>frontend/app/view/preview/preview.tsx</path>
+<side>right</side>
+<from>1225</from>
+<to>1225</to>
+<note>Using crypto.randomUUID() as a key in a React map function causes the component to re-render and lose its internal state (like focus or scroll position) on every update, as the key changes on every render. Use a stable identifier from the data object instead.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wshrpc/wshremote/wshremote.go</path>
+<side>right</side>
+<from>319</from>
+<to>321</to>
+<note>The error message 'cannot parse destination URI %q: %w' uses 'srcUri' as the argument instead of 'destUri'. This is a misleading error message that will hinder debugging.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wshrpc/wshremote/wshremote.go</path>
+<side>right</side>
+<from>321</from>
+<to>321</to>
+<note>The code uses filepath.Clean on a user-provided path without sufficient validation against path traversal. While it attempts to expand home directories, it does not enforce a jail or root directory, potentially allowing access to sensitive files outside the intended scope if the input is manipulated.</note>
+</notesplit>
+<notesplit>
+<path>frontend/app/view/preview/directorypreview.tsx</path>
+<side>right</side>
+<from>301</from>
+<to>340</to>
+<note>The handleRename function is becoming overly complex and deeply nested, violating the Single Responsibility Principle. It handles UI state, error parsing, and recursive logic. Consider extracting the error handling and recursive retry logic into a separate helper function or a custom hook to improve readability.</note>
+</notesplit>
+<notesplit>
+<path>pkg/remote/fileshare/fsutil/fsutil.go</path>
+<side>right</side>
+<from>80</from>
+<to>80</to>
+<note>The function PrefixCopyInternal returns 'true' when a directory is being copied, but the logic inside the walk function returns 'nil' for non-leaf nodes. This may cause the caller to incorrectly assume the entire directory tree has been processed or copied when it has only processed leaf nodes.</note>
+</notesplit>
+<notesplit>
+<path>pkg/remote/fileshare/fileshare.go</path>
+<side>right</side>
+<from>122</from>
+<to>125</to>
+<note>The pattern of checking for nil opts and initializing a default struct is repeated in multiple functions (Move, Copy). This logic should be abstracted into a helper function (e.g., ensureOpts) to reduce duplication and ensure consistency across the package.</note>
+</notesplit>

@@ -1,0 +1,30 @@
+<notesplit>
+<path>linera-core/src/updater.rs</path>
+<side>right</side>
+<from>180</from>
+<to>180</to>
+<note>**[Code Defect]** The logic for setting `end_time` is flawed. `start_time.elapsed()` is used to calculate the grace period, but `start_time` is defined at the beginning of the function. If the quorum is reached very quickly, the grace period will be extremely short (potentially near zero), effectively ignoring the user-provided grace period. The grace period should be calculated based on the time taken to reach the quorum, but the current implementation uses the total elapsed time since the function started, which is incorrect if the function has been running for a while.
+
+**[Performance]** The `communicate_with_quorum` function performs a `start_time.elapsed()` call inside the `while` loop. While `Instant::elapsed()` is generally efficient, calling it repeatedly in a hot loop that processes network responses can be optimized by caching the start time or using a monotonic clock reference if the loop duration is expected to be high-frequency.</note>
+</notesplit>
+<notesplit>
+<path>linera-core/src/updater.rs</path>
+<side>right</side>
+<from>104</from>
+<to>109</to>
+<note>The function `communicate_with_quorum` now has 6 parameters, exceeding the recommended limit of 5. This reduces readability and makes the function harder to call. Consider grouping the configuration parameters (like `committee` and `grace_period`) into a single options struct.</note>
+</notesplit>
+<notesplit>
+<path>linera-client/src/client_options.rs</path>
+<side>right</side>
+<from>163</from>
+<to>163</to>
+<note>The `grace_period` argument is a floating-point value (`f64`) accepted from CLI input without validation. If a user provides a negative value, it could cause unexpected behavior in `communicate_with_quorum` (e.g., `Instant::now() + duration.mul_f64(-0.5)`), potentially leading to immediate timeouts or logic errors in quorum collection.</note>
+</notesplit>
+<notesplit>
+<path>linera-core/src/updater.rs</path>
+<side>right</side>
+<from>173</from>
+<to>175</to>
+<note>The logic `highest_key_score + remaining_votes < committee.quorum_threshold()` is repeated in the loop. While not a major issue, it is a complex condition that would be more readable if extracted into a descriptive helper method like `is_quorum_impossible()`.</note>
+</notesplit>

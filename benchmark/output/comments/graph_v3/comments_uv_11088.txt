@@ -1,0 +1,30 @@
+<notesplit>
+<path>crates/uv-cache-key/src/canonical_url.rs</path>
+<side>right</side>
+<from>77</from>
+<to>87</to>
+<note>**[Code Defect]** The logic uses `url.path_segments().unwrap()` which panics if the URL cannot be a base (e.g., `mailto:` or `data:` URLs). While `CanonicalUrl` attempts to handle some URL types, this will cause a runtime crash for non-base URLs that contain a percent sign.
+
+**[Maintainability and Readability]** The path decoding logic uses unwrap() on path_segments() and path_segments_mut(). While URL parsing is generally safe here, using unwrap() on iterators and mutators is fragile. It is better to handle these cases gracefully or use a more robust pattern to avoid potential panics if the URL structure is unexpected.</note>
+</notesplit>
+<notesplit>
+<path>crates/uv-distribution-types/src/any.rs</path>
+<side>right</side>
+<from>18</from>
+<to>19</to>
+<note>The LocalDist enum now holds a CanonicalVersion in both variants. This introduces redundant data storage if the version is identical across variants. Consider if this can be refactored to store the version once or if the enum structure can be simplified to avoid duplication.</note>
+</notesplit>
+<notesplit>
+<path>crates/uv-cache-key/src/canonical_url.rs</path>
+<side>right</side>
+<from>77</from>
+<to>89</to>
+<note>The current implementation performs multiple allocations by collecting path segments into a Vec and then re-joining them. For URLs with many segments, this creates unnecessary heap pressure. Since the path is already being processed, you can use a pre-allocated String buffer or a more direct transformation to reduce allocations.</note>
+</notesplit>
+<notesplit>
+<path>crates/uv-cache-key/src/canonical_url.rs</path>
+<side>right</side>
+<from>81</from>
+<to>82</to>
+<note>The use of .unwrap() on urlencoding::decode(segment) is unsafe. If a segment contains invalid percent-encoding sequences that the decoder cannot handle, the application will panic, leading to a Denial of Service (DoS) when processing malicious or malformed URLs.</note>
+</notesplit>

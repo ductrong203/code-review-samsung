@@ -1,0 +1,46 @@
+<notesplit>
+<path>app/controllers/general.php</path>
+<side>right</side>
+<from>79</from>
+<to>79</to>
+<note>**[Code Defect]** The URL construction uses an empty string as a fallback for the hostname. If _APP_CONSOLE_DOMAIN and _APP_DOMAIN are not set, the resulting URL will be 'http://' or 'https://', which is invalid and will cause errors in the application.
+
+**[Security Vulnerability]** The application constructs URLs using environment variables without validation. This allows for potential Open Redirect or SSRF if the environment variables are manipulated. The hostname should be strictly validated against an allowlist or via domain validation filters.</note>
+</notesplit>
+<notesplit>
+<path>app/controllers/api/vcs.php</path>
+<side>right</side>
+<from>119</from>
+<to>120</to>
+<note>The application constructs URLs using environment variables (_APP_CONSOLE_DOMAIN or _APP_DOMAIN) without validating that these values are safe, absolute hostnames. If an attacker can influence these environment variables (e.g., via server misconfiguration or container injection), they can perform Open Redirect or SSRF attacks by redirecting users to malicious domains.</note>
+</notesplit>
+<notesplit>
+<path>app/controllers/api/vcs.php</path>
+<side>right</side>
+<from>120</from>
+<to>120</to>
+<note>The variable $hostname is initialized using System::getEnv('_APP_CONSOLE_DOMAIN', System::getEnv('_APP_DOMAIN', '')). If both environment variables are missing or empty, $hostname becomes an empty string. This results in an invalid URL (e.g., 'http://'), which will cause failures in subsequent API calls or redirects.</note>
+</notesplit>
+<notesplit>
+<path>app/controllers/api/vcs.php</path>
+<side>right</side>
+<from>119</from>
+<to>120</to>
+<note>**[Performance]** Repeatedly calling System::getEnv() inside a loop or frequently executed controller logic causes redundant I/O and environment parsing overhead. These values should be fetched once and stored in a local variable or a static cache.
+
+**[Maintainability and Readability]** The logic to determine the console hostname is duplicated across multiple controllers and services. This violates the DRY principle and makes it difficult to update the domain resolution logic in the future. It should be abstracted into a helper method or a configuration service.</note>
+</notesplit>
+<notesplit>
+<path>src/Appwrite/Vcs/Comment.php</path>
+<side>right</side>
+<from>89</from>
+<to>90</to>
+<note>The System::getEnv calls are placed inside a foreach loop iterating over projects. This causes redundant environment lookups for every project in the list. Move these calls outside the loop.</note>
+</notesplit>
+<notesplit>
+<path>app/controllers/general.php</path>
+<side>right</side>
+<from>456</from>
+<to>456</to>
+<note>The comparison operator was changed from '==' to '===' for consistency, but this inconsistency exists elsewhere in the codebase. While this change is good, it highlights that the project lacks a unified standard for environment variable checks.</note>
+</notesplit>

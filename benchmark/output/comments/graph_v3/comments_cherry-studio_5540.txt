@@ -1,0 +1,58 @@
+<notesplit>
+<path>src/renderer/src/pages/agents/components/ImportAgentPopup.tsx</path>
+<side>right</side>
+<from>23</from>
+<to>70</to>
+<note>The onFinish function violates the Single Responsibility Principle by handling UI state, network fetching, file system interaction, data validation, and business logic (agent creation) in one block. This makes it difficult to test and maintain. Extract the fetching, file reading, and validation logic into separate service functions.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/pages/agents/components/ImportAgentPopup.tsx</path>
+<side>right</side>
+<from>44</from>
+<to>44</to>
+<note>The code uses JSON.parse on the result of a file read without any validation or try-catch block. If the file content is not valid JSON, the application will throw an unhandled exception, causing the import process to crash.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/pages/agents/components/ImportAgentPopup.tsx</path>
+<side>right</side>
+<from>32</from>
+<to>32</to>
+<note>The application performs a fetch request to a user-provided URL without any validation or sanitization. This allows an attacker to perform Server-Side Request Forgery (SSRF) by forcing the application to make requests to internal network resources or sensitive metadata services. The URL should be validated against an allowlist or restricted to expected domains.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/pages/agents/components/ImportAgentPopup.tsx</path>
+<side>right</side>
+<from>52</from>
+<to>70</to>
+<note>The loop iterates over the imported agents and calls addAgent(newAgent) for each one. If addAgent triggers a state update or a database write (common in React stores), this will cause multiple re-renders or excessive I/O operations. It should be batched into a single update.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/pages/agents/index.ts</path>
+<side>right</side>
+<from>24</from>
+<to>39</to>
+<note>**[Performance]** The loadAgents function in useSystemAgents is triggered on every render cycle where defaultAgent or resourcesPath changes. It performs file I/O (window.api.fs.read) and JSON parsing without memoization or a stable cache check beyond the module-level _agents variable. This can lead to redundant disk reads and blocking UI main thread operations if the agent file is large.
+
+**[Maintainability and Readability]** The loadAgents function inside useEffect is overly complex and contains redundant logic. It attempts to load local agents but the error handling and state updates are mixed. The dependency on 'defaultAgent' is unclear as it is not used within the function body, potentially causing unnecessary re-renders.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/pages/agents/index.ts</path>
+<side>right</side>
+<from>27</from>
+<to>27</to>
+<note>The condition `_agents.length === 0` is used to decide whether to read from the filesystem. However, `_agents` is a module-level variable that persists across component re-renders. If the file is empty or the initial read fails, `_agents` remains empty, potentially causing redundant file reads on every dependency change.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/pages/agents/components/ImportAgentPopup.tsx</path>
+<side>right</side>
+<from>36</from>
+<to>36</to>
+<note>The application parses JSON data from an external URL using response.json() and then processes it without schema validation. If the JSON structure is malicious or unexpected, it could lead to application crashes or logic errors. While the code checks for 'name' and 'prompt' fields later, it does not validate the entire object structure or types, which could lead to prototype pollution or other injection vulnerabilities if the data is used in dangerous contexts.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/pages/agents/components/ImportAgentPopup.tsx</path>
+<side>right</side>
+<from>69</from>
+<to>69</to>
+<note>The loop iterates over agents and calls `addAgent(newAgent)` inside the loop. If `addAgent` is an asynchronous operation or triggers a state update that causes a re-render, this could lead to performance issues or inconsistent state updates if multiple agents are imported at once.</note>
+</notesplit>

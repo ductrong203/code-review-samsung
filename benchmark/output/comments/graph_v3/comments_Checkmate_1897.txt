@@ -1,0 +1,46 @@
+<notesplit>
+<path>.github/scripts/download-translations.js</path>
+<side>right</side>
+<from>10</from>
+<to>10</to>
+<note>**[Code Defect]** The environment variable name used in the script (POEDITOR_API) does not match the environment variable name defined in the GitHub Actions workflow (POEDITOR_API_TOKEN). This will cause the API request to fail due to an undefined or missing token.
+
+**[Security Vulnerability]** The script attempts to access 'process.env.POEDITOR_API', but the workflow file defines the secret as 'POEDITOR_API_TOKEN'. This will result in an undefined API token, potentially causing the script to fail or behave unexpectedly. More importantly, hardcoding or misconfiguring secret access can lead to credential exposure if the script is modified to log environment variables.
+
+**[Maintainability and Readability]** The script uses 'process.env.POEDITOR_API' but the workflow defines 'POEDITOR_API_TOKEN'. This mismatch will cause the script to fail at runtime because the API token will be undefined.</note>
+</notesplit>
+<notesplit>
+<path>.github/workflows/poeditor-sync.yml</path>
+<side>right</side>
+<from>59</from>
+<to>59</to>
+<note>The workflow uses user-provided input for 'languages' and 'format' directly in the environment variables passed to the Node.js script. If these inputs are not sanitized, they could potentially lead to command injection or unexpected behavior if the script were to use them in shell execution. While the current script uses them as strings, it is a dangerous pattern.</note>
+</notesplit>
+<notesplit>
+<path>.github/scripts/download-translations.js</path>
+<side>right</side>
+<from>24</from>
+<to>68</to>
+<note>The script processes languages sequentially using a 'for...of' loop with 'await' inside. This causes unnecessary latency as each network request must complete before the next one begins. Since these downloads are independent, they should be executed in parallel using 'Promise.all'.</note>
+</notesplit>
+<notesplit>
+<path>.github/scripts/download-translations.js</path>
+<side>right</side>
+<from>28</from>
+<to>35</to>
+<note>The API request is hardcoded with a specific payload structure. If the API response format changes or requires additional parameters, this function will need modification. Consider extracting the request configuration.</note>
+</notesplit>
+<notesplit>
+<path>.github/workflows/poeditor-sync.yml</path>
+<side>right</side>
+<from>38</from>
+<to>48</to>
+<note>Creating a package.json file inside the workflow using 'cat' is fragile and hard to maintain. It is better to have a dedicated package.json in the repository or use a pre-installed environment.</note>
+</notesplit>
+<notesplit>
+<path>.github/scripts/download-translations.js</path>
+<side>right</side>
+<from>56</from>
+<to>60</to>
+<note>The manual conversion of array-based translation data to key-value pairs is tightly coupled to the loop. This logic should be extracted into a dedicated mapper function to improve testability and readability.</note>
+</notesplit>

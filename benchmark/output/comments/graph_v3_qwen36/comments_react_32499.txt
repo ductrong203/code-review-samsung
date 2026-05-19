@@ -1,0 +1,83 @@
+<notesplit>
+<path>packages/react-reconciler/src/ReactFiberComponentStack.js</path>
+<side>right</side>
+<from>135</from>
+<to>137</to>
+<note>In the `getOwnerStackByFiberInDev` function, the `ViewTransitionComponent` case contains a copy-paste error. It calls `describeBuiltInComponentFrame('SuspenseList')` instead of `describeBuiltInComponentFrame('ViewTransition')`. This causes incorrect owner stack traces for ViewTransition components.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-devtools-shared/src/__tests__/storeComponentFilters-test.js</path>
+<side>right</side>
+<from>164</from>
+<to>164</to>
+<note>In the 'should filter ViewTransition' test, the code uses `Types.ElementTypeActivity` to filter `ViewTransition` components. This is a copy-paste error from the previous test cases. It should use `Types.ElementTypeViewTransition` to correctly test filtering for ViewTransition. This makes the test logic incorrect and misleading.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-devtools-shared/src/__tests__/storeComponentFilters-test.js</path>
+<side>right</side>
+<from>179</from>
+<to>179</to>
+<note>In the 'should filter ViewTransition' test, the code uses `Types.ElementTypeActivity` to filter `ViewTransition` components. This is a copy-paste error from the previous test cases. It should use `Types.ElementTypeViewTransition` to correctly test filtering for ViewTransition. This makes the test logic incorrect and misleading.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-devtools-shared/src/__tests__/storeComponentFilters-test.js</path>
+<side>right</side>
+<from>161</from>
+<to>166</to>
+<note>In the 'should filter ViewTransition' test, the code uses `Types.ElementTypeActivity` to filter `ViewTransition` components. This is likely a copy-paste error from the 'should filter Activity' test above. It should use `Types.ElementTypeViewTransition` to correctly test filtering ViewTransition components.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-devtools-shared/src/__tests__/storeComponentFilters-test.js</path>
+<side>right</side>
+<from>176</from>
+<to>181</to>
+<note>In the 'should filter ViewTransition' test, the code uses `Types.ElementTypeActivity` to filter `ViewTransition` components. This is likely a copy-paste error from the 'should filter Activity' test above. It should use `Types.ElementTypeViewTransition` to correctly test filtering ViewTransition components.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-reconciler/src/ReactFiberBeginWork.js</path>
+<side>right</side>
+<from>871</from>
+<to>909</to>
+<note>**[Performance]** The new `updateActivityComponent` function in `ReactFiberBeginWork.js` creates new objects (`offscreenChildProps`) and calls `mountWorkInProgressOffscreenFiber`/`updateWorkInProgressOffscreenFiber` on every render. While this mirrors the existing `OffscreenComponent` logic, adding a new component type increases the overhead of the reconciliation loop. If `Activity` is used frequently, this adds allocation pressure. Consider if `OffscreenComponent` can be reused or if the props object can be reused/cached to reduce GC pressure.
+
+**[Maintainability and Readability]** The function `updateActivityComponent` in `ReactFiberBeginWork.js` is quite long (42 lines) and contains complex logic for mounting and updating offscreen components. It duplicates logic from `updateOffscreenComponent` and `updateLegacyHiddenComponent`. This increases cognitive load and maintenance burden.
+
+**[Security Vulnerability]** The new `updateActivityComponent` function in `packages/react-reconciler/src/ReactFiberBeginWork.js` directly accesses `workInProgress.pendingProps` and `workInProgress.ref` without null checks or type validation. If `pendingProps` is undefined or malformed, this could lead to a runtime error or unexpected behavior in the component tree, potentially causing a Denial of Service (DoS) in the rendering process.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-devtools-shared/src/devtools/views/Settings/ComponentsSettings.js</path>
+<side>right</side>
+<from>475</from>
+<to>476</to>
+<note>The code contains commented-out lines for `ElementTypeActivity` with a TODO comment. While this indicates intent, leaving commented-out code in the file creates clutter and technical debt. It should be removed or implemented properly.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-devtools-shared/src/devtools/views/Settings/ComponentsSettings.js</path>
+<side>right</side>
+<from>490</from>
+<to>493</to>
+<note>The code contains commented-out lines for `ElementTypeViewTransition` with a TODO comment. Similar to the Activity issue, this is clutter and technical debt.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-reconciler/src/ReactFiberBeginWork.js</path>
+<side>right</side>
+<from>891</from>
+<to>891</to>
+<note>**[Security Vulnerability]** In `packages/react-reconciler/src/ReactFiberBeginWork.js`, `primaryChildFragment.ref = workInProgress.ref;` assigns a reference from the work-in-progress fiber to the child fragment. If `workInProgress.ref` is a function or an object that is later mutated or executed in an unexpected context, it could lead to side effects or information leakage if the ref is not properly isolated or validated.
+
+In `packages/react-reconciler/src/ReactFiberBeginWork.js`, `primaryChildFragment.ref = workInProgress.ref;` is repeated in the `else` block. This pattern of directly assigning refs without validation can be risky if the ref contains sensitive data or is used for internal tracking that could be manipulated.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-devtools-shared/src/backend/fiber/renderer.js</path>
+<side>right</side>
+<from>632</from>
+<to>633</to>
+<note>In `renderer.js`, the `resolveFiberType` switch statement now includes a case for `ActivityComponent`. This is a simple string return, but adding cases to frequently-called switch statements in the devtools backend can slightly increase dispatch time. Ensure this switch remains optimized (e.g., contiguous values) as more experimental components are added.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-devtools-shared/src/backend/fiber/DevToolsFiberComponentStack.js</path>
+<side>right</side>
+<from>64</from>
+<to>65</to>
+<note>In `DevToolsFiberComponentStack.js`, the `describeFiber` function now handles `ActivityComponent`. This function is called during stack trace generation, which can be frequent during debugging. The addition is minimal, but ensure `describeBuiltInComponentFrame` is efficient.</note>
+</notesplit>

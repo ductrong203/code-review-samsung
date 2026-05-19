@@ -1,0 +1,11 @@
+<notesplit>
+<path>src/Symfony/Component/TypeInfo/TypeFactoryTrait.php</path>
+<side>right</side>
+<from>415</from>
+<to>415</to>
+<note>**[Code Defect]** The condition `is_subclass_of($value::class, \UnitEnum::class)` is incorrect because `is_subclass_of` returns false if the class name is the same as the interface name. Since `UnitEnum` is an interface, this check fails for actual enum instances. It should use `is_a` or `instanceof` instead.
+
+**[Performance]** The use of `is_subclass_of($value::class, \UnitEnum::class)` inside `fromValue` is inefficient because `is_subclass_of` performs a class lookup and inheritance check. Since PHP 8.1, you can use `$value instanceof \UnitEnum` which is significantly faster as it is a direct engine-level check.
+
+**[Maintainability and Readability]** The condition `is_subclass_of($value::class, \UnitEnum::class)` is redundant because `\UnitEnum` is an interface implemented by all enums. Checking `instanceof \UnitEnum` is more idiomatic, readable, and performant in PHP.</note>
+</notesplit>

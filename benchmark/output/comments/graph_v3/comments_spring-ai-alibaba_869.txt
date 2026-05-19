@@ -1,0 +1,44 @@
+<notesplit>
+<path>community/tool-calls/spring-ai-alibaba-starter-tool-calling-alitranslate/src/main/java/com/alibaba/cloud/ai/toolcalling/alitranslate/AliTranslateService.java</path>
+<side>right</side>
+<from>100</from>
+<to>100</to>
+<note>The code uses response.get() which is a blocking call on a CompletableFuture inside the apply method. This turns an asynchronous client into a synchronous one, blocking the calling thread and negating the performance benefits of using an AsyncClient.</note>
+</notesplit>
+<notesplit>
+<path>community/tool-calls/spring-ai-alibaba-starter-tool-calling-alitranslate/src/main/java/com/alibaba/cloud/ai/toolcalling/alitranslate/AliTranslateService.java</path>
+<side>right</side>
+<from>111</from>
+<to>113</to>
+<note>The close() method calls client.close(), but the AliTranslateService instance is managed by Spring (as a @Bean). If the client is closed, subsequent calls to the service will fail with an exception because the underlying AsyncClient is no longer usable. The destroyMethod should not be used if the client is intended to be reused across multiple requests.</note>
+</notesplit>
+<notesplit>
+<path>community/tool-calls/spring-ai-alibaba-starter-tool-calling-alitranslate/src/main/java/com/alibaba/cloud/ai/toolcalling/alitranslate/AliTranslateAutoConfiguration.java</path>
+<side>right</side>
+<from>35</from>
+<to>35</to>
+<note>The @Bean annotation includes destroyMethod = "close", which triggers the close() method on the AliTranslateService bean when the application context closes. However, because the service is a singleton, closing the client prematurely or during a lifecycle event will break the service for any concurrent or subsequent operations.</note>
+</notesplit>
+<notesplit>
+<path>community/tool-calls/spring-ai-alibaba-starter-tool-calling-alitranslate/src/main/java/com/alibaba/cloud/ai/toolcalling/alitranslate/AliTranslateService.java</path>
+<side>right</side>
+<from>104</from>
+<to>107</to>
+<note>**[Maintainability and Readability]** Swallowing exceptions and returning null is an anti-pattern that makes debugging difficult for callers. It hides the root cause of the failure (e.g., network issues, auth errors). Consider throwing a custom unchecked exception or returning a Result/Optional object.
+
+**[Security Vulnerability]** The catch block logs the exception message directly using logger.error. If the exception message contains sensitive information (e.g., API keys, internal paths, or PII), this could lead to sensitive data exposure in logs. Always sanitize or redact sensitive information before logging.</note>
+</notesplit>
+<notesplit>
+<path>community/tool-calls/spring-ai-alibaba-starter-tool-calling-alitranslate/src/main/java/com/alibaba/cloud/ai/toolcalling/alitranslate/AliTranslateProperties.java</path>
+<side>right</side>
+<from>43</from>
+<to>49</to>
+<note>The constructor performs side-effect-heavy logic (environment variable lookups) which makes the class harder to test and violates the principle of least astonishment for a POJO/Properties class. Configuration properties should ideally be populated by the Spring framework's binding mechanism rather than manual environment inspection in the constructor.</note>
+</notesplit>
+<notesplit>
+<path>community/tool-calls/spring-ai-alibaba-starter-tool-calling-alitranslate/src/main/java/com/alibaba/cloud/ai/toolcalling/alitranslate/AliTranslateService.java</path>
+<side>right</side>
+<from>116</from>
+<to>123</to>
+<note>The method `getTranslatedText` uses multiple `if` checks with `IllegalStateException` for validation. This is verbose. Using `Objects.requireNonNull` or a dedicated validation utility would improve readability.</note>
+</notesplit>

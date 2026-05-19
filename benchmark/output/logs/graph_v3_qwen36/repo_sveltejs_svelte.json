@@ -1,0 +1,58 @@
+{
+  "run_name": "graph_v3_qwen36",
+  "repo": "sveltejs/svelte",
+  "dataset_path": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\dataset\\positive_samples.json",
+  "extension_base": "http://localhost:8100/api",
+  "backend_url": "",
+  "started_at": "2026-05-19T15:22:58",
+  "comments_output_dir": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36",
+  "results": [
+    {
+      "pr_url": "https://github.com/sveltejs/svelte/pull/15250",
+      "pr_id": "svelte_15250",
+      "status": "success",
+      "num_comments": 9,
+      "elapsed_seconds": 62.8,
+      "graph": {
+        "changed_functions": 11,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 15,
+        "overall_risk": 0.4,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_svelte_15250.txt"
+    },
+    {
+      "pr_url": "https://github.com/sveltejs/svelte/pull/16232",
+      "pr_id": "svelte_16232",
+      "status": "success",
+      "num_comments": 6,
+      "elapsed_seconds": 60.14,
+      "graph": {
+        "changed_functions": 12,
+        "affected_flows": 0,
+        "test_gaps": 10,
+        "review_priorities": 5,
+        "related_context": 20,
+        "overall_risk": 0.6,
+        "error": null
+      },
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_svelte_16232.txt"
+    }
+  ],
+  "initial_graph_status": {
+    "repo": "sveltejs/svelte",
+    "registered": true,
+    "local_path": "E:\\My_Project\\samsung\\svelte",
+    "main_graph_ready": true
+  },
+  "finished_at": "2026-05-19T15:25:07",
+  "summary": {
+    "selected": 2,
+    "success": 2,
+    "skipped": 0,
+    "errors": 0
+  }
+}

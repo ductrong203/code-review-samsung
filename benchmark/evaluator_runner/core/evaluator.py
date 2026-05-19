@@ -93,6 +93,26 @@ def _count_valid_comments(comments: List[Dict[str, Any]]) -> int:
     """Count valid comments"""
     return len([c for c in comments if isinstance(c, dict) and c.get("note")])
 
+def _split_multi_issue_note(note: str) -> List[str]:
+    """
+    Split a generated note that contains multiple issue headings.
+
+    Agents sometimes emit several review issues inside one <note>, for example:
+    **[Code Defect]** ... **[Security Vulnerability]** ...
+    The evaluator should treat those as separate generated comments at the same
+    location so each issue can match a separate reference comment.
+    """
+    note = (note or "").strip()
+    if not note:
+        return []
+
+    parts = [
+        part.strip()
+        for part in re.split(r'(?=\*\*\[[^\]\n]+\]\*\*)', note)
+        if part.strip()
+    ]
+    return parts or [note]
+
 def parse_generated_comments_file(file_content: str) -> List[Dict[str, Any]]:
     """
     Parse generated comments file (custom tag format).
@@ -138,14 +158,14 @@ def parse_generated_comments_file(file_content: str) -> List[Dict[str, Any]]:
                     except ValueError:
                         pass
 
-                comment = {
+                base_comment = {
                     "path": path_match.group(1).strip() if path_match else "",
                     "side": side_match.group(1).strip() if side_match else "",
                     "from_line": from_line,
                     "to_line": to_line,
-                    "note": note_match.group(1).strip()
                 }
-                comments.append(comment)
+                for note in _split_multi_issue_note(note_match.group(1)):
+                    comments.append({**base_comment, "note": note})
         except Exception as e:
             logging.warning(f"Failed to parse comment block: {e}")
             continue

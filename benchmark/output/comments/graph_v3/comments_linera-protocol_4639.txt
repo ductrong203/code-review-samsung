@@ -1,0 +1,32 @@
+<notesplit>
+<path>linera-core/src/client/mod.rs</path>
+<side>right</side>
+<from>850</from>
+<to>853</to>
+<note>**[Code Defect]** The loop condition `received_entries < max_entries` is insufficient to detect the end of the log. If the total number of entries is exactly a multiple of `max_entries`, the loop will perform an extra request that returns an empty list, which is inefficient but acceptable, but if the server returns fewer than `max_entries` because it reached the end of the log, the loop terminates correctly. However, if the server returns exactly `max_entries` but there are more entries, the loop continues. The logic is correct, but the variable `max_entries` is parsed inside the loop, which is inefficient.
+
+**[Performance]** The environment variable is parsed inside a loop in synchronize_received_certificates_from_validator. This redundant work should be hoisted outside the loop.</note>
+</notesplit>
+<notesplit>
+<path>linera-core/src/client/mod.rs</path>
+<side>right</side>
+<from>860</from>
+<to>862</to>
+<note>The loop in `synchronize_received_certificates_from_validator` lacks a termination condition if the remote node returns a constant number of entries equal to `max_entries` but never signals completion. An attacker-controlled validator could cause an infinite loop by repeatedly returning `max_entries` items, leading to a Denial of Service (DoS) on the client.</note>
+</notesplit>
+<notesplit>
+<path>linera-core/src/chain_worker/state.rs</path>
+<side>right</side>
+<from>1420</from>
+<to>1423</to>
+<note>**[Performance]** The environment variable is parsed on every call to prepare_chain_info_response. This is an expensive syscall in a hot path. It should be cached or read once at startup.
+
+**[Maintainability and Readability]** The logic to retrieve the environment variable and parse it is duplicated in both chain_worker/state.rs and client/mod.rs. This violates the DRY principle and makes maintenance harder if the configuration logic changes.</note>
+</notesplit>
+<notesplit>
+<path>linera-core/src/client/mod.rs</path>
+<side>right</side>
+<from>850</from>
+<to>853</to>
+<note>The logic to retrieve the environment variable and parse it is duplicated in both chain_worker/state.rs and client/mod.rs. This violates the DRY principle and makes maintenance harder if the configuration logic changes.</note>
+</notesplit>

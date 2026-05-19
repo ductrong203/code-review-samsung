@@ -1,0 +1,21 @@
+<notesplit>
+<path>packages/react-dom/src/__tests__/ReactDOMForm-test.js</path>
+<side>right</side>
+<from>1696</from>
+<to>1700</to>
+<note>The test logic mixes two distinct actions: submitting the form again and resolving the first submission's promise. This makes the test harder to understand and maintain. Consider separating these into distinct steps or adding a comment explaining why they are combined.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-dom/src/__tests__/ReactDOMForm-test.js</path>
+<side>right</side>
+<from>1677</from>
+<to>1684</to>
+<note>The variable name 'submitForm' is generic and doesn't convey its specific role in the test (simulating an async action). Consider renaming to 'simulateAsyncAction' or 'mockFormAction' to better describe its purpose as a test helper.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-dom/src/__tests__/ReactDOMForm-test.js</path>
+<side>right</side>
+<from>1680</from>
+<to>1682</to>
+<note>The variable name 'res' is a common abbreviation for 'resolve' but is less readable. Consider using 'resolve' directly or 'resolveFirstSubmission' to make the code more self-documenting.</note>
+</notesplit>

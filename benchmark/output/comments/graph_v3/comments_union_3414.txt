@@ -1,0 +1,80 @@
+<notesplit>
+<path>voyager/modules/consensus/movement/src/main.rs</path>
+<side>right</side>
+<from>164</from>
+<to>164</to>
+<note>**[Code Defect]** The code calls .try_into().unwrap() on a Timestamp object. This is redundant and potentially dangerous.
+
+**[Maintainability and Readability]** The use of .try_into().unwrap() is unsafe. If the timestamp conversion fails, the module will panic. Since Timestamp is a simple wrapper, this conversion should be safe or handled gracefully.
+
+**[Security Vulnerability]** The use of .unwrap() on a conversion result in a consensus module can lead to a panic if the upstream data is malformed or unexpected. In a production consensus module, this can cause a denial-of-service (DoS) by crashing the module process.</note>
+</notesplit>
+<notesplit>
+<path>voyager/modules/state/movement/src/main.rs</path>
+<side>right</side>
+<from>148</from>
+<to>148</to>
+<note>**[Code Defect]** The code calls .try_into().unwrap() on a Timestamp object. This is redundant and potentially dangerous.
+
+**[Maintainability and Readability]** The use of .try_into().unwrap() is unsafe. It should be replaced with a direct construction of the Timestamp type.
+
+**[Security Vulnerability]** The use of .unwrap() on a conversion result in a state module can lead to a panic if the upstream data is malformed or unexpected. In a production state module, this can cause a denial-of-service (DoS) by crashing the module process.</note>
+</notesplit>
+<notesplit>
+<path>voyager/modules/consensus/cometbls/src/main.rs</path>
+<side>right</side>
+<from>168</from>
+<to>172</to>
+<note>The code calls .try_into().expect(...) on a Timestamp object. Since Timestamp is a wrapper around u64, and the conversion is from Timestamp to Timestamp (or similar), this is likely a logic error or redundant. If the intention was to convert to a different type, this will fail or be nonsensical. Given the previous code returned i64, this looks like a leftover conversion attempt.</note>
+</notesplit>
+<notesplit>
+<path>voyager/modules/consensus/ethereum/src/main.rs</path>
+<side>right</side>
+<from>175</from>
+<to>177</to>
+<note>The code calls .try_into().unwrap() on a Timestamp object. This is redundant and potentially dangerous if the conversion logic is not identity. The Timestamp type is already the target type.</note>
+</notesplit>
+<notesplit>
+<path>voyager/modules/consensus/tendermint/src/main.rs</path>
+<side>right</side>
+<from>161</from>
+<to>163</to>
+<note>The code calls .try_into().expect(...) on a Timestamp object. This is redundant and potentially dangerous.</note>
+</notesplit>
+<notesplit>
+<path>lib/voyager-core/src/lib.rs</path>
+<side>right</side>
+<from>328</from>
+<to>329</to>
+<note>**[Performance]** The `Timestamp` struct derives `PartialOrd` and `Ord` automatically. Since it is a tuple struct wrapping a `u64`, the default derived implementation is efficient, but adding an explicit `derive(Copy)` would improve performance by allowing the compiler to pass `Timestamp` values in registers rather than by reference or via stack copies.
+
+**[Maintainability and Readability]** The Timestamp struct is a simple wrapper around u64. It should derive Copy to avoid unnecessary cloning and improve ergonomics, as it is a small, primitive-like type.</note>
+</notesplit>
+<notesplit>
+<path>voyager/modules/consensus/ethereum/src/main.rs</path>
+<side>right</side>
+<from>179</from>
+<to>180</to>
+<note>**[Security Vulnerability]** The use of .unwrap() on a conversion result in a consensus module can lead to a panic if the upstream data is malformed or unexpected. In a production consensus module, this can cause a denial-of-service (DoS) by crashing the module process.</note>
+</notesplit>
+<notesplit>
+<path>voyager/modules/consensus/cometbls/src/main.rs</path>
+<side>right</side>
+<from>168</from>
+<to>172</to>
+<note>The use of .try_into().expect("should be fine") is fragile. If the conversion fails, the module will panic. It is better to handle the error explicitly or use a more robust conversion method.</note>
+</notesplit>
+<notesplit>
+<path>voyager/modules/consensus/ethereum/src/main.rs</path>
+<side>right</side>
+<from>177</from>
+<to>180</to>
+<note>The code uses .try_into().unwrap() on the Timestamp conversion. This is unsafe and can cause panics. Since Timestamp is a wrapper around u64, this conversion is likely redundant or should be handled via a proper constructor.</note>
+</notesplit>
+<notesplit>
+<path>lib/voyager-core/src/lib.rs</path>
+<side>right</side>
+<from>348</from>
+<to>352</to>
+<note>The Display implementation for Timestamp uses the inner u64 directly. It is better to use the public as_nanos() method to maintain encapsulation and consistency.</note>
+</notesplit>

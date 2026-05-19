@@ -1,0 +1,39 @@
+<notesplit>
+<path>osu.Game/Rulesets/Difficulty/Utils/DifficultyCalculationUtils.cs</path>
+<side>right</side>
+<from>78</from>
+<to>80</to>
+<note>The SmoothstepBellCurve function has a logic error in calculating the distance from the mean. The line `x = x > 0 ? (width - x) : (width + x);` incorrectly handles the sign. For x > 0, it computes `width - x` which is correct for distance, but for x < 0, it computes `width + x` which is effectively `width - |x|` only if x is negative. However, the variable `x` was already shifted by `mean` (`x -= mean`). The subsequent `Smoothstep(x, 0, width)` expects `x` to be the distance (0 to width). If `x` (the shifted value) is negative, `width + x` might be positive but incorrect if `|x| > width`. More critically, if `x` (shifted) is positive, `width - x` is correct. But if `x` (shifted) is negative, `width + x` is `width - |x|`. This seems intended to be `Math.Abs(x)`. Let's trace: if x_shifted = 0.2, width=0.5. x>0 -> 0.5-0.2=0.3. Smoothstep(0.3, 0, 0.5). If x_shifted = -0.2, width=0.5. x<0 -> 0.5+(-0.2)=0.3. Smoothstep(0.3, 0, 0.5). This looks like it calculates `width - |x_shifted|`. If `|x_shifted| > width`, this becomes negative. Smoothstep usually clamps or handles negatives? Standard Smoothstep `3t^2 - 2t^3` for t in [0,1]. If input is negative, it might produce unexpected results or NaN if not clamped. The primary issue is that `x` is reused for both the shifted value and the distance calculation, leading to confusion and potential negative inputs to Smoothstep if the shift exceeds width.</note>
+</notesplit>
+<notesplit>
+<path>osu.Game/Rulesets/Difficulty/Utils/DifficultyCalculationUtils.cs</path>
+<side>right</side>
+<from>76</from>
+<to>81</to>
+<note>**[Maintainability and Readability]** The new method `SmoothstepBellCurve` has a documentation comment claiming it returns 1 for x = mean, but the implementation subtracts mean from x first (`x -= mean`), meaning it actually returns 1 when x is 0, not when x equals mean. This contradiction between documentation and implementation makes the code confusing and error-prone. The logic also lacks clarity on how the 'width' parameter is used in the ternary operator.
+
+**[Performance]** The new SmoothstepBellCurve method performs multiple floating-point operations (subtraction, comparison, addition) and calls Smoothstep. While intended to be faster than Math.Sin, the implementation involves branching (x > 0) and multiple arithmetic steps. If this method is called in a tight loop (which RhythmEvaluator does for every beat), the overhead of these operations and potential branch mispredictions could negate the gain from removing Math.Sin. Consider if a simpler polynomial approximation or precomputed lookup table would be more efficient for the specific fractional range [0, 1].</note>
+</notesplit>
+<notesplit>
+<path>osu.Game.Rulesets.Osu/Difficulty/Evaluators/RhythmEvaluator.cs</path>
+<side>right</side>
+<from>71</from>
+<to>71</to>
+<note>**[Code Defect]** Division by zero risk. `deltaDifference` is calculated as `Math.Max(prevDelta, currDelta) / Math.Min(prevDelta, currDelta)`. If either `prevDelta` or `currDelta` is 0, `Math.Min` will be 0, causing a division by zero exception. The previous code used `Math.Min(prevDelta, currDelta) / Math.Max(prevDelta, currDelta)` which would result in 0 if one is 0, but not crash. The new code crashes if one delta is 0.
+
+**[Performance]** The calculation `Math.Max(prevDelta, currDelta) / Math.Min(prevDelta, currDelta)` is performed to get `deltaDifference`. This involves two function calls and a division. If `prevDelta` and `currDelta` are frequently compared in other parts of the loop, caching the max/min values or the ratio could save operations. However, since this is a single division per iteration, the impact is likely minimal unless the loop body is extremely tight.</note>
+</notesplit>
+<notesplit>
+<path>osu.Game.Rulesets.Osu/Difficulty/Evaluators/RhythmEvaluator.cs</path>
+<side>right</side>
+<from>74</from>
+<to>74</to>
+<note>The variable `deltaDifferenceFraction` is calculated but its name is slightly misleading. It represents the fractional part of the ratio of deltas, but the name doesn't explicitly convey it's a 'fractional part of a ratio'. A more descriptive name like `ratioFractionalPart` would improve readability.</note>
+</notesplit>
+<notesplit>
+<path>osu.Game.Rulesets.Osu/Difficulty/Evaluators/RhythmEvaluator.cs</path>
+<side>right</side>
+<from>76</from>
+<to>76</to>
+<note>The call to `DifficultyCalculationUtils.SmoothstepBellCurve` passes only one argument (`deltaDifferenceFraction`), relying on default parameters for `mean` and `width`. While valid, this hides the actual behavior of the function. It's better to be explicit about parameters when the defaults might not be obvious or when the function's behavior is critical to the algorithm.</note>
+</notesplit>

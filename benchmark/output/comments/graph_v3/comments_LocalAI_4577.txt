@@ -1,0 +1,39 @@
+<notesplit>
+<path>core/http/app.go</path>
+<side>right</side>
+<from>92</from>
+<to>98</to>
+<note>**[Code Defect]** The middleware is added inside a conditional block that only executes if MachineTag is non-empty at startup. If the configuration is updated dynamically or if the middleware is expected to be present for all requests, this will fail to register the header for requests when the tag is empty or if the application state changes. Furthermore, registering middleware conditionally based on startup config is generally unsafe in Fiber as it can lead to inconsistent routing behavior.
+
+**[Performance]** The middleware adds a 'Machine-Tag' header to every single HTTP request. Accessing 'application.ApplicationConfig()' inside the middleware closure for every request is inefficient as it involves a function call and potential mutex locking or pointer dereferencing. The configuration should be cached in a local variable outside the middleware function.
+
+**[Security Vulnerability]** The application sets a 'Machine-Tag' header on every HTTP response based on a user-provided configuration value. If this configuration value is sourced from untrusted input or contains newline characters, it could lead to HTTP Response Splitting or Header Injection attacks.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/chat.go</path>
+<side>right</side>
+<from>33</from>
+<to>33</to>
+<note>The 'process' and 'processTools' functions in ChatEndpoint now have 7 parameters, exceeding the recommended limit of 5. This reduces readability and makes the function signature harder to manage. Consider grouping these parameters into a configuration struct.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/completion.go</path>
+<side>right</side>
+<from>33</from>
+<to>33</to>
+<note>The 'process' function in CompletionEndpoint now has 6 parameters. This violates the principle of keeping function signatures concise. Consider grouping these parameters into a configuration struct.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/chat.go</path>
+<side>right</side>
+<from>44</from>
+<to>52</to>
+<note>The logic for constructing the 'usage' object is duplicated across multiple endpoints (chat.go, completion.go, edit.go). This violates the DRY principle and makes future changes to usage reporting error-prone.</note>
+</notesplit>
+<notesplit>
+<path>core/http/endpoints/openai/chat.go</path>
+<side>right</side>
+<from>161</from>
+<to>164</to>
+<note>The code updates `tokenUsage` with timing values from the `reply` object, but these values are only set if the backend returns them. If the backend does not return timing data, the `tokenUsage` struct will retain its zero-initialized values (0.0), which is correct, but the logic flow in `core/backend/llm.go` and `chat.go` might lead to stale or partially updated usage data if multiple calls are made to the same `tokenUsage` object.</note>
+</notesplit>

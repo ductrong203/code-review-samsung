@@ -1,0 +1,70 @@
+<notesplit>
+<path>tests/Validation/ValidationEmailRuleTest.php</path>
+<side>right</side>
+<from>111</from>
+<to>143</to>
+<note>Code Duplication: The testRfcCompliantStrict method contains 6 nearly identical blocks calling $this->fails() with the same error message. The only variations are the rule instantiation ((new Email()) vs Rule::email()) and the specific email string. This violates DRY principles and should be refactored to use a loop or parameterized test data.</note>
+</notesplit>
+<notesplit>
+<path>tests/Validation/ValidationEmailRuleTest.php</path>
+<side>right</side>
+<from>173</from>
+<to>216</to>
+<note>Code Duplication: The testPreventSpoofing method repeats the same $this->fails() and $this->passes() calls for both (new Email()) and Rule::email() with identical arguments. This is a clear violation of DRY. The logic should be parameterized.</note>
+</notesplit>
+<notesplit>
+<path>tests/Validation/ValidationEmailRuleTest.php</path>
+<side>right</side>
+<from>221</from>
+<to>241</to>
+<note>Code Duplication: The testWithNativeValidation method repeats the same $this->fails() and $this->passes() calls for both (new Email()) and Rule::email() with identical arguments. This is a clear violation of DRY. The logic should be parameterized.</note>
+</notesplit>
+<notesplit>
+<path>tests/Validation/ValidationEmailRuleTest.php</path>
+<side>right</side>
+<from>246</from>
+<to>276</to>
+<note>Code Duplication: The testWithNativeValidationAllowUnicode method repeats the same $this->fails() and $this->passes() calls for both (new Email()) and Rule::email() with identical arguments. This is a clear violation of DRY. The logic should be parameterized.</note>
+</notesplit>
+<notesplit>
+<path>tests/Validation/ValidationEmailRuleTest.php</path>
+<side>right</side>
+<from>281</from>
+<to>323</to>
+<note>Code Duplication: The testRfcCompliantNonStrict method repeats the same $this->fails() and $this->passes() calls for both (new Email()) and Rule::email() with identical arguments. This is a clear violation of DRY. The logic should be parameterized.</note>
+</notesplit>
+<notesplit>
+<path>tests/Validation/ValidationEmailRuleTest.php</path>
+<side>right</side>
+<from>339</from>
+<to>348</to>
+<note>Code Duplication: The testEmailsThatPassOnRfcCompliantButFailOnStrict method contains two identical blocks of assertions (one pass, one fail) for the same email input, just with different rules. This is a clear violation of DRY. The logic should be parameterized.</note>
+</notesplit>
+<notesplit>
+<path>tests/Validation/ValidationEmailRuleTest.php</path>
+<side>right</side>
+<from>368</from>
+<to>376</to>
+<note>Code Duplication: The testEmailsThatPassOnBothRfcCompliantAndStrict method contains two identical $this->passes() calls for the same email input, just with different rules. This is a clear violation of DRY. The logic should be parameterized.</note>
+</notesplit>
+<notesplit>
+<path>tests/Validation/ValidationEmailRuleTest.php</path>
+<side>right</side>
+<from>398</from>
+<to>408</to>
+<note>Code Duplication: The testEmailsThatFailOnBothRfcCompliantAndStrict method contains two identical $this->fails() calls for the same email input, just with different rules. This is a clear violation of DRY. The logic should be parameterized.</note>
+</notesplit>
+<notesplit>
+<path>tests/Validation/ValidationEmailRuleTest.php</path>
+<side>right</side>
+<from>102</from>
+<to>102</to>
+<note>The test method `testStrict` was renamed to `testRfcCompliantStrict`. If this test file is run in isolation or if other code relies on the specific method name for filtering, this rename could break execution. However, in PHPUnit, the method name is just a label. The real issue is that the diff shows a massive truncation of the file (lines 102-646 are shown as additions, but the line numbers jump from 99 to 102, then to 646, suggesting the diff is incomplete or the file structure is drastically different). The provided diff snippet ends abruptly at line 646 with an incomplete `#[TestWith` attribute. This indicates the diff provided is cut off, making it impossible to verify the full correctness of the new test methods. Specifically, the last visible line `#[TestWith(['user@subdomain.example.com'])]` is incomplete.</note>
+</notesplit>
+<notesplit>
+<path>tests/Validation/ValidationEmailRuleTest.php</path>
+<side>right</side>
+<from>89</from>
+<to>91</to>
+<note>Trailing comma after the last argument in assertSame call. While valid PHP syntax, this is a style inconsistency with the rest of the file and can cause issues in strict linting environments. It does not affect functionality.</note>
+</notesplit>

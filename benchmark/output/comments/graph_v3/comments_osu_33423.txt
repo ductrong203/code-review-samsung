@@ -1,0 +1,30 @@
+<notesplit>
+<path>osu.Game/Rulesets/Difficulty/Utils/DifficultyCalculationUtils.cs</path>
+<side>right</side>
+<from>79</from>
+<to>79</to>
+<note>**[Code Defect]** The logic for calculating the distance from the mean is incorrect. When x is less than the mean, the code calculates 'width + x'. If x is 0.2 and mean is 0.5, x becomes -0.3. Then it calculates width + (-0.3) = 0.2. However, if x is 0.8 and mean is 0.5, x becomes 0.3. Then it calculates width - 0.3 = 0.2. This logic is correct for distance, but the Smoothstep function expects a value between 0 and 1. The current implementation is correct, but the variable name 'x' is reused in a way that makes the logic fragile.
+
+**[Maintainability and Readability]** The logic inside SmoothstepBellCurve is slightly opaque. Using a ternary operator to handle the absolute distance from the mean is clever but less readable than using Math.Abs.</note>
+</notesplit>
+<notesplit>
+<path>osu.Game.Rulesets.Osu/Difficulty/Evaluators/RhythmEvaluator.cs</path>
+<side>right</side>
+<from>71</from>
+<to>71</to>
+<note>The calculation of deltaDifference can result in division by zero if prevDelta or currDelta is 0. While rhythm deltas are usually positive, this is a common source of crashes in difficulty calculation if a map contains zero-length objects or malformed data.</note>
+</notesplit>
+<notesplit>
+<path>osu.Game/Rulesets/Difficulty/Utils/DifficultyCalculationUtils.cs</path>
+<side>right</side>
+<from>78</from>
+<to>79</to>
+<note>The conditional logic inside SmoothstepBellCurve introduces a branch that can be avoided. Using Math.Abs(x - mean) allows for a branchless calculation of the distance from the mean, which is more efficient in hot paths like difficulty evaluation.</note>
+</notesplit>
+<notesplit>
+<path>osu.Game/Rulesets/Difficulty/Utils/DifficultyCalculationUtils.cs</path>
+<side>right</side>
+<from>69</from>
+<to>71</to>
+<note>The XML documentation comment contains a typo: 'returns returns'.</note>
+</notesplit>

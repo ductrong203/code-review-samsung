@@ -1,0 +1,71 @@
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>96</from>
+<to>98</to>
+<note>In the catch block for IllegalVariableEvaluationException, the code logs the error but does NOT increment the failed counter. This means failed assertions due to rendering errors are not counted in the metrics, leading to incorrect success/failed counts. The failed counter should be incremented here as well.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>106</from>
+<to>109</to>
+<note>**[Code Defect]** The error message construction has a bug: `failed + " assertion"` concatenates the AtomicInteger object with a string, which will call toString() on the AtomicInteger, producing something like "java.util.concurrent.atomic.AtomicInteger@12345" instead of the numeric value. It should use `failed.get()` to get the integer value.
+
+**[Security Vulnerability]** The error message thrown when assertions fail includes the rendered value of the errorMessage property, which is dynamic. If the errorMessage contains user-controlled input that results in a long or malicious string, it could lead to log injection or excessive resource consumption. Additionally, the exception message construction concatenates the failed count and the rendered error message without sanitization.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>89</from>
+<to>89</to>
+<note>The code uses TruthUtils.isFalsy(renderer) to check assertion conditions. TruthUtils.isFalsy checks if the string is in FALSE_VALUES (e.g., 'false', '0', ''). However, the rendered expression might be a boolean true/false or other values. If the expression renders to 'true' (string), isFalsy returns false (correct). If it renders to 'false', isFalsy returns true (correct). But if the expression renders to something like 'null' or an empty string '', isFalsy returns true (treating as failed). The bigger issue is that TruthUtils.isFalsy only handles specific string representations of falsy values. If the expression evaluates to a boolean true, it renders as 'true' (string), which is not in FALSE_VALUES, so isFalsy returns false (correct). If it evaluates to boolean false, it renders as 'false', which is in FALSE_VALUES, so isFalsy returns true (correct). This seems correct for string-based truthiness checks. However, the real bug is that if the condition renders to something that is not a boolean-like string (e.g., a number '42'), isFalsy returns false (since '42' is not in FALSE_VALUES), treating it as truthy. This is actually the intended behavior per the schema description. The actual bug is elsewhere.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>81</from>
+<to>82</to>
+<note>The `run` method in `Assert.java` is too long (approx 35 lines) and handles multiple responsibilities: iterating conditions, rendering, evaluating truthiness, logging, counting metrics, and constructing error messages. This violates Single Responsibility and makes the code hard to test and maintain. Extract the condition evaluation logic into a private helper method.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>87</from>
+<to>94</to>
+<note>The Assert task executes user-provided SpEL expressions via runContext.render(s). Since the conditions are marked with @PluginProperty(dynamic = true), users can inject arbitrary expressions. If the rendering engine allows arbitrary code execution (common in SpEL), this is a Remote Code Execution (RCE) vulnerability. An attacker can provide a condition like '{{ T(java.lang.Runtime).getRuntime().exec("malicious_cmd") }}' to execute system commands.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>84</from>
+<to>100</to>
+<note>**[Maintainability and Readability]** The `forEach` lambda in `Assert.java` contains complex logic including try-catch, logging, and state mutation. This makes the code difficult to read and debug. The error handling for `IllegalVariableEvaluationException` is also inconsistent with the success path logging.
+
+**[Code Defect]** The forEach lambda captures `failed` and `success` AtomicInteger objects. If `conditions` is null, this will throw a NullPointerException when trying to call forEach on null. The code should check if conditions is null before iterating.
+
+**[Performance]** The `run` method in `Assert.java` iterates over conditions using `forEach` and calls `runContext.render(s)` for each condition. If `conditions` is large, this creates a sequential bottleneck. More importantly, `runContext.render` is called inside the loop, which might involve expensive string interpolation or variable resolution. If the same variable is referenced multiple times across conditions, it could be re-evaluated repeatedly. Consider caching rendered values if conditions share common variables.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>105</from>
+<to>110</to>
+<note>**[Maintainability and Readability]** The error message construction in `Assert.java` is complex and hard to read. It uses string concatenation with ternary operators and map operations, making it difficult to understand the exact format of the error message. This should be simplified or extracted.
+
+**[Performance]** In `Assert.java`, `runContext.render(errorMessage)` is called only if `failed.get() > 0`. However, `errorMessage` is a `Property<String>` which might contain dynamic expressions. If `errorMessage` is null or empty, `runContext.render` might still perform unnecessary work. Consider checking if `errorMessage` is present before rendering.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>87</from>
+<to>87</to>
+<note>The variable name `renderer` in `Assert.java` is misleading. It suggests a UI component or a specific rendering engine, but it is actually just the rendered string value of the condition. A more descriptive name like `renderedCondition` or `evaluatedValue` would improve clarity.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>90</from>
+<to>90</to>
+<note>The log message in `Assert.java` includes the rendered value (`renderer`) which might contain sensitive data or be very long. This could lead to log flooding or information leakage. Consider truncating or masking the value.</note>
+</notesplit>

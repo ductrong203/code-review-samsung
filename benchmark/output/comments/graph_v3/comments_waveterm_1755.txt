@@ -1,0 +1,60 @@
+<notesplit>
+<path>pkg/wshutil/wshproxy.go</path>
+<side>right</side>
+<from>185</from>
+<to>193</to>
+<note>**[Code Defect]** The 'authenticatetoken' command is parsed but the implementation is missing in the proxy loop, leaving it as a TODO. This will cause the command to be ignored or fail silently when called.
+
+**[Maintainability and Readability]** The function handleProxyAuth (implied by context) or the message loop in WshRpcProxy has a TODO comment indicating an unimplemented feature ('TODO implement authenticatetoken for proxyauth'). Leaving unimplemented logic in core authentication paths reduces maintainability and creates ambiguity for future developers.</note>
+</notesplit>
+<notesplit>
+<path>pkg/util/shellutil/tokenswap.go</path>
+<side>right</side>
+<from>103</from>
+<to>113</to>
+<note>**[Performance]** The encodeEnvVarsForBash, encodeEnvVarsForFish, and encodeEnvVarsForPowerShell functions use string concatenation (+=) inside a loop to build the environment script. In Go, this creates a new string object in every iteration, leading to O(n²) memory allocation behavior. Use strings.Builder instead.
+
+**[Security Vulnerability]** The `encodeEnvVarsForBash` function uses `HardQuote` to escape environment variables. If `HardQuote` does not correctly handle all shell-specific injection characters (like backticks or command substitution), an attacker controlling the environment variables could achieve command injection when the shell evaluates the exported variables.</note>
+</notesplit>
+<notesplit>
+<path>pkg/util/shellutil/shellquote.go</path>
+<side>right</side>
+<from>60</from>
+<to>63</to>
+<note>The `HardQuoteFish` function explicitly excludes newlines and backticks from escaping. This is dangerous because if these characters are present in an environment variable, they can be used to break out of the quoted string in a Fish shell script, leading to command injection.</note>
+</notesplit>
+<notesplit>
+<path>pkg/util/shellutil/tokenswap.go</path>
+<side>right</side>
+<from>103</from>
+<to>137</to>
+<note>The functions encodeEnvVarsForBash, encodeEnvVarsForFish, and encodeEnvVarsForPowerShell contain significant code duplication. They all iterate over a map, validate keys, and format strings. This logic should be abstracted into a single function that accepts a formatting function or template.</note>
+</notesplit>
+<notesplit>
+<path>pkg/util/shellutil/tokenswap.go</path>
+<side>right</side>
+<from>67</from>
+<to>76</to>
+<note>The removeExpiredTokens function iterates over the entire tokenSwapMap on every call to AddTokenSwapEntry and GetAndRemoveTokenSwapEntry. As the number of tokens grows, this O(n) linear scan inside a mutex lock will cause significant contention and performance degradation.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wshutil/wshproxy.go</path>
+<side>right</side>
+<from>196</from>
+<to>200</to>
+<note>The 'authenticatetoken' command is parsed but the implementation is missing in the proxy loop, leaving it as a TODO. This will cause the command to be ignored or fail silently when called.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wshutil/wshproxy.go</path>
+<side>right</side>
+<from>142</from>
+<to>163</to>
+<note>The `handleAuthenticateTokenCommand` function retrieves a token entry from a global map (`tokenSwapMap`) using a user-provided token string. While it removes the token after use, the lack of rate limiting or strict validation on the token generation/consumption flow could allow for token exhaustion or potential race conditions if multiple authentication attempts occur simultaneously.</note>
+</notesplit>
+<notesplit>
+<path>pkg/util/shellutil/tokenswap.go</path>
+<side>right</side>
+<from>71</from>
+<to>75</to>
+<note>The removeExpiredTokens function iterates over the entire map while holding a lock. If the map grows large, this could cause performance bottlenecks. Consider if a more efficient data structure (like a heap for expiration times) is needed if the number of tokens becomes significant.</note>
+</notesplit>

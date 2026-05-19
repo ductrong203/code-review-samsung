@@ -1,0 +1,30 @@
+<notesplit>
+<path>src/System.Management.Automation/engine/remoting/common/RunspaceConnectionInfo.cs</path>
+<side>right</side>
+<from>2240</from>
+<to>2242</to>
+<note>On Windows, executable files in the PATH often have extensions like .exe, .cmd, or .bat. The current implementation only checks for the exact filename provided in 'sshCommand' (e.g., 'ssh'), failing to find 'ssh.exe'. This will cause the lookup to fail on Windows even if the command exists in the PATH.</note>
+</notesplit>
+<notesplit>
+<path>src/System.Management.Automation/engine/remoting/common/RunspaceConnectionInfo.cs</path>
+<side>right</side>
+<from>2240</from>
+<to>2240</to>
+<note>The manual PATH lookup logic is vulnerable to path traversal if 'sshCommand' contains directory separators (e.g., '..\..\evil.exe'). While 'sshCommand' is likely a constant, it is not validated. If an attacker can influence this variable, they can execute arbitrary binaries outside the intended PATH directories.</note>
+</notesplit>
+<notesplit>
+<path>src/System.Management.Automation/engine/remoting/common/RunspaceConnectionInfo.cs</path>
+<side>right</side>
+<from>2230</from>
+<to>2246</to>
+<note>**[Performance]** The PATH lookup logic performs redundant File.Exists checks and string allocations inside a loop. Environment.GetEnvironmentVariable("PATH") is called every time this method runs, which is unnecessary if the PATH hasn't changed. Furthermore, the loop iterates over every entry in the PATH for every SSH connection attempt, which can be slow on systems with long PATH variables.
+
+**[Maintainability and Readability]** The manual PATH lookup logic duplicates functionality that should ideally be encapsulated in a helper method. This logic is complex and error-prone (e.g., handling platform-specific executable extensions like .exe on Windows). Extracting this into a private static method would improve readability and testability.</note>
+</notesplit>
+<notesplit>
+<path>src/System.Management.Automation/engine/remoting/common/RunspaceConnectionInfo.cs</path>
+<side>right</side>
+<from>2251</from>
+<to>2255</to>
+<note>The error handling uses a hardcoded string "CommandNotFoundException" as the error ID. It is better to use a constant or a strongly-typed resource to avoid typos and improve maintainability.</note>
+</notesplit>

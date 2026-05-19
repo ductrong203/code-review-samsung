@@ -1,0 +1,14 @@
+<notesplit>
+<path>src/Symfony/Component/Notifier/Bridge/Mercure/MercureOptions.php</path>
+<side>right</side>
+<from>25</from>
+<to>39</to>
+<note>The `content` parameter type hint is a large, complex inline array structure (13 fields). This makes the constructor signature difficult to read and maintain. It violates the principle of clear, concise signatures. Consider extracting this into a dedicated class or a named type alias if supported, or at least moving the definition to a separate constant/property for clarity.</note>
+</notesplit>
+<notesplit>
+<path>src/Symfony/Component/Notifier/Bridge/Mercure/MercureOptions.php</path>
+<side>right</side>
+<from>81</from>
+<to>95</to>
+<note>The return type annotation for `getContent()` duplicates the complex array structure defined in the constructor. This creates maintenance overhead: if the structure changes, it must be updated in two places. This violates DRY principles.</note>
+</notesplit>

@@ -1,0 +1,48 @@
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>224</from>
+<to>224</to>
+<note>**[Code Defect]** The original code used sprintf_s with size-1 to ensure null termination. Replacing it with snprintf using the full buffer size is technically correct for standard snprintf, but if the buffer is used in contexts expecting a null-terminated string and the output is truncated, the behavior might differ from the original intent. More importantly, the previous code manually cleared the buffer with buf[0] = 0; which is now redundant but safe. The primary risk is if the buffer size is small and truncation occurs, the subsequent TextOut call might print garbage or truncated data.
+
+**[Security Vulnerability]** The use of snprintf with 'buf' assumes 'buf' is a fixed-size array. While safer than sprintf, ensure that the buffer size is sufficient for the formatted string, especially when concatenating strings like 'm_modeStr[mode].c_str()', to avoid silent truncation of the output.</note>
+</notesplit>
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>229</from>
+<to>229</to>
+<note>**[Code Defect]** Similar to the previous instance, replacing sprintf_s with snprintf changes the behavior regarding null termination and truncation handling. While snprintf is generally safer, ensure that the buffer size is adequate for the formatted time string.
+
+**[Security Vulnerability]** The use of snprintf with 'buf' assumes 'buf' is a fixed-size array. Ensure the buffer size is sufficient for the formatted string to avoid silent truncation of the output.</note>
+</notesplit>
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>234</from>
+<to>234</to>
+<note>**[Code Defect]** Replacing sprintf_s with snprintf for the OpenCL device name. If oclDevName is longer than the buffer, it will be truncated. The original code used sprintf_s with size-1, which was a stricter safety measure.
+
+**[Security Vulnerability]** The use of snprintf with 'buf' assumes 'buf' is a fixed-size array. Ensure the buffer size is sufficient for the formatted string, especially when concatenating strings like 'oclDevName.c_str()', to avoid silent truncation of the output.</note>
+</notesplit>
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>223</from>
+<to>234</to>
+<note>The code performs redundant buffer clearing (buf[0] = 0) followed by snprintf. Since snprintf always null-terminates the buffer (provided size > 0), the manual clearing is unnecessary overhead in this rendering loop.</note>
+</notesplit>
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>223</from>
+<to>235</to>
+<note>The code uses manual buffer management with snprintf and TextOut, which is error-prone and verbose. In C++, it is more maintainable to use std::ostringstream or std::format (if C++20 is available) to construct strings, avoiding fixed-size buffers and potential truncation issues entirely.</note>
+</notesplit>
+<notesplit>
+<path>samples/cpp/tutorial_code/objectDetection/aruco_samples_utility.hpp</path>
+<side>right</side>
+<from>35</from>
+<to>35</to>
+<note>The buffer 'buf' is used with snprintf, but its size is not explicitly defined in the provided snippet. If 'buf' is a fixed-size array, ensure the size passed to snprintf matches the actual allocation to prevent potential buffer overflows or truncation issues.</note>
+</notesplit>

@@ -1,0 +1,28 @@
+<notesplit>
+<path>src/Symfony/Component/Notifier/Bridge/Mercure/MercureOptions.php</path>
+<side>right</side>
+<from>37</from>
+<to>37</to>
+<note>The constructor signature was updated to include a $content parameter in the docblock, but the actual method signature was not updated to accept this parameter. This will cause a mismatch between the documented API and the actual implementation, potentially leading to runtime errors if callers rely on the documented signature.</note>
+</notesplit>
+<notesplit>
+<path>src/Symfony/Component/Notifier/Bridge/Mercure/MercureOptions.php</path>
+<side>right</side>
+<from>82</from>
+<to>82</to>
+<note>The class property $content is not defined in the class, despite the getter and constructor docblocks referencing it. This will cause an 'Undefined property' error when accessed.</note>
+</notesplit>
+<notesplit>
+<path>src/Symfony/Component/Notifier/Bridge/Mercure/MercureOptions.php</path>
+<side>right</side>
+<from>25</from>
+<to>39</to>
+<note>The complex array shape definition for $content is duplicated in both the constructor parameter and the getter return type. This violates the DRY principle and makes the code harder to maintain if the structure needs to change. Define a type alias or a dedicated Value Object for the Mercure content structure.</note>
+</notesplit>
+<notesplit>
+<path>src/Symfony/Component/Notifier/Bridge/Mercure/MercureOptions.php</path>
+<side>right</side>
+<from>80</from>
+<to>96</to>
+<note>The complex array shape definition for the return type is duplicated from the constructor parameter documentation. This creates maintenance overhead. Use a shared type alias to ensure consistency.</note>
+</notesplit>

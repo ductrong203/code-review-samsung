@@ -1,0 +1,23 @@
+<notesplit>
+<path>dotnet/samples/Demos/ModelContextProtocolPlugin/Program.cs</path>
+<side>right</side>
+<from>85</from>
+<to>85</to>
+<note>**[Code Defect]** The code calls `.FirstAsync()` on the result of `agent.InvokeAsync()`. `InvokeAsync` returns an `IAsyncEnumerable<ChatMessageContent>`. If the agent returns an empty sequence (e.g., due to an error or empty response), `.FirstAsync()` will throw an `InvalidOperationException` (or `TaskCanceledException` depending on the provider) because there are no elements. This causes a crash instead of handling the empty case gracefully.
+
+**[Performance]** Calling .FirstAsync() on the result of InvokeAsync() forces the enumeration of the entire async stream to find the first element. If the agent returns multiple messages or chunks, this discards the rest, which is inefficient. Additionally, .FirstAsync() throws if the sequence is empty, which is a potential runtime error rather than a graceful handling of no response.</note>
+</notesplit>
+<notesplit>
+<path>dotnet/samples/Demos/ModelContextProtocolPlugin/Program.cs</path>
+<side>right</side>
+<from>85</from>
+<to>86</to>
+<note>The code uses FirstAsync() without null checking or error handling. If the agent returns no messages, this will throw an exception. Additionally, there is no try-catch block around the agent invocation, which is poor practice for external AI service calls that can fail or return unexpected results.</note>
+</notesplit>
+<notesplit>
+<path>dotnet/samples/Demos/ModelContextProtocolPlugin/Program.cs</path>
+<side>right</side>
+<from>76</from>
+<to>82</to>
+<note>The agent configuration is hardcoded directly in the main flow. This makes it hard to test or modify parameters without changing the source code. Consider extracting agent configuration into a separate method or using configuration objects.</note>
+</notesplit>

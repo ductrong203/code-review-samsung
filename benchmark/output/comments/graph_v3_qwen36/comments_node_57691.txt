@@ -1,0 +1,39 @@
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>right</side>
+<from>10</from>
+<to>30</to>
+<note>**[Code Defect]** The `getReplOutput` function creates a REPL instance `r` but does not return it. The tests rely on `inputStream.run` which is not a standard stream method. The REPL processes input asynchronously. The function returns `output` immediately after `inputStream.emit('data', input)`, which likely happens before the REPL has processed the input. The `output` variable will likely be empty or incomplete because the REPL's `write` callback hasn't been called yet. The tests are likely passing due to synchronous execution in some environments or specific mock behavior, but this is a race condition.
+
+**[Maintainability and Readability]** The helper function `getReplOutput` in `test-repl-custom-eval.js` is quite long (21 lines) and handles multiple responsibilities: stream setup, REPL initialization, output capturing, and input simulation. This makes it harder to read and maintain. Consider splitting it into smaller, focused helpers or simplifying the logic.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>right</side>
+<from>26</from>
+<to>26</to>
+<note>**[Code Defect]** The `getReplOutput` function calls `inputStream.run([''])` which is not a standard method on Node.js streams. The `repl` module expects the input stream to be readable. The test likely relies on internal implementation details or a mock that doesn't behave like a real stream, causing the REPL to not process the input correctly or hang. The correct way to send input to a REPL is via `r.write(input)` on the REPL instance itself, not by emitting data on the input stream directly.
+
+The `inputStream.run` call is likely a bug. Standard Node.js streams do not have a `run` method. This suggests the test is using a custom mock or the code is incorrect. If `ArrayStream` is a custom class from `test/common`, it might have a `run` method, but it's not standard. This makes the test fragile and potentially non-functional in other environments.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>right</side>
+<from>115</from>
+<to>115</to>
+<note>**[Security Vulnerability]** The test uses `eval(code)` to execute user-controlled input within the REPL context. While this is a test file, using `eval` with dynamic input is a security anti-pattern that can lead to arbitrary code execution if the input is not strictly validated. In production code, this should be replaced with a safer alternative like `vm.runInNewContext` with a restricted sandbox.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>right</side>
+<from>129</from>
+<to>129</to>
+<note>The code uses a manual regex escape for the '+' character with a TODO comment to migrate to `RegExp.escape` when available. This is a code smell because it relies on a non-existent or future API and manually handles escaping. It should use a standard, robust escaping method or a dedicated utility function to ensure correctness across different inputs.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>right</side>
+<from>32</from>
+<to>133</to>
+<note>The test file `test-repl-custom-eval.js` contains a large `describe` block with 8 test cases. While not excessively long, the density of tests and the complexity of some assertions (e.g., regex matching for output) could benefit from better organization or grouping to improve readability.</note>
+</notesplit>

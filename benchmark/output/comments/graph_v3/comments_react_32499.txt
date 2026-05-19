@@ -1,0 +1,28 @@
+<notesplit>
+<path>packages/react-reconciler/src/ReactFiberComponentStack.js</path>
+<side>right</side>
+<from>138</from>
+<to>141</to>
+<note>The case for ViewTransitionComponent contains a copy-paste error where it calls describeBuiltInComponentFrame('SuspenseList') instead of 'ViewTransition'. This will cause incorrect component stack traces in error logs.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-reconciler/src/ReactFiberBeginWork.js</path>
+<side>right</side>
+<from>871</from>
+<to>909</to>
+<note>The function updateActivityComponent in ReactFiberBeginWork.js is a near-exact duplicate of the logic found in updateOffscreenComponent. This violates the DRY principle and increases maintenance burden. The logic should be extracted into a shared helper function.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-reconciler/src/ReactFiberBeginWork.js</path>
+<side>right</side>
+<from>880</from>
+<to>883</to>
+<note>The updateActivityComponent function performs object creation (offscreenChildProps) on every render call. In hot paths like reconciliation, this increases garbage collection pressure. These props should be memoized or handled without creating a new object literal if possible.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-devtools-shared/src/devtools/views/Settings/ComponentsSettings.js</path>
+<side>right</side>
+<from>475</from>
+<to>491</to>
+<note>The code contains commented-out TODOs and UI elements. This clutters the codebase and creates 'dead' documentation. If the feature is experimental, it should be handled via feature flags or conditional rendering rather than commented-out code blocks.</note>
+</notesplit>

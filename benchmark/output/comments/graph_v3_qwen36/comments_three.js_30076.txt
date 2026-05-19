@@ -1,0 +1,143 @@
+<notesplit>
+<path>src/nodes/utils/RemapNode.js</path>
+<side>right</side>
+<from>24</from>
+<to>24</to>
+<note>**[Code Defect]** The JSDoc comment for `inHighNode` is updated, but the parameter name in the function signature might not match if this is just a comment change. However, looking at the diff, it's just a JSDoc change. Wait, `RemapNode.js` line 23 is `@param {Node} inHighNode - The source or current upper bound of the range.`. This is a JSDoc change. Is there a code defect? No, it's just documentation.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/pmrem/PMREMNode.js</path>
+<side>right</side>
+<from>213</from>
+<to>217</to>
+<note>**[Code Defect]** The JSDoc comment for the getter `get value()` is moved after the setter `set value()`. In JSDoc, comments should precede the code they document. Placing the comment for the getter after the setter is incorrect and will likely cause JSDoc tools to associate the comment with the setter or ignore it. This is a documentation defect that can break API documentation generation.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/display/ScreenNode.js</path>
+<side>right</side>
+<from>93</from>
+<to>94</to>
+<note>**[Code Defect]** The JSDoc comment for `update` has the `@return` tag removed. This is a documentation change. However, if the method returns a value, the `@return` tag should be present. If it doesn't return a value, the removal is correct. Without seeing the implementation, it's hard to say if this is a bug. But typically, if a method returns a value, the `@return` tag should be present.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/utils/StorageArrayElementNode.js</path>
+<side>right</side>
+<from>47</from>
+<to>48</to>
+<note>**[Code Defect]** The JSDoc comment for the setter `set storageBufferNode` has `@param {Node} value` added. However, the setter's parameter is `value`, so this is correct. But the placement is after `@type {StorageBufferNode}`. In JSDoc, `@param` for a setter should be before `@type` or in the correct position. This is a documentation structure issue.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/Node.js</path>
+<side>right</side>
+<from>127</from>
+<to>129</to>
+<note>The JSDoc comment for the setter `set needsUpdate` incorrectly uses `@param` instead of `@param {boolean} value` is valid for a setter, but the placement is wrong. It should be inside the comment block describing the parameter, not after the `@default` tag which usually ends the property description. More critically, `@param` is generally for function parameters, while setters often use `@param` for the value being set, but the structure here is messy. However, the real issue is that `@param` is used for a setter argument, which is valid in JSDoc, but the placement after `@default` is non-standard and might confuse parsers. Let's look closer. Actually, `@param` in a setter comment is correct for the argument. The issue is likely just style. Let's look for real bugs.</note>
+</notesplit>
+<notesplit>
+<path>src/cameras/PerspectiveCamera.js</path>
+<side>right</side>
+<from>65</from>
+<to>65</to>
+<note>The JSDoc @param tag for 'focalLength' incorrectly contains the description text that belongs to the general description. The text 'Values for focal length and film gauge must have the same unit.' is a constraint/description, not a parameter description. This makes the documentation confusing and violates the single responsibility of the @param tag.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/Node.js</path>
+<side>right</side>
+<from>536</from>
+<to>536</to>
+<note>**[Maintainability and Readability]** The @abstract tag is placed before the @param tag. While not strictly invalid, it is better practice to place @abstract at the start of the description or after the main description, before parameters, to clearly mark the method as abstract before detailing its signature.
+
+The @abstract tag is placed before the @param tag. Similar to the previous issue, this placement is suboptimal for readability and documentation generation.
+
+**[Code Defect]** The JSDoc comment for `updateBefore` has `@abstract` added. This is a documentation change to indicate the method is abstract.
+
+The JSDoc comment for `updateAfter` has `@abstract` added. This is a documentation change to indicate the method is abstract.
+
+The JSDoc comment for `update` has `@abstract` added. This is a documentation change to indicate the method is abstract.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/utils/SplitNode.js</path>
+<side>right</side>
+<from>45</from>
+<to>45</to>
+<note>**[Maintainability and Readability]** The JSDoc @type annotation for 'components' is changed to 'string', but the code assigns an array (based on typical usage of 'components' in such contexts). If 'components' is indeed an array, the type annotation is incorrect, leading to misleading documentation.
+
+**[Code Defect]** The JSDoc `@type` annotation for `this.components` is changed from `Node` to `string`. If `this.components` is actually an array or a different type, this is a documentation error. If it's a string, it's correct. Without seeing the implementation, it's hard to say if it's a bug, but changing `@type` from `Node` to `string` suggests a potential type mismatch if the code expects a Node. However, this is just a comment change. Let's look for actual code defects.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/Node.js</path>
+<side>right</side>
+<from>128</from>
+<to>128</to>
+<note>The @param tag is placed inside a @type block for a setter. In JSDoc, @param should describe the argument of the function/setter, not be nested under @type. This is structurally incorrect and may confuse documentation generators.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/TempNode.js</path>
+<side>right</side>
+<from>42</from>
+<to>43</to>
+<note>**[Code Defect]** The JSDoc comment for `hasDependencies` adds `@param {NodeBuilder} builder` but the `@return` tag is on the next line. The `@param` should be before `@return`. This is a minor JSDoc structure issue.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/NodeBuilder.js</path>
+<side>right</side>
+<from>800</from>
+<to>800</to>
+<note>**[Code Defect]** The JSDoc comment for `getMethod` has `@param {String} method - The method name to resolve.`. The parameter name in the function signature is `method`. This is correct. The comment was changed from `@param {String} name - The method name to resolve.` to `@param {String} method - The method name to resolve.`. This is a documentation fix to match the parameter name.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/NodeBuilder.js</path>
+<side>right</side>
+<from>899</from>
+<to>899</to>
+<note>**[Code Defect]** The JSDoc comment for `_getCache` has `@param {Node} node - The node.`. The parameter name in the function signature is `node`. This is correct. However, the comment `@param {Node} Node - The node.` was changed to `@param {Node} node - The node.`. This is a documentation fix to match the parameter name.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/NodeBuilder.js</path>
+<side>right</side>
+<from>1002</from>
+<to>1002</to>
+<note>**[Code Defect]** The JSDoc comment for `increaseUsage` has `@param {Node} node - The node to increase the usage count for.`. The parameter name in the function signature is `node`. This is correct. The comment was changed from `@param {Node} Node - The node to increase the usage count for.` to `@param {Node} node - The node to increase the usage count for.`. This is a documentation fix to match the parameter name.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/NodeBuilder.js</path>
+<side>right</side>
+<from>1322</from>
+<to>1322</to>
+<note>**[Code Defect]** The JSDoc comment for `getTypeFromArray` has `@param {TypedArray} array - The typed array.`. The parameter name in the function signature is `array`. This is correct. The comment was changed from `@param {TypedArray} type - The typed array.` to `@param {TypedArray} array - The typed array.`. This is a documentation fix to match the parameter name.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/NodeBuilder.js</path>
+<side>right</side>
+<from>1874</from>
+<to>1874</to>
+<note>**[Code Defect]** The JSDoc comment for `flowShaderNode` has `@param {ShaderNodeInternal} shaderNode - A function code will be generated based on the input.`. The parameter name in the function signature is `shaderNode`. This is correct. The comment was changed from `@param {ShaderNodeInternal} node - A function code will be generated based on the input.` to `@param {ShaderNodeInternal} shaderNode - A function code will be generated based on the input.`. This is a documentation fix to match the parameter name.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/lighting/PointLightNode.js</path>
+<side>right</side>
+<from>94</from>
+<to>94</to>
+<note>**[Code Defect]** The JSDoc comment for `setupShadowNode` has `@return {PointShadowNode}` added. This is a documentation change to indicate the return type.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/geometry/RangeNode.js</path>
+<side>right</side>
+<from>65</from>
+<to>65</to>
+<note>**[Code Defect]** The JSDoc comment for `getVectorLength` has `@param {NodeBuilder} builder - The current node builder.` added. This is a documentation change to document the parameter.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/utils/StorageArrayElementNode.js</path>
+<side>right</side>
+<from>47</from>
+<to>47</to>
+<note>The @param tag is placed inside a @type block for a setter. Similar to the Node.js issue, this is structurally incorrect JSDoc for a setter.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/pmrem/PMREMNode.js</path>
+<side>right</side>
+<from>200</from>
+<to>212</to>
+<note>The JSDoc comment for the `value` setter is placed before the setter, while the comment for the `value` getter is placed after the setter. This is a documentation structure issue, but more importantly, the setter's JSDoc block is misplaced relative to the getter's. While not a runtime performance issue, it affects tooling performance (documentation generation). However, strictly speaking, this is a code style/documentation issue, not a performance bottleneck. No performance issues found.</note>
+</notesplit>

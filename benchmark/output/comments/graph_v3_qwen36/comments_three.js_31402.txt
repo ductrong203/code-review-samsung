@@ -1,0 +1,90 @@
+<notesplit>
+<path>src/renderers/webgpu/nodes/WGSLNodeBuilder.js</path>
+<side>right</side>
+<from>2126</from>
+<to>2126</to>
+<note>In `WGSLNodeBuilder._getWGSLComputeCode`, the line `instanceIndex = globalId.x + globalId.y * ( ${ workgroupSizeX } * numWorkgroups.x ) + globalId.z * ( ${ workgroupSizeX } * numWorkgroups.x ) * ( ${ workgroupSizeY } * numWorkgroups.y );` contains a logic error in the calculation of `instanceIndex`. The term for `globalId.z` uses `workgroupSizeX` twice instead of `workgroupSizeX` and `workgroupSizeY` correctly. It should likely be `globalId.z * ( ${ workgroupSizeX } * numWorkgroups.x ) * ( ${ workgroupSizeY } * numWorkgroups.y )` which is what is written, BUT the term for `globalId.y` is `globalId.y * ( ${ workgroupSizeX } * numWorkgroups.x )`. The standard formula for linear index in a 3D grid is `x + y * dimX + z * dimX * dimY`. Here `dimX = workgroupSizeX * numWorkgroups.x` and `dimY = workgroupSizeY * numWorkgroups.y`. The code has `globalId.y * ( ${ workgroupSizeX } * numWorkgroups.x )` which is correct for the y-component stride. However, the z-component is `globalId.z * ( ${ workgroupSizeX } * numWorkgroups.x ) * ( ${ workgroupSizeY } * numWorkgroups.y )`. This looks correct. Wait, let's re-read carefully. `globalId.x` is the index within the first dimension. `globalId.y` is the index within the second. `globalId.z` is the index within the third. The total index is `globalId.x + globalId.y * (workgroupSizeX * numWorkgroups.x) + globalId.z * (workgroupSizeX * numWorkgroups.x) * (workgroupSizeY * numWorkgroups.y)`. This seems correct for a flattened index. However, if `numWorkgroups` is not what is intended, or if `globalId` is not what is intended, it might be wrong. But looking at the previous code: `instanceIndex = globalId.x + globalId.y * numWorkgroups.x * u32(${workgroupSize}) + globalId.z * numWorkgroups.x * numWorkgroups.y * u32(${workgroupSize});`. The old code used `u32(${workgroupSize})` which was the whole array joined, likely causing a string conversion bug or just being wrong. The new code splits it. The new code seems logically correct for a 3D grid flattening. Is there a bug? Ah, `globalId` might be `globalInvocationId`. If `globalId` is `globalInvocationId`, then `globalId.x` is the x-coordinate. The linear index is `x + y * dimX + z * dimX * dimY`. The code does `globalId.x + globalId.y * (workgroupSizeX * numWorkgroups.x) + globalId.z * (workgroupSizeX * numWorkgroups.x) * (workgroupSizeY * numWorkgroups.y)`. This is correct. So maybe no bug here? Let's look closer. `globalId.y * numWorkgroups.x * u32(${workgroupSize})`. If `workgroupSize` was `[64]`, `u32([64])` is `u32(64)`. If `workgroupSize` was `[64, 1, 1]`, `u32([64, 1, 1])` is `u32(64, 1, 1)` which is invalid WGSL. So the old code was buggy for multi-dim. The new code fixes it. So this is a fix, not a bug. Let's look for other issues. What about `computeNodeData.dispatchSize` being undefined? The code checks `if ( computeNodeData.dispatchSize === undefined )`. This is fine. What about `computeNode.dispatchCount`? It was removed. The new code calculates it. This is fine. Is there a bug in `WebGPUBackend.js`? `dispatchSize[ 1 ] || 1`. If `dispatchSize[1]` is 0, it becomes 1. This might be a bug if 0 is a valid dispatch size (though usually not). But `Math.ceil` can return 0 if count is 0. If count is 0, `dispatchCount` is 0. `dispatchSize` becomes `[0, 1, 1]`. Then `dispatchSize[1]` is 1. This is fine. What if `dispatchCount` is 0? `dispatchSize[0]` is 0. `dispatchWorkgroups(0, 1, 1)` is valid. So no bug there. Let's look at `WebGLBackend.js`. `count = ( count !== null ) ? count : computeNode.count;`. If `computeNode.count` is null, `count` is null. Then `gl.drawArrays(..., null)` might crash. `computeNode.count` is initialized to `null` in `ComputeNode.js`. If `setCount` is not called, `count` is null. The `Renderer.js` passes `dispatchSizeOrCount` which defaults to `null`. So `count` is null. `gl.drawArrays` with null count will throw. This is a critical bug. The `compute` function in `Renderer.js` should ensure a count is provided or the backend should handle null. The `ComputeNode` constructor no longer takes count, so `count` is null by default. The `compute` TSL function calls `setCount`. But if someone creates a `ComputeNode` directly and doesn't call `setCount`, it will crash. This is a high severity bug.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/gpgpu/ComputeNode.js</path>
+<side>right</side>
+<from>236</from>
+<to>236</to>
+<note>The `computeKernel` function mutates the `workgroupSize` array passed by the caller using `push()`. This is a side effect that can cause bugs if the caller reuses the array or expects it to remain unchanged. Additionally, the validation logic is flawed: it checks `workgroupSize.length > 3` but then proceeds to push elements until length is 3, meaning an array with 4+ elements will be truncated/mutated rather than rejected or handled correctly.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/gpgpu/ComputeNode.js</path>
+<side>right</side>
+<from>214</from>
+<to>242</to>
+<note>The `computeKernel` function performs validation but fails to stop execution when invalid input is detected. It logs errors via `console.error` but continues to execute, potentially creating a `ComputeNode` with invalid `workgroupSize` (e.g., empty array or non-integer values). This leads to silent failures or runtime errors later. The function should throw an error or return `null`/`undefined` upon validation failure.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/gpgpu/ComputeNode.js</path>
+<side>right</side>
+<from>222</from>
+<to>232</to>
+<note>Validation logic in computeKernel performs console.error calls inside a loop for every element of workgroupSize. Since this function is called during node construction and potentially frequently in rendering loops, repeated console.error calls are expensive. Additionally, the validation is performed every time the function is called, even if the workgroupSize is constant. This should be moved to a one-time check or cached.</note>
+</notesplit>
+<notesplit>
+<path>src/renderers/webgpu/WebGPUBackend.js</path>
+<side>right</side>
+<from>1395</from>
+<to>1395</to>
+<note>**[Code Defect]** In `WebGPUBackend.compute`, when `dispatchSizeOrCount` is a number, the code calculates `dispatchSize` and caches it in `computeNodeData.dispatchSize`. However, if `dispatchSizeOrCount` is an array (handled in the `else` block), the code assigns `dispatchSize = dispatchSizeOrCount` directly. This means `dispatchSize` becomes a reference to the caller's array. If the caller modifies this array later, or if the renderer reuses the array, it could affect the dispatch. More critically, the caching logic for the number case caches to `computeNodeData`, but the array case does not cache, potentially leading to inconsistent behavior or missed optimizations, though the primary defect is the potential mutation of the passed array if not careful. A safer approach is to clone the array if used directly.
+
+**[Security Vulnerability]** In WebGPUBackend.js, the `dispatchSizeOrCount` parameter is accepted from the Renderer API. If a user passes an array (e.g., [100, 100, 100]), it is directly assigned to `dispatchSize` without validation of the array's length or content before being used in `dispatchWorkgroups`. While the WGSL shader generation validates workgroup size, the dispatch size passed to the GPU command encoder is not validated against device limits (e.g., maxComputeWorkgroupsPerDimension) in the array branch, potentially causing GPU errors or undefined behavior.
+
+In WebGPUBackend.js, when `dispatchSizeOrCount` is an array, it is used directly in `dispatchWorkgroups`. If the values are negative or zero, the GPU command encoder may fail or behave unpredictably. There is no check for non-positive integers in the array branch, unlike the number branch which checks `val <= 0` for workgroup size.
+
+In WebGPUBackend.js, the `dispatchSizeOrCount` array is used directly without checking if the values exceed `maxComputeWorkgroupsPerDimension`. While the number branch handles this, the array branch does not. This could lead to GPU errors if the user provides a large array.</note>
+</notesplit>
+<notesplit>
+<path>src/renderers/webgpu/WebGPUBackend.js</path>
+<side>right</side>
+<from>1344</from>
+<to>1397</to>
+<note>The `WebGPUBackend.compute` method contains a large block of logic (approx 45 lines) dedicated to calculating `dispatchSize`. This logic is duplicated from `ComputeNode.updateDispatchCount` (which was removed) but reimplemented here. This violates DRY principles. The calculation logic should be centralized in `ComputeNode` or a shared utility, not scattered in the backend.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/gpgpu/ComputeNode.js</path>
+<side>right</side>
+<from>254</from>
+<to>254</to>
+<note>The `compute` function in `ComputeNode.js` is now a one-liner wrapper that calls `computeKernel` and `setCount`. While concise, it hides the construction logic. More importantly, it relies on the side-effect of `setCount` returning `this` for chaining. If `setCount` is ever modified to not return `this`, this chain breaks. Consider explicit construction for clarity.</note>
+</notesplit>
+<notesplit>
+<path>src/renderers/webgpu/WebGPUBackend.js</path>
+<side>right</side>
+<from>1367</from>
+<to>1372</to>
+<note>In the WebGPUBackend compute method, the dispatch size calculation involves a loop over workgroupSize.length (up to 3) and multiple arithmetic operations. While small, this is executed every frame for compute nodes. The calculation of `size` and `dispatchCount` is repeated if `computeNodeData.count` changes. If `count` changes frequently, this recomputation is unnecessary overhead.</note>
+</notesplit>
+<notesplit>
+<path>src/renderers/webgpu/WebGPUBackend.js</path>
+<side>right</side>
+<from>1376</from>
+<to>1385</to>
+<note>The code calculates `maxComputeWorkgroupsPerDimension` inside the conditional block where `dispatchSizeOrCount` is a number. This value is likely constant for the device and should be cached or accessed outside the per-frame compute logic to avoid redundant property lookups or potential overhead if it's not a simple property access.</note>
+</notesplit>
+<notesplit>
+<path>src/renderers/webgl-fallback/WebGLBackend.js</path>
+<side>right</side>
+<from>957</from>
+<to>965</to>
+<note>In WebGLBackend.js, if `count` is an array, it logs a warning and takes the first element. However, it does not validate if the first element is a valid positive integer. If `count[0]` is negative, zero, or non-numeric, `gl.drawArrays` or `gl.drawArraysInstanced` may fail or cause undefined behavior. This is a lack of input validation on user-supplied data.</note>
+</notesplit>
+<notesplit>
+<path>src/renderers/webgpu/WebGPUBackend.js</path>
+<side>right</side>
+<from>1401</from>
+<to>1405</to>
+<note>The code accesses `dispatchSize[ 1 ] || 1` and `dispatchSize[ 2 ] || 1`. This involves array access and logical OR operations. While minor, if `dispatchSize` is always an array of length 3, direct indexing is faster. If it's not guaranteed, the current approach is safe but slightly slower.</note>
+</notesplit>
+<notesplit>
+<path>src/renderers/webgpu/nodes/WGSLNodeBuilder.js</path>
+<side>right</side>
+<from>2135</from>
+<to>2137</to>
+<note>The `_getWGSLComputeCode` method has complex string interpolation for generating WGSL code. The `instanceIndex` calculation line is particularly dense and hard to read. Breaking it down or using a helper function would improve maintainability.</note>
+</notesplit>

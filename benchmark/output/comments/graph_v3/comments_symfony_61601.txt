@@ -1,0 +1,14 @@
+<notesplit>
+<path>src/Symfony/Component/DependencyInjection/Tests/Loader/XmlFileLoaderTest.php</path>
+<side>right</side>
+<from>1298</from>
+<to>1303</to>
+<note>The variable $invalidXMLFileName is used only once in the load() call. Introducing a variable for a simple string literal adds unnecessary cognitive load and verbosity to the test method.</note>
+</notesplit>
+<notesplit>
+<path>src/Symfony/Component/DependencyInjection/Tests/Loader/XmlFileLoaderTest.php</path>
+<side>right</side>
+<from>1301</from>
+<to>1301</to>
+<note>The regex expectation for the exception message includes 'line 5, column 0'. In standard XML parsers (like libxml), column numbers are typically 1-indexed. Expecting column 0 is likely to cause a test failure depending on the environment's XML parser implementation.</note>
+</notesplit>

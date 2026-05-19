@@ -1,0 +1,103 @@
+<notesplit>
+<path>codex-rs/core/src/client.rs</path>
+<side>right</side>
+<from>168</from>
+<to>171</to>
+<note>**[Code Defect]** The logic for `include` was changed from `if !store && reasoning.is_some()` to `if reasoning.is_some()`. Previously, encrypted reasoning was only included when storage was disabled. Now it is always included when reasoning is present. This changes the request payload significantly and may cause issues if the server expects encrypted reasoning only in specific modes or if unencrypted reasoning is now sent when it shouldn't be.
+
+**[Maintainability and Readability]** The logic for determining which items to include in the request has changed. Previously, it checked `!store && reasoning.is_some()`. Now it only checks `reasoning.is_some()`. This change is correct for the new behavior (always include encrypted reasoning), but the variable name `include` is vague. It should be renamed to `include_encrypted_reasoning` or similar to clarify its purpose, as it now specifically controls the inclusion of encrypted reasoning content rather than a general list of items.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/protocol/src/models.rs</path>
+<side>right</side>
+<from>45</from>
+<to>46</to>
+<note>**[Code Defect]** In `ResponseItem::Message`, the `id` field now has `#[serde(skip_serializing)]`. This means the `id` will never be serialized in the JSON output. Previously, it was `id: Option<String>` with no skip attribute, meaning `null` was serialized. If the API or downstream code expects `id: null` to be present in the JSON, this change will break that contract. The diff shows test expectations changing from `"id": null` to no `id` field, suggesting this is intentional, but it's a significant structural change to the serialized format.
+
+In `ResponseItem::LocalShellCall`, the `id` field now has `#[serde(skip_serializing)]`. This means the `id` will never be serialized. Previously, it was `id: Option<String>` with no skip attribute, meaning `null` was serialized. This is consistent with the change in `Message` and `Reasoning`.
+
+In `ResponseItem::FunctionCall`, the `id` field now has `#[serde(skip_serializing)]`. This means the `id` will never be serialized. Previously, it was `id: Option<String>` with no skip attribute, meaning `null` was serialized. This is consistent with the change in `Message` and `Reasoning`.
+
+In `ResponseItem::CustomToolCall`, the `id` field now has `#[serde(skip_serializing)]`. This means the `id` will never be serialized. Previously, it was `id: Option<String>` with `skip_serializing_if = "Option::is_none"`, meaning `null` was serialized if present. This is consistent with the change in other variants.
+
+In `ResponseItem::WebSearchCall`, the `id` field now has `#[serde(skip_serializing)]`. This means the `id` will never be serialized. Previously, it was `id: Option<String>` with `skip_serializing_if = "Option::is_none"`, meaning `null` was serialized if present. This is consistent with the change in other variants.
+
+**[Maintainability and Readability]** The `id` field in `ResponseItem::Message` is now marked with `#[serde(skip_serializing)]`. This is a good change to avoid sending unnecessary data. However, ensure that all consumers of this struct are aware that the `id` field will not be serialized. If any client code relies on the `id` being present in the serialized output, this change will break it.
+
+The `id` field in `ResponseItem::LocalShellCall` is now marked with `#[serde(skip_serializing)]`. This is a good change to avoid sending unnecessary data. However, ensure that all consumers of this struct are aware that the `id` field will not be serialized. If any client code relies on the `id` being present in the serialized output, this change will break it.
+
+The `id` field in `ResponseItem::FunctionCall` is now marked with `#[serde(skip_serializing)]`. This is a good change to avoid sending unnecessary data. However, ensure that all consumers of this struct are aware that the `id` field will not be serialized. If any client code relies on the `id` being present in the serialized output, this change will break it.
+
+The `id` field in `ResponseItem::CustomToolCall` is now marked with `#[serde(skip_serializing)]`. This is a good change to avoid sending unnecessary data. However, ensure that all consumers of this struct are aware that the `id` field will not be serialized. If any client code relies on the `id` being present in the serialized output, this change will break it.
+
+The `id` field in `ResponseItem::WebSearchCall` is now marked with `#[serde(skip_serializing)]`. This is a good change to avoid sending unnecessary data. However, ensure that all consumers of this struct are aware that the `id` field will not be serialized. If any client code relies on the `id` being present in the serialized output, this change will break it.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/protocol/src/models.rs</path>
+<side>right</side>
+<from>51</from>
+<to>52</to>
+<note>**[Code Defect]** In `ResponseItem::Reasoning`, the `id` field now has `#[serde(default)]`. This means if `id` is missing in the input, it will default to an empty string `String::default()`. Previously, it was just `id: String` with no default, meaning a missing `id` would cause a deserialization error. This change makes deserialization more lenient but might hide missing data issues.
+
+**[Maintainability and Readability]** The `id` field in `ResponseItem::Reasoning` is now marked with `#[serde(default)]`. This is a good change to handle missing `id` fields gracefully. However, ensure that all consumers of this struct are aware that the `id` field may be missing and handle it appropriately.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/src/client.rs</path>
+<side>right</side>
+<from>197</from>
+<to>197</to>
+<note>**[Performance]** The `store` field is now hardcoded to `false`. This removes the ability to store responses on the server side. While this simplifies the code and removes a configuration option, it may lead to increased network traffic and latency if the client previously relied on server-side storage to reduce the amount of context sent in subsequent requests. All conversation history must now be sent explicitly with each request.
+
+**[Maintainability and Readability]** The `store` field in the request struct is now hardcoded to `false`. While this simplifies the code, it removes the ability to easily toggle this behavior in the future if needed. Consider adding a comment explaining why storage is disabled, or if this is a permanent change, ensure the struct field itself is removed if possible to avoid confusion. Currently, it's a magic value.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/src/client_common.rs</path>
+<side>right</side>
+<from>198</from>
+<to>198</to>
+<note>**[Code Defect]** The `store` field in `Request` struct is hardcoded to `false` in `new_responses_api_request`. This is consistent with the PR goal of never storing requests, but it removes the ability to store responses via this function. If any caller expects `store: true` to be possible, this is a breaking change. However, given the PR description, this is likely intentional.
+
+Similar to the previous issue, `store` is hardcoded to `false` in `new_responses_api_request`. This is consistent with the PR goal.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/src/codex.rs</path>
+<side>right</side>
+<from>1604</from>
+<to>1604</to>
+<note>The `store` field in the `Prompt` struct is no longer being set from `turn_context.disable_response_storage`. Instead, it seems to be defaulting or being set elsewhere. This change removes the configuration option, but if the `Prompt` struct still has a `store` field, it should be verified that it's not being left in an undefined state or relying on a default that might change. The removal of `disable_response_storage` from `turn_context` and `Prompt` should be consistent.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/tests/suite/client.rs</path>
+<side>right</side>
+<from>496</from>
+<to>496</to>
+<note>The test `chatgpt_auth_sends_correct_request` no longer asserts that `store` is false. This is because the logic for determining `store` has been removed. However, the test should still verify that the request body does not contain a `store` field or that it is explicitly false, to ensure the API contract is maintained. The removal of this assertion might hide regressions.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/tests/suite/client.rs</path>
+<side>right</side>
+<from>578</from>
+<to>578</to>
+<note>The test `prefers_apikey_when_config_prefers_apikey_even_with_chatgpt_tokens` no longer asserts that `store` is true. This is because the logic for determining `store` has been removed. The test should still verify that the request body does not contain a `store` field or that it is explicitly false, to ensure the API contract is maintained. The removal of this assertion might hide regressions.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/src/client.rs</path>
+<side>right</side>
+<from>165</from>
+<to>167</to>
+<note>The `include` vector is now constructed unconditionally whenever `reasoning.is_some()`. Previously, this was guarded by `!store && reasoning.is_some()`. While this change simplifies logic, it may result in sending the `reasoning.encrypted_content` include parameter more frequently than before, potentially increasing payload size or processing overhead on the server side if the reasoning content is large or if the server has to process this include flag unnecessarily.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/src/client_common.rs</path>
+<side>right</side>
+<from>128</from>
+<to>128</to>
+<note>The `store` field in `ModelClientRequest` is now always `false`. If this field is no longer used or meaningful, consider removing it from the struct entirely to reduce API surface and confusion. If it must remain for API compatibility, a comment is needed.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/src/config.rs</path>
+<side>right</side>
+<from>78</from>
+<to>78</to>
+<note>The `disable_response_storage` configuration option has been removed. This is a breaking change. Ensure that all documentation and user-facing messages are updated to reflect this. The removal is clean, but the impact on users who relied on this setting should be documented in release notes.</note>
+</notesplit>

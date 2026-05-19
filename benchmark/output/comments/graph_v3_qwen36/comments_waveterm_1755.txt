@@ -1,0 +1,86 @@
+<notesplit>
+<path>pkg/wshutil/wshproxy.go</path>
+<side>right</side>
+<from>235</from>
+<to>241</to>
+<note>In wshproxy.go, the handleAuthenticateTokenCommand branch (lines 231-238) handles the 'authenticatetoken' command but does not return the context or route ID. The function HandleAuthentication is expected to return (*wshrpc.RpcContext, error). Without a return statement, the function falls through to the end, returning nil for the context, which will likely cause a nil pointer dereference or authentication failure downstream.</note>
+</notesplit>
+<notesplit>
+<path>pkg/util/shellutil/tokenswap.go</path>
+<side>right</side>
+<from>16</from>
+<to>27</to>
+<note>The TokenSwapEntry struct in pkg/util/shellutil/tokenswap.go contains sensitive authentication data (SockName, RpcContext, JwtToken) stored in a global, in-memory map (tokenSwapMap) with no expiration enforcement on the map itself (only on individual entries). The map is not cleared on process restart, meaning tokens persist in memory indefinitely until the process exits. Additionally, the map is accessed without synchronization in GetAndRemoveTokenSwapEntry and AddTokenSwapEntry despite being shared across goroutines, creating a race condition that could lead to data corruption or use-after-free scenarios in concurrent environments.</note>
+</notesplit>
+<notesplit>
+<path>pkg/shellexec/shellexec.go</path>
+<side>right</side>
+<from>403</from>
+<to>410</to>
+<note>**[Code Defect]** In shellexec.go, the code attempts to pack the swap token and add it to the command. However, if cmdOpts.SwapToken is nil, calling cmdOpts.SwapToken.PackForClient() will cause a nil pointer dereference (panic). The previous code checked for the JWT token in the map, but this new code assumes SwapToken is always present.
+
+**[Security Vulnerability]** In pkg/shellexec/shellexec.go, the packed swap token is injected into the shell command environment variable WAVETERM_SWAPTOKEN. This token contains sensitive RpcContext and SockName information. If the shell command is logged or exposed through error messages, this sensitive data could be leaked. Additionally, the token is passed as an environment variable, which could be read by child processes or other users on the system.</note>
+</notesplit>
+<notesplit>
+<path>pkg/util/shellutil/tokenswap.go</path>
+<side>right</side>
+<from>67</from>
+<to>76</to>
+<note>Inefficient token cleanup: The removeExpiredTokens function iterates over the entire tokenSwapMap on every call to AddTokenSwapEntry or GetAndRemoveTokenSwapEntry. This is O(n) where n is the total number of tokens. If many tokens are created and expire, this becomes a significant bottleneck. Consider using a time-based priority queue or lazy cleanup with a counter threshold.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wshutil/wshproxy.go</path>
+<side>right</side>
+<from>142</from>
+<to>163</to>
+<note>In pkg/wshutil/wshproxy.go, the handleAuthenticateTokenCommand function retrieves a token from the global map using GetAndRemoveTokenSwapEntry. However, the function does not verify that the requester is authorized to use this token. The token contains sensitive RpcContext and SockName information. An attacker who can send a valid token string to the proxy can gain access to the internal RPC context and socket name, potentially leading to SSRF or unauthorized access to internal services.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wshutil/wshproxy.go</path>
+<side>right</side>
+<from>180</from>
+<to>208</to>
+<note>In wshproxy.go, the HandleAuthentication function for the client side (starting around line 179) has a logic error. The 'authenticate' command handling is now inside an 'if' block, but the 'continue' statement at line 208 is outside the 'if' block. This means if the command is NOT 'authenticate', it will fall through to the 'continue', skipping the 'authenticateToken' check entirely. The 'authenticateToken' check is now unreachable if the command is not 'authenticate'.</note>
+</notesplit>
+<notesplit>
+<path>pkg/util/shellutil/tokenswap.go</path>
+<side>right</side>
+<from>103</from>
+<to>113</to>
+<note>String concatenation in loop: The encodeEnvVarsForBash function builds the encoded string using += in a loop. For large environment maps, this causes O(n²) memory allocation and copying. Use strings.Builder for efficient string construction.</note>
+</notesplit>
+<notesplit>
+<path>pkg/util/shellutil/tokenswap.go</path>
+<side>right</side>
+<from>115</from>
+<to>125</to>
+<note>String concatenation in loop: The encodeEnvVarsForFish function builds the encoded string using += in a loop. For large environment maps, this causes O(n²) memory allocation and copying. Use strings.Builder for efficient string construction.</note>
+</notesplit>
+<notesplit>
+<path>pkg/util/shellutil/tokenswap.go</path>
+<side>right</side>
+<from>127</from>
+<to>137</to>
+<note>String concatenation in loop: The encodeEnvVarsForPowerShell function builds the encoded string using += in a loop. For large environment maps, this causes O(n²) memory allocation and copying. Use strings.Builder for efficient string construction.</note>
+</notesplit>
+<notesplit>
+<path>pkg/shellexec/shellexec.go</path>
+<side>right</side>
+<from>410</from>
+<to>410</to>
+<note>In shellexec.go, shellutil.AddTokenSwapEntry(cmdOpts.SwapToken) is called. If cmdOpts.SwapToken is nil, this will also panic. Even if the packing is guarded, the AddTokenSwapEntry call is outside the nil check block in the current diff, meaning it will still panic if SwapToken is nil.</note>
+</notesplit>
+<notesplit>
+<path>pkg/shellexec/shellexec.go</path>
+<side>right</side>
+<from>300</from>
+<to>317</to>
+<note>Redundant shell path detection: The code checks multiple sources for shell path (cmdOpts, config, remoteInfo, default) with separate log.Printf calls. While not strictly O(n²), the repeated conditional checks and logging could be consolidated. More importantly, the removed RemoteInstallRcFilesCommand call was synchronous and could block; its removal improves performance.</note>
+</notesplit>
+<notesplit>
+<path>cmd/wsh/cmd/wshcmd-connserver.go</path>
+<side>right</side>
+<from>232</from>
+<to>250</to>
+<note>In cmd/wsh/cmd/wshcmd-connserver.go, the askForJwtToken function reads the JWT token from stdin using fmt.Fscanln. This input is not validated for length or content before being used. An attacker could supply a very long string to cause a denial of service or inject malicious content. Additionally, the token is printed to stdout as 'HAVE-JWT' which could leak information about the token's presence.</note>
+</notesplit>

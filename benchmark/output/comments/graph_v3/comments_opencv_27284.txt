@@ -1,0 +1,65 @@
+<notesplit>
+<path>modules/videoio/misc/java/src/cpp/videoio_converters.cpp</path>
+<side>right</side>
+<from>59</from>
+<to>64</to>
+<note>The read method allocates a new jbyteArray on every call using env->NewByteArray(size). In high-frequency video streaming, this causes excessive garbage collection pressure and memory fragmentation. The buffer should be reused or managed via a persistent direct ByteBuffer.</note>
+</notesplit>
+<notesplit>
+<path>modules/videoio/misc/java/src/cpp/videoio_converters.cpp</path>
+<side>right</side>
+<from>62</from>
+<to>62</to>
+<note>The JNI call 'env->CallLongMethod' is made with a jbyteArray that is not checked for null. If 'NewByteArray' fails (e.g., OOM), 'jBuffer' will be null, and passing it to 'CallLongMethod' will cause a crash or undefined behavior.</note>
+</notesplit>
+<notesplit>
+<path>modules/videoio/misc/java/src/cpp/videoio_converters.cpp</path>
+<side>right</side>
+<from>59</from>
+<to>61</to>
+<note>The code allocates a jbyteArray using 'size' without validating that 'size' is non-negative or within reasonable memory limits. An attacker-controlled 'size' could lead to an OutOfMemoryError or heap exhaustion, potentially causing a denial-of-service (DoS) in the JVM.</note>
+</notesplit>
+<notesplit>
+<path>modules/videoio/misc/java/src/cpp/videoio_converters.cpp</path>
+<side>right</side>
+<from>62</from>
+<to>63</to>
+<note>The code calls a Java method 'm_read' with a 'size' parameter that is passed directly from the C++ layer. If the Java implementation of 'read' uses this 'size' to allocate buffers or perform operations without validation, it could lead to memory corruption or DoS. Additionally, the 'GetByteArrayRegion' call on line 63 uses 'size' as the length; if 'size' exceeds the actual buffer capacity, it will cause a JNI crash.</note>
+</notesplit>
+<notesplit>
+<path>modules/videoio/misc/java/src/cpp/videoio_converters.cpp</path>
+<side>right</side>
+<from>57</from>
+<to>61</to>
+<note>The read method swallows potential errors by returning 0 when the JNI environment or buffer allocation fails. This makes debugging stream failures difficult. It should ideally log the error or throw a Java exception.</note>
+</notesplit>
+<notesplit>
+<path>modules/videoio/misc/java/src/cpp/videoio_converters.cpp</path>
+<side>right</side>
+<from>72</from>
+<to>75</to>
+<note>The seek method returns 0 on failure, which is ambiguous as 0 is also a valid file position. This makes it impossible for the caller to distinguish between a successful seek to the start of the file and a failure.</note>
+</notesplit>
+<notesplit>
+<path>modules/videoio/misc/java/src/cpp/videoio_converters.cpp</path>
+<side>right</side>
+<from>63</from>
+<to>63</to>
+<note>The code calls 'GetByteArrayRegion' even if 'CallLongMethod' fails or returns an error. If the Java method throws an exception, the JNI state is invalid, and further JNI calls like 'GetByteArrayRegion' should not be made without checking for exceptions.</note>
+</notesplit>
+<notesplit>
+<path>modules/videoio/misc/java/src/cpp/videoio_converters.cpp</path>
+<side>right</side>
+<from>90</from>
+<to>95</to>
+<note>The vector_VideoCaptureAPIs_to_List function performs repeated JNI lookups (FindClass, GetMethodID) inside the loop for every element. These should be cached as static variables to avoid expensive JNI overhead on every call.</note>
+</notesplit>
+<notesplit>
+<path>modules/videoio/misc/java/test/VideoCaptureTest.java</path>
+<side>right</side>
+<from>114</from>
+<to>114</to>
+<note>**[Maintainability and Readability]** Using System.out.println for error logging in a test suite is poor practice. It bypasses test reporting frameworks and makes it harder to track failures in CI/CD environments.
+
+Similar to the read method, using System.out.println for error logging in the seek method is suboptimal for test maintainability.</note>
+</notesplit>

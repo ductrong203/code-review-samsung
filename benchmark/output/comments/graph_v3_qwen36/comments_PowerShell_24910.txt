@@ -1,0 +1,37 @@
+<notesplit>
+<path>src/System.Management.Automation/engine/CommandCompletion/CompletionCompleters.cs</path>
+<side>right</side>
+<from>481</from>
+<to>481</to>
+<note>**[Performance]** Creating a new HashSet from `currentModule.NestedModules` inside the loop scope (or just before the loop) allocates a new object for every completion request. If this completion path is frequent, this allocation adds GC pressure. Consider reusing a buffer or checking if `NestedModules` can be filtered directly without creating a new collection if the count is small.
+
+**[Security Vulnerability]** In the CompleteModuleName function within CompletionCompleters.cs, the code creates a HashSet<PSModuleInfo> using the constructor new(currentModule.NestedModules). This relies on the default equality comparer for PSModuleInfo. If PSModuleInfo does not implement a proper IEqualityComparer or override Equals/GetHashCode, the HashSet may fail to correctly identify duplicates or match items, leading to either false positives (filtering out valid modules) or false negatives (failing to filter nested modules). This is a logic flaw in security-relevant filtering code.</note>
+</notesplit>
+<notesplit>
+<path>src/System.Management.Automation/engine/CommandCompletion/CompletionCompleters.cs</path>
+<side>right</side>
+<from>469</from>
+<to>473</to>
+<note>The comment block explaining the logic is excessively long (5 lines) and verbose. It explains the 'why' in too much detail for a simple filter operation. This increases cognitive load for readers trying to understand the code's structure. Consider shortening the comment to a single sentence or moving the detailed explanation to a separate XML doc comment or a dedicated constant.</note>
+</notesplit>
+<notesplit>
+<path>src/System.Management.Automation/engine/CommandCompletion/CompletionCompleters.cs</path>
+<side>right</side>
+<from>494</from>
+<to>496</to>
+<note>The comment explaining the `shortNamePattern` check is overly detailed and explains specific user input examples ('gmo power') which might become outdated. The logic itself (`!shortNamePattern.IsMatch(...)`) is complex and hard to read. This check is buried inside a larger `if` condition, making it harder to parse. Consider extracting this logic into a named method like `IsModuleShortNameMatch` to improve readability.</note>
+</notesplit>
+<notesplit>
+<path>src/System.Management.Automation/engine/CommandCompletion/CompletionCompleters.cs</path>
+<side>right</side>
+<from>477</from>
+<to>477</to>
+<note>The variable name `nestedModulesToFilterOut` is slightly verbose and passive. A more active or concise name like `nestedModulesToExclude` or `modulesToFilter` would improve readability without losing clarity.</note>
+</notesplit>
+<notesplit>
+<path>src/System.Management.Automation/engine/CommandCompletion/CompletionCompleters.cs</path>
+<side>right</side>
+<from>499</from>
+<to>500</to>
+<note>The `HashSet.Contains` check is O(1), which is good. However, if `nestedModulesToFilterOut` is null, the check `nestedModulesToFilterOut is not null` adds a branch. Since this is inside a loop over `psObjects`, if the number of modules is large, this branch is taken every time. It's a minor cost, but worth noting.</note>
+</notesplit>

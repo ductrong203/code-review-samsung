@@ -1,0 +1,14 @@
+<notesplit>
+<path>packages/react-dom/src/__tests__/ReactDOMForm-test.js</path>
+<side>right</side>
+<from>1694</from>
+<to>1694</to>
+<note>The test expects two 'Action' logs, but the second form submission is triggered inside the same act() block as the promise resolution. Because the first submission is still pending, the second submission might be ignored or queued depending on the framework's internal state, leading to a race condition where the second 'Action' log may not appear before the assertion.</note>
+</notesplit>
+<notesplit>
+<path>packages/react-dom/src/__tests__/ReactDOMForm-test.js</path>
+<side>right</side>
+<from>1677</from>
+<to>1684</to>
+<note>The `submitForm` function uses a mutable variable `resolve` from the outer scope to control asynchronous flow. This pattern is fragile and makes the test harder to reason about. It is better to use a deferred promise pattern or a dedicated utility to handle the synchronization.</note>
+</notesplit>

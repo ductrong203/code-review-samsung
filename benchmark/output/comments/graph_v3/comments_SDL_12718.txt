@@ -1,0 +1,53 @@
+<notesplit>
+<path>src/gpu/vulkan/SDL_gpu_vulkan.c</path>
+<side>right</side>
+<from>10637</from>
+<to>10637</to>
+<note>The function returns false on failure but fails to reset renderer->defragInProgress to 0. This leaves the renderer in a permanently locked state where no future defragmentation can occur.</note>
+</notesplit>
+<notesplit>
+<path>src/gpu/vulkan/SDL_gpu_vulkan.c</path>
+<side>right</side>
+<from>10682</from>
+<to>10682</to>
+<note>The function returns false on failure but fails to reset renderer->defragInProgress to 0. This leaves the renderer in a permanently locked state where no future defragmentation can occur.</note>
+</notesplit>
+<notesplit>
+<path>src/gpu/vulkan/SDL_gpu_vulkan.c</path>
+<side>right</side>
+<from>10632</from>
+<to>10632</to>
+<note>**[Performance]** The defragmentation loop performs error logging inside a mutex-locked section. SDL_LogError can be a blocking or expensive operation depending on the logging backend, which increases the duration the allocatorLock is held, potentially stalling other threads attempting memory operations.
+
+The defragmentation loop performs error logging inside a mutex-locked section. SDL_LogError can be a blocking or expensive operation, which increases the duration the allocatorLock is held, potentially stalling other threads attempting memory operations.
+
+**[Maintainability and Readability]** The error message 'Failed to allocate defrag buffer!' is duplicated in VULKAN_INTERNAL_DefragmentMemory. This violates DRY principles. If the error handling logic grows, this will become harder to maintain.</note>
+</notesplit>
+<notesplit>
+<path>src/gpu/vulkan/SDL_gpu_vulkan.c</path>
+<side>right</side>
+<from>5571</from>
+<to>5571</to>
+<note>The boolean parameter 'transitionToDefaultLayout' in VULKAN_INTERNAL_CreateTexture is a 'flag argument', which makes the function harder to understand and maintain. It forces the caller to know about internal implementation details. Consider splitting this into two functions or using a more descriptive configuration struct.</note>
+</notesplit>
+<notesplit>
+<path>src/gpu/vulkan/SDL_gpu_vulkan.c</path>
+<side>right</side>
+<from>10449</from>
+<to>10452</to>
+<note>The function VULKAN_INTERNAL_DefragmentMemory returns 'false' on allocation failure, but the caller in VULKAN_Submit does not check the return value of VULKAN_INTERNAL_DefragmentMemory. This can lead to the renderer proceeding with an inconsistent state or null pointers if the defragmentation fails.</note>
+</notesplit>
+<notesplit>
+<path>src/gpu/vulkan/SDL_gpu_vulkan.c</path>
+<side>right</side>
+<from>10651</from>
+<to>10651</to>
+<note>Variable 'bufferCopy' is declared inside the loop in VULKAN_INTERNAL_DefragmentMemory. While C99 allows this, declaring it outside the loop or closer to its usage scope is often preferred for clarity in complex loops.</note>
+</notesplit>
+<notesplit>
+<path>src/gpu/vulkan/SDL_gpu_vulkan.c</path>
+<side>right</side>
+<from>10721</from>
+<to>10721</to>
+<note>Variable 'imageCopy' is declared inside the loop in VULKAN_INTERNAL_DefragmentMemory. Similar to the bufferCopy issue, this can be moved to improve readability.</note>
+</notesplit>

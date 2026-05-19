@@ -1,0 +1,30 @@
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>108</from>
+<to>108</to>
+<note>**[Code Defect]** The error message construction uses `runContext.render(errorMessage)` which returns a `Property<String>`. Calling `.as(String.class)` on a `Property` object is incorrect; it should be called on the result of the render or the property should be evaluated properly. This will likely fail to render the actual string content of the error message.
+
+**[Performance]** The error message construction performs a redundant render call inside the exception block. Since this only executes when a failure occurs, it is not a hot-path performance issue, but it is inefficient to re-render the property if it has already been evaluated or is static.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>106</from>
+<to>109</to>
+<note>The error message construction logic is complex and hard to read. It uses a ternary operator inside a string concatenation, which obscures the intent. Extracting this into a dedicated helper method or using a more readable string formatting approach would improve maintainability.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>84</from>
+<to>100</to>
+<note>The loop body in the run method is doing too much: rendering, evaluating truthiness, logging, and managing counters. This violates the Single Responsibility Principle. Consider extracting the evaluation logic into a private helper method.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/execution/Assert.java</path>
+<side>right</side>
+<from>90</from>
+<to>90</to>
+<note>The logger includes the raw, unvalidated user-provided expression string in the error message. If an attacker can control the content of the 'conditions' list, they could perform log injection by injecting newline characters or other control sequences into the logs.</note>
+</notesplit>

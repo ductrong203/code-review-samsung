@@ -1,0 +1,91 @@
+<notesplit>
+<path>pkg/shellexec/shellexec.go</path>
+<side>right</side>
+<from>258</from>
+<to>264</to>
+<note>**[Code Defect]** In pkg/shellexec/shellexec.go, the code now attempts to pack a swap token using cmdOpts.SwapToken.PackForClient(). However, the 'Env' field was removed from CommandOptsType, and there is no evidence that 'SwapToken' is initialized before this call. If cmdOpts.SwapToken is nil, this will cause a nil pointer dereference panic. The previous code used cmdOpts.Env which was always initialized.
+
+In pkg/shellexec/shellexec.go, the JWT token logic was removed. The new code relies on SwapToken. If SwapToken is nil or fails to pack, the command continues without authentication (or with an empty token if the format string handles it poorly, though here it's inside an else block). If SwapToken is nil, the code crashes (see critical issue). If it succeeds but the token is invalid, the command might run without proper auth context if the previous JWT check was the only guard. More importantly, the `cmdCombined` variable is used later. If `PackForClient` fails, `cmdCombined` is not updated with the token, potentially running unauthenticated.
+
+**[Performance]** The code now calls cmdOpts.SwapToken.PackForClient() which might be an expensive operation. If this is called frequently in a hot path (e.g., every command execution), it could become a bottleneck. Ensure that PackForClient is efficient and consider caching the result if the token doesn't change often.</note>
+</notesplit>
+<notesplit>
+<path>pkg/shellexec/shellexec.go</path>
+<side>right</side>
+<from>263</from>
+<to>263</to>
+<note>**[Security Vulnerability]** The code now uses a 'SwapToken' mechanism to pass authentication credentials to child processes via environment variables. The token is packed and injected into the command string: `cmdCombined = fmt.Sprintf(`%s=%s %s`, wavebase.WaveSwapTokenVarName, packedToken, cmdCombined)`. This exposes sensitive authentication tokens in the process command line arguments. On many operating systems (especially Linux), command line arguments are visible to all users via `/proc/[pid]/cmdline` or `ps aux`. This allows any local user to capture the token and impersonate the user or access protected resources.
+
+The `packedToken` is directly interpolated into the shell command string without any sanitization or escaping. If `packedToken` contains special shell characters (e.g., quotes, backticks, `$`), it could potentially lead to command injection if the token generation is compromised or if the token format allows for shell metacharacters. While tokens are usually base64, this reliance on the integrity of the token generator is a risk.</note>
+</notesplit>
+<notesplit>
+<path>pkg/shellexec/shellexec.go</path>
+<side>right</side>
+<from>258</from>
+<to>264</to>
+<note>In 'pkg/shellexec/shellexec.go', the error from 'cmdOpts.SwapToken.PackForClient()' is logged but the function continues execution without the token. The subsequent command construction uses an empty or nil token, which likely causes authentication failures downstream. The error should either be returned or handled explicitly to prevent silent failures.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>right</side>
+<from>212</from>
+<to>212</to>
+<note>The function 'resetTerminalState' in 'pkg/blockcontroller/blockcontroller.go' has a significant logic regression. The original code appended a descriptive status message '(restored terminal state)' to the terminal buffer. The new code removes this message entirely. This reduces observability for users and developers debugging terminal state issues, making it harder to understand what happened during the reset process.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>right</side>
+<from>287</from>
+<to>315</to>
+<note>In pkg/blockcontroller/blockcontroller.go, `createCmdStrAndOpts` now returns `*shellexec.CommandOptsType`. However, the `Env` field has been removed from `CommandOptsType` in `shellexec.go`. The function `resolveEnvMap` returns a `map[string]string`. The code in `createCmdStrAndOpts` calls `resolveEnvMap` but does not assign the result to `cmdOpts.Env` (which no longer exists). The environment variables are effectively lost unless the caller handles the return value differently. The function signature change suggests the caller should handle the env map, but the return type of `createCmdStrAndOpts` is `(string, *shellexec.CommandOptsType, error)`. It does not return the env map. Thus, the environment variables resolved from files and meta are discarded.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>right</side>
+<from>287</from>
+<to>287</to>
+<note>In pkg/blockcontroller/blockcontroller.go, the function `createCmdStrAndOpts` signature changed to accept `connName string`. The callers of this function in the same file (e.g., `DoRunShellCommand`) need to be updated to pass the `connName`. If they are not updated, the code will fail to compile. The diff shows the definition but not the callers. Based on the graph context, `DoRunShellCommand` is a changed function. If it doesn't pass the new argument, it's a compilation error. Assuming it compiles, we must check if `connName` is used correctly. The function uses `connName` in `getCustomInitScript` and `resolveEnvMap`. This looks correct structurally, but the removal of `cmdOpts.Env` initialization means `cmdOpts` might be missing environment variables if `resolveEnvMap` doesn't populate them fully into `cmdOpts.Env` (which no longer exists). Wait, `cmdOpts` is `*shellexec.CommandOptsType`. The `Env` field was removed from `CommandOptsType` in `shellexec.go`. So `cmdOpts.Env` is no longer valid. The code in `createCmdStrAndOpts` returns `cmdOpts`. If `cmdOpts` no longer has `Env`, where do the environment variables go? They are returned in the tuple but `cmdOpts` is the second element. The caller `DoRunShellCommand` likely uses `cmdOpts.Env` later. Since `Env` is removed from the struct, any access to `cmdOpts.Env` will be a compile error or logical error if the struct definition wasn't updated everywhere. The diff for `shellexec.go` shows `Env` removed. So `createCmdStrAndOpts` returns a struct without `Env`. The caller must be updated to use the separate env map or pass env differently. This is a structural break.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wshrpc/wshserver/wshserver.go</path>
+<side>right</side>
+<from>499</from>
+<to>499</to>
+<note>**[Maintainability and Readability]** In 'pkg/wshrpc/wshserver/wshserver.go', the 'ConnDisconnectCommand' function calls 'wslconn.GetWslConn' without a context. The underlying 'GetWslConn' function in 'pkg/wslconn/wslconn.go' has been modified to remove the context parameter. This breaks the ability to cancel or timeout the connection lookup, which is a regression in error handling and resource management capabilities.
+
+In 'pkg/wshrpc/wshserver/wshserver.go', the 'ConnConnectCommand' function calls 'wslconn.GetWslConn' without a context. This removes the ability to cancel or timeout the connection retrieval, which is a regression in error handling and resource management.
+
+In 'pkg/wshrpc/wshserver/wshserver.go', the 'ConnDisconnectCommand' function calls 'wslconn.GetWslConn' without a context. This removes the ability to cancel or timeout the connection retrieval, which is a regression in error handling and resource management.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wshrpc/wshserver/wshserver.go</path>
+<side>right</side>
+<from>509</from>
+<to>509</to>
+<note>**[Maintainability and Readability]** In 'pkg/wshrpc/wshserver/wshserver.go', the 'ConnConnectCommand' function calls 'conncontroller.GetConn' without a context. This removes the ability to cancel or timeout the connection retrieval, which is a regression in error handling and resource management.
+
+In 'pkg/wshrpc/wshserver/wshserver.go', the 'ConnDisconnectCommand' function calls 'conncontroller.GetConn' without a context. This removes the ability to cancel or timeout the connection retrieval, which is a regression in error handling and resource management.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>right</side>
+<from>219</from>
+<to>233</to>
+<note>**[Performance]** The function getCustomInitScriptKeyCascade allocates a new slice on every call. Since this is called for every command execution and the return values are constant per shell type, this creates unnecessary garbage collection pressure. Consider caching these slices or using pre-defined constants.
+
+**[Maintainability and Readability]** The function 'getCustomInitScriptKeyCascade' in 'pkg/blockcontroller/blockcontroller.go' implements shell-specific logic using a series of if-statements. This is a classic case for a map-based lookup (e.g., map[string][]string) which would reduce code duplication and make it easier to add new shells. The current structure is repetitive and violates the DRY principle.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>right</side>
+<from>253</from>
+<to>284</to>
+<note>The resolveEnvMap function creates a new map `rtn` and populates it. If this is called frequently in a hot path (e.g., every command execution), the repeated map allocation and population can be optimized. Consider reusing a map if the environment doesn't change often, or ensuring the map capacity is set appropriately if the size is known.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wshrpc/wshserver/wshserver.go</path>
+<side>right</side>
+<from>654</from>
+<to>654</to>
+<note>In 'pkg/wshrpc/wshserver/wshserver.go', the 'ConnDisconnectCommand' function calls 'conncontroller.GetConn' without a context. This removes the ability to cancel or timeout the connection retrieval, which is a regression in error handling and resource management.</note>
+</notesplit>

@@ -1,0 +1,20 @@
+<notesplit>
+<path>crates/uv/tests/it/pip_install.rs</path>
+<side>right</side>
+<from>487</from>
+<to>487</to>
+<note>**[Code Defect]** The test `install_remote_requirements_txt` asserts `context.assert_command("import flask").success();` after installing `iniconfig`. Since `iniconfig` does not provide the `flask` module, this assertion will fail, causing the test to crash even if the installation itself succeeded.
+
+**[Security Vulnerability]** The test `install_remote_requirements_txt` calls `context.assert_command("import flask").success();` after installing `iniconfig`. This assertion is logically incorrect as `iniconfig` does not provide the `flask` module. While this is a test file, incorrect assertions can mask failures in security-critical dependency resolution or environment isolation logic.
+
+**[Maintainability and Readability]** The test `install_remote_requirements_txt` calls `context.assert_command("import flask").success();` after installing `iniconfig`. This assertion is misleading because `flask` was installed in a previous step, but it is not relevant to the `iniconfig` installation being tested here.</note>
+</notesplit>
+<notesplit>
+<path>crates/uv/tests/it/pip_install.rs</path>
+<side>right</side>
+<from>580</from>
+<to>599</to>
+<note>**[Performance]** The function start_requirements_server creates a new MockServer instance on every call. In a test suite, this leads to unnecessary overhead of spawning and tearing down network listeners. Since this is used in a test loop, it should ideally reuse the server instance or be optimized to avoid repeated socket binding.
+
+**[Maintainability and Readability]** The `start_requirements_server` function creates a new `MockServer` instance every time it is called, but the server is not explicitly shut down or managed by the test lifecycle. This can lead to resource leaks or port conflicts if many tests are run in parallel.</note>
+</notesplit>

@@ -1,0 +1,94 @@
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>173</from>
+<to>173</to>
+<note>**[Code Defect]** Off-by-one error in loop condition causes out-of-bounds access. The loop `for ( let i = 1; i <= points.length; i ++ )` iterates one time too many. When `i` equals `points.length`, `currentIndex` becomes 0, but `prevPos` is still the last element from the previous iteration (or undefined if length is 1), leading to incorrect comparison or accessing `points[0]` when it should have stopped. The condition should be `i < points.length`.
+
+**[Security Vulnerability]** Infinite Loop Risk: The loop condition is `i <= points.length`. Inside the loop, if `points.splice()` is called, the array length decreases. However, `i` is decremented. If the array becomes empty or very small, the index calculation `i % points.length` could behave unexpectedly or cause an infinite loop if not carefully managed, especially if `points.length` becomes 0. Modifying array length while iterating with a fixed upper bound is dangerous.
+
+**[Maintainability and Readability]** The loop condition `i <= points.length` combined with `i % points.length` creates an iteration where `i` equals `points.length`, resulting in `currentIndex` being 0. This causes the loop to process the first element again as the 'current' element after the last one, which is likely unintended or confusing logic for merging adjacent points. It should likely be `i < points.length`.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>175</from>
+<to>175</to>
+<note>**[Code Defect]** Incorrect index calculation after splice. When an element is spliced at `currentIndex`, the loop index `i` is decremented. However, `currentIndex` is calculated as `i % points.length`. Since `points.length` changes after splice, and `i` is decremented, the next iteration might calculate a wrong `currentIndex` if `i` was already at the end of the array before splice. More critically, if `i` is decremented, the next iteration processes the element that shifted into that position, but `currentIndex` is recalculated based on the new `i`. This logic is fragile and likely incorrect for a simple adjacent merge.
+
+Circular comparison logic is incorrect. The use of `i % points.length` implies a circular buffer or wrapping comparison, which is not the intended behavior for merging adjacent points in a shape contour. This causes the last point to be compared with the first point, which is not adjacent in the linear array sense used by `splice`. This leads to incorrect merging of non-adjacent points.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>173</from>
+<to>175</to>
+<note>The loop condition `i <= points.length` combined with `points.splice(currentIndex, 1)` inside the loop causes an out-of-bounds access and incorrect iteration. When `i` equals `points.length`, `currentIndex` is 0. If the array has been spliced, accessing `points[0]` is valid, but the logic `i--` and `continue` creates an infinite loop or skips elements incorrectly. More critically, `splice` is O(n), making this algorithm O(n²) worst-case. For large geometries, this is a significant bottleneck.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>187</from>
+<to>187</to>
+<note>Typo in variable name: `thesholdSqScaled` should be `thresholdSqScaled`. This typo makes the code harder to read and maintain as it deviates from standard spelling conventions.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>172</from>
+<to>172</to>
+<note>**[Security Vulnerability]** Potential Out-of-Bounds Access: The loop starts with i=1, but if points.length is 0, points[0] is undefined. Accessing .x and .y on undefined will throw a TypeError. While this is a crash (DoS), it's not a security exploit in the traditional sense, but it indicates a lack of input validation for empty arrays.
+
+**[Code Defect]** Potential crash on empty array. If `points` is empty, `points[0]` is undefined. Accessing `prevPos.x` and `prevPos.y` will throw a TypeError. The function should handle empty or single-element arrays gracefully.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>181</from>
+<to>186</to>
+<note>**[Maintainability and Readability]** The variable `scalingFactorSqrt` is misleadingly named. It is used to scale a squared threshold, effectively acting as a scaling factor for the squared distance, not its square root. The name suggests it is a square root, but it is used in a squared context (`* scalingFactorSqrt * scalingFactorSqrt`). A more accurate name would be `scalingFactor`.
+
+**[Performance]** The `scalingFactorSqrt` calculation calls `Math.max` and `Math.abs` four times per iteration. While not O(n²), this is redundant computation inside a tight loop. It can be optimized by caching the max absolute value or simplifying the logic.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>163</from>
+<to>166</to>
+<note>The JSDoc comment for `mergeOverlappingPoints` is malformed. The closing tag `*/` is on a separate line from the opening `*`, and the `@param` tag is not on a new line starting with `*`. This makes the documentation invalid and unreadable by documentation generators.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>190</from>
+<to>190</to>
+<note>Using `Array.splice` inside a loop to remove elements is O(n) per operation. In the worst case (removing every other element), this results in O(n²) complexity. For large point sets in geometry processing, this can cause significant lag.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>168</from>
+<to>200</to>
+<note>The mergeOverlappingPoints function modifies the input array in-place using splice(). This mutates the original 'vertices' and 'holes' arrays passed by the caller. If these arrays are reused elsewhere or expected to remain immutable, this side effect can cause data corruption or unexpected behavior in subsequent geometry operations. This is a logic flaw that could lead to incorrect geometry rendering or crashes.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>416</from>
+<to>416</to>
+<note>The variable `t` is used in the condition `if ( t == 0 )` but is not defined in the visible scope of the diff. It is likely defined in an outer loop. However, relying on an outer scope variable `t` for logic inside this nested loop can be confusing. It should be clear where `t` comes from.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>432</from>
+<to>432</to>
+<note>The variable `t` is used in the condition `if ( t == 0 )` but is not defined in the visible scope of the diff. It is likely defined in an outer loop. Relying on an outer scope variable `t` for logic inside this nested loop can be confusing.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>436</from>
+<to>436</to>
+<note>The variable `t` is used in the condition `if ( t == 0 )` but is not defined in the visible scope of the diff. It is likely defined in an outer loop. Relying on an outer scope variable `t` for logic inside this nested loop can be confusing.</note>
+</notesplit>

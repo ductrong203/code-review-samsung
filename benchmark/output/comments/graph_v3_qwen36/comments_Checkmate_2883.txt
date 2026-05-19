@@ -1,0 +1,86 @@
+<notesplit>
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>right</side>
+<from>160</from>
+<to>160</to>
+<note>**[Security Vulnerability]** Regular Expression Denial of Service (ReDoS) and Command Injection via unsanitized user input in regex. The code uses `new RegExp(expectedValue).test(payload)` where `expectedValue` comes from the monitor configuration (user-controlled). If an attacker provides a crafted string with backtracking (e.g., `(a+)+b`), it can cause ReDoS. Additionally, if `payload` is later used in shell commands or if the regex is used in a context where injection is possible, this is dangerous. At minimum, ReDoS is a critical availability risk.
+
+**[Performance]** A new `RegExp` object is compiled on every call to `requestHttp` when `matchMethod === 'regex'`. If this function is called frequently (e.g., in a monitoring loop), this creates significant CPU overhead and garbage. The regex should be compiled once outside the function or cached.</note>
+</notesplit>
+<notesplit>
+<path>client/src/Components/Table/index.jsx</path>
+<side>right</side>
+<from>116</from>
+<to>134</to>
+<note>The Tooltip configuration contains deeply nested inline objects (slotProps -> tooltip/popper -> modifiers -> offset). This complex styling logic is hardcoded directly in the component, making it hard to maintain or reuse. It should be extracted to a separate constant or style object to improve readability and separation of concerns.</note>
+</notesplit>
+<notesplit>
+<path>server/src/db/mongo/migration/0001_migrateStatusWindowThreshold.js</path>
+<side>right</side>
+<from>5</from>
+<to>9</to>
+<note>The migration script fetches all monitors with `statusWindowThreshold < 1` and then saves them one by one in a loop (`await monitor.save()`). This is an N+1 query pattern where N is the number of matching monitors. For large datasets, this will be extremely slow and put unnecessary load on the database. It should use a bulk update operation.</note>
+</notesplit>
+<notesplit>
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>right</side>
+<from>279</from>
+<to>279</to>
+<note>Insecure Container Matching Logic (IDOR/Privilege Escalation). The code matches Docker containers by `Id` or `Name`. If a user controls the `monitor.url` field, they can potentially monitor any container on the host if they guess or know the ID/Name. The partial ID match (`startsWith`) is particularly dangerous as it allows monitoring containers whose IDs start with the provided string. This could lead to information disclosure or denial of service against other containers.</note>
+</notesplit>
+<notesplit>
+<path>client/src/Pages/Incidents/Components/IncidentTable/index.jsx</path>
+<side>right</side>
+<from>27</from>
+<to>85</to>
+<note>The `GetTooltip` function in `IncidentTable/index.jsx` is too long (approx 60 lines) and contains complex rendering logic including nested tables and typography. This violates the Single Responsibility Principle and makes the component hard to read. It should be extracted into a dedicated `IncidentTooltip` component.</note>
+</notesplit>
+<notesplit>
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>right</side>
+<from>1</from>
+<to>1</to>
+<note>The `match` function is imported from the `assert` module but is never used in the code. This is dead code that should be removed to clean up imports and avoid confusion.</note>
+</notesplit>
+<notesplit>
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>right</side>
+<from>263</from>
+<to>279</to>
+<note>In `networkService.js`, the `requestDocker` function uses multiple sequential `find` calls to check for container matches (exact ID, exact name, partial ID). This is inefficient and hard to read. It should be refactored into a single pass or a clearer priority-based matching function to improve performance and readability.</note>
+</notesplit>
+<notesplit>
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>right</side>
+<from>270</from>
+<to>285</to>
+<note>The code iterates through `containers` multiple times (3 separate `find` calls) to check for exact ID, exact name, and partial ID matches. This is O(3n) which is technically O(n), but it can be optimized to a single pass O(n) by checking all conditions in one loop. For large numbers of containers, this reduces iteration overhead.</note>
+</notesplit>
+<notesplit>
+<path>client/src/Components/Table/index.jsx</path>
+<side>right</side>
+<from>109</from>
+<to>110</to>
+<note>The Tooltip component is configured with `enterDelay={500}` and `enterNextDelay={500}`. This introduces a significant artificial latency for every row hover interaction. In a table with many rows, this degrades perceived responsiveness and increases the time the browser spends managing tooltip state transitions.</note>
+</notesplit>
+<notesplit>
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>right</side>
+<from>305</from>
+<to>311</to>
+<note>In `networkService.js`, the `matchTypes` array is used to log ambiguous matches, but the logic for determining which match type to use in the log message (`exactIdMatch ? "exact ID" : exactNameMatch ? "exact name" : "partial ID"`) is duplicated from the priority selection logic. This duplication increases the risk of inconsistency if the priority order changes.</note>
+</notesplit>
+<notesplit>
+<path>client/src/Validation/validation.js</path>
+<side>right</side>
+<from>132</from>
+<to>134</to>
+<note>Weak Input Validation for Docker Container ID/Name. The regex `/^(/+)?([a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]|[a-zA-Z0-9]+|[a-f0-9]{12,64})$/` allows for very short IDs (1 char) and names that might be too generic. While not directly exploitable, it reduces the effectiveness of input validation. More importantly, it allows leading slashes which might be used in path traversal if the value is later used in file paths (though Docker API usually handles this, it's a bad practice).</note>
+</notesplit>
+<notesplit>
+<path>client/src/Components/Table/index.jsx</path>
+<side>right</side>
+<from>116</from>
+<to>134</to>
+<note>The `slotProps` object containing `modifiers` and `offset` calculation is recreated on every render of every row. The `offset` function calculates `popper.width / 2 + 20` and `-popper.height / 8` dynamically. While the calculation is cheap, creating new objects and functions in a loop over `data.map` is unnecessary allocation. This should be hoisted outside the map or memoized.</note>
+</notesplit>

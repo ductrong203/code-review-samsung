@@ -1,0 +1,14 @@
+<notesplit>
+<path>modules/imgcodecs/test/test_png.cpp</path>
+<side>right</side>
+<from>135</from>
+<to>135</to>
+<note>The test modifies the PNG chunk type field directly in the buffer. However, PNG chunks include a 4-byte CRC at the end of the chunk. By modifying the chunk type bytes without updating the CRC, the resulting buffer is technically a malformed PNG. While the decoder might fail early due to the IHDR check, relying on corrupted data structures in tests can lead to unpredictable behavior if the decoder logic changes to validate CRCs before checking chunk types.</note>
+</notesplit>
+<notesplit>
+<path>modules/imgcodecs/test/test_png.cpp</path>
+<side>right</side>
+<from>127</from>
+<to>130</to>
+<note>The test uses magic numbers (8+4+0, 8+4+1, etc.) to access specific bytes in the PNG buffer. This is fragile and hard to read. Define constants for the PNG signature length and chunk header structure to improve maintainability.</note>
+</notesplit>

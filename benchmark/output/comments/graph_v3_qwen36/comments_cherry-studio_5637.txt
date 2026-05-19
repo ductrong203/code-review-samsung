@@ -1,0 +1,51 @@
+<notesplit>
+<path>src/renderer/src/providers/AiProvider/OpenAICompatibleProvider.ts</path>
+<side>right</side>
+<from>476</from>
+<to>479</to>
+<note>**[Maintainability and Readability]** The getAppropriateTag function in OpenAICompatibleProvider.ts is a 'God function' for a simple task. It contains a hardcoded list of reasoning tags and a switch-case-like logic that always returns the first tag for qwen3 and the first tag for everything else. This is dead code for the 'else' branch and makes the logic opaque. It should be simplified to a direct mapping or a single constant if only one tag is effectively used.
+
+**[Performance]** getAppropriateTag is called once per stream, but the logic always returns reasoningTags[0] except for qwen3. This is a minor inefficiency as the array lookup and conditional check could be simplified, but the impact is negligible since it's called once per request.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/utils/getPotentialIndex.ts</path>
+<side>right</side>
+<from>21</from>
+<to>26</to>
+<note>The loop in getPotentialIndex performs substring creation and string comparison in every iteration. For large buffers (common in streaming text processing), this creates O(n) garbage per call and O(n²) complexity overall. This function is called repeatedly in the hot path of stream processing.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/middlewares/extractReasoningMiddleware.ts</path>
+<side>right</side>
+<from>49</from>
+<to>116</to>
+<note>The wrapStream method in extractReasoningMiddleware.ts is too long (>50 lines) and complex. It contains nested loops, state mutations, and multiple conditional branches. This violates the Single Responsibility Principle. It should be broken down into smaller, testable helper functions. The current structure makes it difficult to understand the stream processing logic and prone to bugs.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/providers/AiProvider/OpenAICompatibleProvider.ts</path>
+<side>right</side>
+<from>468</from>
+<to>474</to>
+<note>The reasoningTags array in OpenAICompatibleProvider.ts is defined inline within the processStream function. This creates a new array on every call, which is inefficient. It should be moved to a constant outside the function. Additionally, the array contains objects with 'openingTag' and 'closingTag' which are hardcoded strings, making the structure overly complex for simple tag pairs.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/middlewares/extractReasoningMiddleware.ts</path>
+<side>right</side>
+<from>76</from>
+<to>83</to>
+<note>The publish function creates new objects and strings on every chunk. In a high-throughput stream, this generates significant GC pressure. The prefix concatenation and object spread happen for every single chunk.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/middlewares/extractReasoningMiddleware.ts</path>
+<side>right</side>
+<from>76</from>
+<to>91</to>
+<note>The publish function in extractReasoningMiddleware.ts is defined inside the transform method, capturing variables from the outer scope (afterSwitch, isReasoning, isFirstReasoning, isFirstText, separator, controller, chunk). This creates a closure that is hard to test and understand. It should be extracted or the logic inlined with clearer variable names. The function also mutates state (afterSwitch, isFirstReasoning, isFirstText) which makes the flow harder to follow.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/providers/AiProvider/OpenAICompatibleProvider.ts</path>
+<side>right</side>
+<from>402</from>
+<to>403</to>
+<note>The console.debug statements for reqMessages have been removed in OpenAICompatibleProvider.ts. While this reduces log noise, it removes useful debugging information for troubleshooting message processing issues. Consider keeping these logs but with a lower log level or conditional on a debug flag.</note>
+</notesplit>

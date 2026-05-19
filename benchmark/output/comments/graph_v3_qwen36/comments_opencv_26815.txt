@@ -1,0 +1,84 @@
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>224</from>
+<to>224</to>
+<note>Buffer overflow vulnerability: The replacement snprintf calls use sizeof(buf) as the size limit, which allows the null terminator to be written outside the buffer if the formatted string exactly fills the buffer. The original code used sizeof(buf)-1, reserving space for the null terminator. This change reintroduces the risk of a one-byte buffer overflow.</note>
+</notesplit>
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>229</from>
+<to>229</to>
+<note>Buffer overflow vulnerability: The replacement snprintf call uses sizeof(buf) as the size limit, which allows the null terminator to be written outside the buffer if the formatted string exactly fills the buffer. The original code used sizeof(buf)-1, reserving space for the null terminator.</note>
+</notesplit>
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>234</from>
+<to>234</to>
+<note>Buffer overflow vulnerability: The replacement snprintf call uses sizeof(buf) as the size limit, which allows the null terminator to be written outside the buffer if the formatted string exactly fills the buffer. The original code used sizeof(buf)-1, reserving space for the null terminator.</note>
+</notesplit>
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>223</from>
+<to>223</to>
+<note>The code uses `strlen(buf)` immediately after `snprintf` to determine the length of the written string. While `snprintf` is safer than `sprintf`, relying on `strlen` here is redundant and slightly less efficient than using the return value of `snprintf` directly, which indicates the number of characters that would have been written. This is a minor readability/efficiency issue.</note>
+</notesplit>
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>224</from>
+<to>224</to>
+<note>The code replaces sprintf_s with snprintf. This is a good security practice. However, the buffer size is sizeof(buf). If 'buf' is small, truncation can occur. The original code used sprintf_s with sizeof(buf)-1, which also prevents overflow but might leave the last byte uninitialized if not handled correctly. The new code uses sizeof(buf) which is correct for snprintf. The risk is low as these are display strings, but ensuring 'buf' is large enough is important.</note>
+</notesplit>
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>227</from>
+<to>227</to>
+<note>Similar to the previous issue, `strlen(buf)` is used after `snprintf`. This is redundant and less efficient than using the return value of `snprintf`.</note>
+</notesplit>
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>228</from>
+<to>228</to>
+<note>Similar to the previous issue, sprintf_s is replaced with snprintf. This is a good security practice. The buffer size is sizeof(buf). Truncation can occur if the output string is too long. The original code used sizeof(buf)-1. The new code uses sizeof(buf) which is correct for snprintf. The risk is low as these are display strings.</note>
+</notesplit>
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>231</from>
+<to>231</to>
+<note>Similar to previous issues, `strlen(buf)` is used after `snprintf`. This is redundant and less efficient than using the return value of `snprintf`.</note>
+</notesplit>
+<notesplit>
+<path>samples/opengl/opengl_interop.cpp</path>
+<side>right</side>
+<from>232</from>
+<to>232</to>
+<note>Similar to the previous issues, sprintf_s is replaced with snprintf. This is a good security practice. The buffer size is sizeof(buf). Truncation can occur if the output string is too long. The original code used sizeof(buf)-1. The new code uses sizeof(buf) which is correct for snprintf. The risk is low as these are display strings.</note>
+</notesplit>
+<notesplit>
+<path>samples/cpp/tutorial_code/objectDetection/aruco_samples_utility.hpp</path>
+<side>right</side>
+<from>35</from>
+<to>35</to>
+<note>The code replaces sprintf with snprintf, which is a good security practice to prevent buffer overflows. However, the buffer size passed to snprintf is sizeof(buf). Without seeing the declaration of 'buf', we must assume it is a fixed-size buffer. If 'buf' is small and the concatenated flags string exceeds it, snprintf will truncate the output. While truncation is safer than overflow, it might lead to incomplete logging or display information. More importantly, if 'buf' is not declared with a sufficient size, this is still a potential issue. The fix is correct in principle (using snprintf), but the safety depends on the buffer declaration which is not visible here. Assuming 'buf' is adequately sized, this is a good fix.</note>
+</notesplit>
+<notesplit>
+<path>samples/cpp/tutorial_code/ImgTrans/HoughLines_Demo.cpp</path>
+<side>right</side>
+<from>72</from>
+<to>72</to>
+<note>The original code used sprintf with a fixed-size buffer (50 bytes) for a static string. While the replacement with a const char* is safer and eliminates the buffer overflow risk, the original code was not exploitable because the format string and arguments were hardcoded literals with no user input. This is a code quality improvement rather than a security fix for an active vulnerability.</note>
+</notesplit>
+<notesplit>
+<path>samples/cpp/tutorial_code/ImgTrans/HoughLines_Demo.cpp</path>
+<side>right</side>
+<from>74</from>
+<to>74</to>
+<note>The variable name 'edge_thresh_label' is misleading. It is assigned a static string literal 'Edge Thres: input' and used as a window/trackbar name, not as a label for an edge threshold value. A more descriptive name like 'window_title' or 'trackbar_name' would improve readability.</note>
+</notesplit>

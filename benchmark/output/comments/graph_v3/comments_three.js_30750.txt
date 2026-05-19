@@ -1,0 +1,42 @@
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>173</from>
+<to>173</to>
+<note>The loop condition 'i <= points.length' causes an out-of-bounds access on the final iteration when 'i' equals 'points.length'. The modulo operator 'i % points.length' will return 0, but the loop should terminate at 'points.length - 1' to avoid redundant processing and potential logic errors.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>188</from>
+<to>194</to>
+<note>The mergeOverlappingPoints function uses Array.prototype.splice inside a loop. Splice is an O(n) operation, making the overall complexity of this function O(n²) in the worst case. For large geometry shapes, this will cause significant performance degradation. It is more efficient to filter the array or build a new one in O(n) time.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>435</from>
+<to>435</to>
+<note>The variable 'bs' is used in the loop at line 372 (before it is defined) and again at line 435. In the original code, 'bs' was defined earlier. Moving the definition to line 435 breaks the logic for the bevel calculations performed in the preceding loop.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>170</from>
+<to>170</to>
+<note>The variable 'THRESHOLD' is defined as a magic number inside the function. It should be defined as a constant at the module level or passed as a parameter to improve maintainability and allow for future tuning without modifying the function logic.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>187</from>
+<to>187</to>
+<note>The variable name 'thesholdSqScaled' contains a typo ('theshold' instead of 'threshold'). Correcting this improves code readability and searchability.</note>
+</notesplit>
+<notesplit>
+<path>src/geometries/ExtrudeGeometry.js</path>
+<side>right</side>
+<from>165</from>
+<to>167</to>
+<note>The JSDoc comment for 'mergeOverlappingPoints' is missing a description of the return value (which is void) and lacks a parameter type definition for the array elements beyond the generic Array<Vector2>.</note>
+</notesplit>

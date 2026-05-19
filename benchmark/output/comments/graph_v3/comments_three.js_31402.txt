@@ -1,0 +1,53 @@
+<notesplit>
+<path>src/renderers/webgpu/nodes/WGSLNodeBuilder.js</path>
+<side>right</side>
+<from>2135</from>
+<to>2137</to>
+<note>**[Code Defect]** The calculation of instanceIndex is incorrect. The original logic used the workgroup size as a scalar, but the new logic attempts to use 2D/3D workgroup dimensions. The formula for mapping 3D global IDs to a 1D instance index must account for the total workgroup dimensions (workgroupSize * numWorkgroups) to correctly linearize the index.
+
+**[Maintainability and Readability]** The calculation of instanceIndex is hard to read due to the manual multiplication logic. It should be documented or simplified to clarify how the 1D index maps to 3D workgroup dimensions.
+
+**[Performance]** The instanceIndex calculation in the generated WGSL shader performs redundant multiplications of workgroup dimensions (numWorkgroups.x * workgroupSizeX) every time the shader runs. These values are constant for the duration of the compute pass and should be passed as uniform constants or specialized constants to avoid per-thread arithmetic overhead.</note>
+</notesplit>
+<notesplit>
+<path>src/renderers/webgpu/WebGPUBackend.js</path>
+<side>right</side>
+<from>1369</from>
+<to>1370</to>
+<note>The dispatchSize calculation logic is executed every frame inside the compute call. While it is cached, the current implementation re-calculates the workgroup size product (size = workgroupSize[0] * workgroupSize[1] * workgroupSize[2]) every time the count changes. This should be pre-calculated once during ComputeNode initialization.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/gpgpu/ComputeNode.js</path>
+<side>right</side>
+<from>216</from>
+<to>230</to>
+<note>The validation logic in computeKernel uses console.error but continues execution. This allows invalid state to propagate into the ComputeNode constructor, potentially causing harder-to-debug errors later. It should either throw an error or return a safe default.</note>
+</notesplit>
+<notesplit>
+<path>src/renderers/webgpu/WebGPUBackend.js</path>
+<side>right</side>
+<from>1346</from>
+<to>1360</to>
+<note>The logic for calculating dispatchSize is complex and deeply nested within the compute method. This violates the Single Responsibility Principle. It should be extracted into a private helper method within WebGPUBackend to improve readability and testability.</note>
+</notesplit>
+<notesplit>
+<path>src/renderers/webgpu/WebGPUBackend.js</path>
+<side>right</side>
+<from>1395</from>
+<to>1395</to>
+<note>The code assumes that if dispatchSizeOrCount is not a number, it is an array of dispatch sizes. However, it does not validate that the array has 3 elements or contains valid numbers, which could lead to runtime errors in passEncoderGPU.dispatchWorkgroups.</note>
+</notesplit>
+<notesplit>
+<path>src/renderers/webgpu/WebGPUBackend.js</path>
+<side>right</side>
+<from>1403</from>
+<to>1404</to>
+<note>The code assumes that dispatchSize[1] and dispatchSize[2] are always present or valid numbers. If an attacker provides a malformed array (e.g., [10, undefined, undefined]), the fallback logic might lead to unexpected GPU dispatch behavior or runtime errors in the WebGPU API.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/gpgpu/ComputeNode.js</path>
+<side>right</side>
+<from>218</from>
+<to>218</to>
+<note>The validation logic in computeKernel logs an error to the console but does not throw an exception or halt execution. This allows the application to continue with an invalid workgroupSize, potentially leading to undefined behavior in the GPU pipeline.</note>
+</notesplit>

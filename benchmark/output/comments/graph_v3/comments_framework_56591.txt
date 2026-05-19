@@ -1,0 +1,9 @@
+<notesplit>
+<path>src/Illuminate/Database/Console/Migrations/MigrateMakeCommand.php</path>
+<side>right</side>
+<from>115</from>
+<to>117</to>
+<note>**[Code Defect]** The manual replacement of '/' with '\' using str_replace is fragile. If the path already contains backslashes or mixed separators, this approach may result in double backslashes or incorrect path formatting. It is safer to use PHP's built-in DIRECTORY_SEPARATOR constant or a path normalization utility.
+
+**[Maintainability and Readability]** The logic for normalizing path separators is duplicated from GeneratorCommand.php. To improve maintainability and follow DRY principles, this logic should be abstracted into a shared helper or trait, especially since other 'make' commands already perform this normalization.</note>
+</notesplit>

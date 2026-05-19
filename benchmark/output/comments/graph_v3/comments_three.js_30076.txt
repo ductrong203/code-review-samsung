@@ -1,0 +1,42 @@
+<notesplit>
+<path>src/nodes/utils/RemapNode.js</path>
+<side>right</side>
+<from>24</from>
+<to>24</to>
+<note>The JSDoc parameter name 'inLowNode' is duplicated for the second parameter, which should be 'inHighNode'. This causes incorrect documentation and potential linting errors.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/Node.js</path>
+<side>right</side>
+<from>128</from>
+<to>128</to>
+<note>The JSDoc @param tag for 'value' is redundant and potentially confusing because 'needsUpdate' is a setter property, not a function parameter. This misleads documentation generators and developers.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/utils/StorageArrayElementNode.js</path>
+<side>right</side>
+<from>47</from>
+<to>47</to>
+<note>The @param tag for 'value' is redundant and misleading for a setter property. It describes the setter's input, but JSDoc for setters should focus on the property type, not a parameter name.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/Node.js</path>
+<side>right</side>
+<from>535</from>
+<to>535</to>
+<note>The @abstract tag is placed inside the method documentation, but the method is not actually abstract (it has an implementation). This is misleading for developers expecting an interface-only method.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/Node.js</path>
+<side>right</side>
+<from>548</from>
+<to>548</to>
+<note>The @abstract tag is placed inside the method documentation, but the method is not actually abstract (it has an implementation). This is misleading for developers expecting an interface-only method.</note>
+</notesplit>
+<notesplit>
+<path>src/nodes/core/Node.js</path>
+<side>right</side>
+<from>561</from>
+<to>561</to>
+<note>The @abstract tag is placed inside the method documentation, but the method is not actually abstract (it has an implementation). This is misleading for developers expecting an interface-only method.</note>
+</notesplit>

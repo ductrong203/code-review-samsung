@@ -6,7 +6,6 @@ Provides common abstractions and utilities for LLM/Embedding semantic matching.
 from abc import ABC
 from typing import Dict, Any
 from pathlib import Path
-from openai import AsyncOpenAI
 from dotenv import load_dotenv
 
 # Load .env from benchmark directory
@@ -82,6 +81,8 @@ class BaseSemanticMatcher(ABC):
     """Abstract base class for semantic matchers"""
 
     def __init__(self, base_url: str, api_key: str, model: str):
+        from openai import AsyncOpenAI
+
         self.client = AsyncOpenAI(base_url=base_url, api_key=api_key)
         self.model = model
 

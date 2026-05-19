@@ -1,0 +1,36 @@
+{
+  "run_name": "graph_v3_qwen36",
+  "repo": "bluewave-labs/Checkmate",
+  "dataset_path": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\dataset\\positive_samples.json",
+  "extension_base": "http://localhost:8100/api",
+  "backend_url": "",
+  "started_at": "2026-05-19T14:10:48",
+  "comments_output_dir": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36",
+  "results": [
+    {
+      "pr_url": "https://github.com/bluewave-labs/Checkmate/pull/1897",
+      "pr_id": "Checkmate_1897",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_Checkmate_1897.txt"
+    },
+    {
+      "pr_url": "https://github.com/bluewave-labs/Checkmate/pull/2883",
+      "pr_id": "Checkmate_2883",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_Checkmate_2883.txt"
+    }
+  ],
+  "initial_graph_status": {
+    "repo": "bluewave-labs/Checkmate",
+    "registered": true,
+    "local_path": "E:\\My_Project\\samsung\\Checkmate",
+    "main_graph_ready": true
+  },
+  "finished_at": "2026-05-19T14:10:50",
+  "summary": {
+    "selected": 2,
+    "success": 0,
+    "skipped": 2,
+    "errors": 0
+  }
+}

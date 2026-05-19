@@ -1,0 +1,51 @@
+<notesplit>
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>right</side>
+<from>160</from>
+<to>160</to>
+<note>**[Security Vulnerability]** The use of 'new RegExp(expectedValue)' with user-supplied input allows for ReDoS (Regular Expression Denial of Service) attacks. An attacker can provide a crafted regex that causes catastrophic backtracking, consuming CPU resources and potentially crashing the server.
+
+**[Code Defect]** The regex match method uses 'new RegExp(expectedValue).test(payload)'. If 'expectedValue' contains special regex characters (like '.', '*', '+'), it will be treated as a pattern rather than a literal string, leading to unexpected match results.</note>
+</notesplit>
+<notesplit>
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>right</side>
+<from>156</from>
+<to>169</to>
+<note>The logic for checking expected values is manually implemented with multiple if-statements. This is error-prone and hard to extend. Use a strategy pattern or a dedicated validation utility to handle different match methods.</note>
+</notesplit>
+<notesplit>
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>right</side>
+<from>312</from>
+<to>312</to>
+<note>The code assigns a value to 'dockerResponse.status' twice, overwriting the intended boolean value with the integer 404. This will cause the status check to fail incorrectly in the UI.</note>
+</notesplit>
+<notesplit>
+<path>server/src/db/mongo/migration/0001_migrateStatusWindowThreshold.js</path>
+<side>right</side>
+<from>5</from>
+<to>9</to>
+<note>The migration performs a sequential 'await monitor.save()' inside a loop. This causes an N+1 network round-trip issue to the database, which will be extremely slow for large datasets. Use 'bulkWrite' to perform updates in a single batch operation.</note>
+</notesplit>
+<notesplit>
+<path>server/src/service/infrastructure/networkService.js</path>
+<side>right</side>
+<from>268</from>
+<to>282</to>
+<note>The container matching logic is complex and contains duplicated error handling and logging. The logic for finding the container should be extracted into a helper function to improve readability.</note>
+</notesplit>
+<notesplit>
+<path>client/src/Components/Table/index.jsx</path>
+<side>right</side>
+<from>103</from>
+<to>103</to>
+<note>Using 'Math.random()' as a key in a list mapping is a performance anti-pattern in React. It forces the component to re-render the entire list on every update because the keys are never stable, preventing React from efficiently reconciling the DOM.</note>
+</notesplit>
+<notesplit>
+<path>client/src/Components/Table/index.jsx</path>
+<side>right</side>
+<from>103</from>
+<to>155</to>
+<note>The Tooltip implementation inside the map function is overly complex, mixing UI logic with positioning calculations. This makes the Table component harder to maintain. Consider extracting the Tooltip logic into a separate component.</note>
+</notesplit>

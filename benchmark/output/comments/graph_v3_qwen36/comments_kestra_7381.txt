@@ -1,0 +1,85 @@
+<notesplit>
+<path>core/src/main/java/io/kestra/core/models/tasks/runners/TaskRunner.java</path>
+<side>right</side>
+<from>135</from>
+<to>140</to>
+<note>**[Maintainability and Readability]** In TaskRunner.java, the renderCommands method creates three separate lists (renderedInterpreter, renderedBeforeCommands, renderedCommands) and then flattens them. This creates unnecessary intermediate objects and memory overhead. It should use a single stream pipeline or a builder to avoid creating multiple list instances.
+
+**[Security Vulnerability]** The renderCommands method concatenates interpreter, beforeCommands, and commands into a single list without sanitization. If any of these properties contain user-controlled input (e.g., from a flow template), an attacker could inject shell metacharacters or command arguments. Since these are passed directly to process builders (Process.java, Docker.java), this enables Command Injection (A03).</note>
+</notesplit>
+<notesplit>
+<path>script/src/main/java/io/kestra/plugin/scripts/exec/scripts/runners/CommandsWrapper.java</path>
+<side>right</side>
+<from>169</from>
+<to>179</to>
+<note>**[Code Defect]** The run method calls this.renderCommands(runContext, commands), renderCommands(runContext, beforeCommands), and renderCommands(runContext, interpreter) without null checks. Since these are now Property<List<String>> which can be null, calling renderCommands with null will cause NullPointerException in the renderCommands method when it tries to process the Property.
+
+**[Security Vulnerability]** The renderCommands method in CommandsWrapper processes user-controlled input through ScriptService.replaceInternalStorage without proper sanitization. This method is called with interpreter, beforeCommands, and commands properties that may contain user-supplied values. If these contain malicious shell commands, they will be executed directly, leading to Command Injection (A03).
+
+**[Maintainability and Readability]** In CommandsWrapper.java, the run method renders interpreter, beforeCommands, and commands separately, then combines them. This logic is duplicated from TaskRunner.renderCommands. The method should delegate to TaskRunner.renderCommands to avoid code duplication and ensure consistency.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/models/tasks/runners/TaskRunner.java</path>
+<side>right</side>
+<from>134</from>
+<to>141</to>
+<note>The renderCommands method calls taskCommands.getCommands(), getBeforeCommands(), and getInterpreter() without null checks. Since these now return Property<List<String>> which can be null, calling .asList() or passing to replaceInternalStorage will cause a NullPointerException. The previous List<String> return types were likely non-null, but the new Property type allows null.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/models/tasks/runners/TaskRunner.java</path>
+<side>right</side>
+<from>143</from>
+<to>150</to>
+<note>The renderCommandsFromList method passes the commands Property directly to ScriptService.replaceInternalStorage without null checking. If commands is null, runContext.render(null) will throw NullPointerException. The ScriptService.replaceInternalStorage method does handle null by returning empty list, but runContext.render(null) does not.</note>
+</notesplit>
+<notesplit>
+<path>script/src/main/java/io/kestra/plugin/scripts/exec/scripts/runners/CommandsWrapper.java</path>
+<side>right</side>
+<from>268</from>
+<to>275</to>
+<note>The renderCommands method calls runContext.render(commands) without null checking. If commands is null, this will throw NullPointerException. The method signature changed from accepting List<String> (which was likely non-null) to Property<List<String>> (which can be null).</note>
+</notesplit>
+<notesplit>
+<path>script/src/main/java/io/kestra/plugin/scripts/runner/docker/Docker.java</path>
+<side>right</side>
+<from>783</from>
+<to>783</to>
+<note>The withCmd method receives rendered commands that may contain user-controlled input. Without sanitization, malicious commands can be passed to Docker container execution, enabling Command Injection (A03). The renderedCommands variable comes from renderCommands which processes user input through ScriptService.replaceInternalStorage.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/models/tasks/runners/ScriptService.java</path>
+<side>right</side>
+<from>97</from>
+<to>107</to>
+<note>**[Security Vulnerability]** The new replaceInternalStorage method accepts Property<List<String>> commands and processes them through runContext.render() without input validation. If the Property contains user-controlled data with injection payloads, they will be rendered and executed. This creates a Command Injection vulnerability (A03) as the rendered commands are used directly in process execution.
+
+**[Maintainability and Readability]** In ScriptService.java, the new replaceInternalStorage method with Property<List<String>> parameter is good, but the method name is long and could be abbreviated. Consider 'replaceInternalStorageForProperty' or similar to distinguish from the existing List<String> version.</note>
+</notesplit>
+<notesplit>
+<path>script/src/main/java/io/kestra/plugin/scripts/exec/scripts/runners/CommandsWrapper.java</path>
+<side>right</side>
+<from>268</from>
+<to>275</to>
+<note>In CommandsWrapper.java, the renderCommands method signature changed to accept Property<List<String>> but the implementation still calls ScriptService.replaceInternalStorage which expects the same. However, the method name 'renderCommands' is misleading as it doesn't render but rather replaces internal storage. Consider renaming to 'replaceInternalStorage' for clarity.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/models/tasks/runners/TaskRunner.java</path>
+<side>right</side>
+<from>135</from>
+<to>137</to>
+<note>The method `renderCommands` calls `renderCommandsFromList` three times sequentially for `commands`, `beforeCommands`, and `interpreter`. Each call invokes `ScriptService.replaceInternalStorage`, which performs variable rendering. If these properties share common variables or if the rendering context is expensive, this results in redundant computation. Consider batching or caching the rendering context if these properties are related.</note>
+</notesplit>
+<notesplit>
+<path>script/src/main/java/io/kestra/plugin/scripts/exec/scripts/runners/CommandsWrapper.java</path>
+<side>right</side>
+<from>169</from>
+<to>178</to>
+<note>The code renders `interpreter`, `beforeCommands`, and `commands` separately, then combines them. If `interpreter` and `beforeCommands` are empty or null, they still trigger rendering logic. Additionally, `ScriptService.scriptCommands` is called to combine them. This is a minor inefficiency as it processes potentially empty lists. More importantly, if `renderCommands` is called frequently, the repeated rendering of the same variables (if they are static) could be cached.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/models/tasks/runners/ScriptService.java</path>
+<side>right</side>
+<from>103</from>
+<to>106</to>
+<note>The new `replaceInternalStorage` method for `Property<List<String>>` uses `stream().map(...).toList()`. This creates a new list for every call. If this method is called in a hot path with large lists, consider if the result can be cached or if the stream can be optimized. However, for typical command lists, this is likely negligible.</note>
+</notesplit>

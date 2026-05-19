@@ -1,0 +1,49 @@
+<notesplit>
+<path>src/System.Management.Automation/engine/remoting/common/RunspaceConnectionInfo.cs</path>
+<side>right</side>
+<from>2240</from>
+<to>2241</to>
+<note>**[Code Defect]** The code uses `Path.PathSeparator` to split the PATH environment variable. In C#, `Path.PathSeparator` is semicolon (`;`) on Windows and colon (`:`) on Unix. However, the PATH environment variable always uses colon (`:`) as the separator on both platforms (Windows stores it as semicolon internally in the registry but the environment variable exposed to processes is typically handled by the shell, but `Environment.GetEnvironmentVariable("PATH")` on Windows returns a semicolon-separated string). Wait, actually `Environment.GetEnvironmentVariable("PATH")` on Windows returns a semicolon-separated string. So `Path.PathSeparator` is correct for Windows. On Unix, it returns a colon-separated string, and `Path.PathSeparator` is also colon. So this is actually correct. 
+
+However, there is a more subtle issue: `Path.IsPathFullyQualified` check. If a PATH entry is relative (which shouldn't happen for PATH, but theoretically), it skips. But the main issue is likely the `Path.Combine` behavior or the fact that `sshCommand` might not have an extension. On Windows, executables often have `.exe`. The `LookupCommandInfo` method handles extensions. This manual lookup does not. If `sshCommand` is just "ssh", `File.Exists("/usr/bin/ssh")` works on Unix, but on Windows `File.Exists("C:\Windows\ssh")` might fail if the actual file is `ssh.exe`. The original code used `LookupCommandInfo` which handles extensions. This manual check is likely to fail on Windows if the command doesn't include the extension or if the extension isn't in the PATH search.
+
+Actually, looking closer at `Environment.GetEnvironmentVariable("PATH")`: On Windows, the PATH variable in the environment is semicolon-separated. `Path.PathSeparator` is `;` on Windows. So the split is correct. The issue is likely that `sshCommand` might need extension handling.
+
+Let's look at `Path.IsPathFullyQualified`. If `path` is empty or null (handled by `RemoveEmptyEntries`), it's fine. 
+
+The real bug is likely that `sshCommand` is used directly. On Windows, you usually need the `.exe` extension for `File.Exists` to find it if it's not in the current directory or if PATHEXT isn't considered. `LookupCommandInfo` uses `CommandTypes.Application` and handles extensions. This manual check does not. This will cause `CommandNotFoundException` to be thrown incorrectly on Windows if the user provides "ssh" and the file is "ssh.exe".
+
+Fix: Append common extensions or use `IO.Path.ChangeExtension` checks.
+
+The code assumes `sshCommand` is a simple filename. If `sshCommand` contains directory separators (e.g., `./ssh` or `/usr/bin/ssh`), `Path.Combine` will ignore the path part and just use the filename, or behave unexpectedly. `LookupCommandInfo` handles this differently. The manual check should probably check if `sshCommand` is already a full path or relative path first.</note>
+</notesplit>
+<notesplit>
+<path>src/System.Management.Automation/engine/remoting/common/RunspaceConnectionInfo.cs</path>
+<side>right</side>
+<from>2251</from>
+<to>2255</to>
+<note>The error message passed to CommandNotFoundException is 'CommandNotFoundException', which is the exception type name, not a user-friendly or descriptive error message. This makes debugging difficult. It should be a descriptive string like 'SSH command not found in PATH'.</note>
+</notesplit>
+<notesplit>
+<path>src/System.Management.Automation/engine/remoting/common/RunspaceConnectionInfo.cs</path>
+<side>right</side>
+<from>2230</from>
+<to>2230</to>
+<note>**[Maintainability and Readability]** The variable name 'entries' is generic and does not convey that it holds PATH directories. Renaming to 'pathDirectories' or 'pathEntries' would improve readability and clarify the purpose of the array.
+
+**[Performance]** Calling Environment.GetEnvironmentVariable("PATH") inside the loop or frequently can be expensive if not cached. While this is called once per SSH process start, if SSH connections are frequent, caching the parsed PATH entries could improve performance.</note>
+</notesplit>
+<notesplit>
+<path>src/System.Management.Automation/engine/remoting/common/RunspaceConnectionInfo.cs</path>
+<side>right</side>
+<from>2230</from>
+<to>2246</to>
+<note>The code splits the PATH environment variable into an array and iterates through it, checking File.Exists for each entry. This involves multiple file system stat calls. If the PATH is long, this can be slow. Additionally, splitting the string creates a new array and string objects for each entry, which is unnecessary allocation in a hot path.</note>
+</notesplit>
+<notesplit>
+<path>src/System.Management.Automation/engine/remoting/common/RunspaceConnectionInfo.cs</path>
+<side>right</side>
+<from>2233</from>
+<to>2233</to>
+<note>The code uses 'Path.PathSeparator' which is correct, but the subsequent logic assumes 'path' is a directory. If a PATH entry is not fully qualified (checked later), it is skipped. However, the variable name 'path' in the foreach loop is ambiguous—it represents a directory from the PATH, not a file path. Renaming to 'directory' or 'pathDir' would be clearer.</note>
+</notesplit>

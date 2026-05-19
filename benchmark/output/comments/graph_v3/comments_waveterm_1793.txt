@@ -1,0 +1,49 @@
+<notesplit>
+<path>pkg/wslconn/wslconn.go</path>
+<side>right</side>
+<from>758</from>
+<to>758</to>
+<note>The function GetWslConn was modified to remove the 'shouldConnect' parameter and the logic that triggers a connection. However, multiple callers in wshserver.go (e.g., ConnDisconnectCommand, ConnConnectCommand) rely on the connection being established or available. By removing the connection trigger, these callers will now receive a connection object with a nil Client, leading to potential nil pointer dereferences when they subsequently attempt to use the connection.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>right</side>
+<from>219</from>
+<to>233</to>
+<note>The function getCustomInitScriptKeyCascade uses hardcoded shell strings ('bash', 'zsh', etc.) and manual slice construction. This is prone to errors if new shells are added and violates DRY principles. Consider using a map or a more declarative structure to map shell types to their respective script key hierarchies.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>right</side>
+<from>254</from>
+<to>254</to>
+<note>The resolveEnvMap function creates a new context with a 2-second timeout on every call. If this function is called frequently (e.g., for every command execution or block initialization), the overhead of context creation and the potential for blocking I/O operations can impact performance. Consider passing an existing context from the caller instead of creating a new one.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>right</side>
+<from>256</from>
+<to>256</to>
+<note>The code uses 'wavebase.BlockFile_Env' to read the environment file. If the file does not exist, it returns nil for the data but does not return an error. However, the subsequent logic iterates over 'envFileData' which is nil. While this is safe in Go, the function signature and logic imply that a missing env file is a valid state, but the error handling for other read errors is inconsistent with the caller's expectations.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>right</side>
+<from>271</from>
+<to>282</to>
+<note>The loop in resolveEnvMap performs manual type checking and conversion for map values. This logic is repetitive and could be abstracted into a helper function to handle generic map-to-string-map conversions, improving readability.</note>
+</notesplit>
+<notesplit>
+<path>pkg/blockcontroller/blockcontroller.go</path>
+<side>right</side>
+<from>253</from>
+<to>284</to>
+<note>The function resolveEnvMap reads environment variables from a user-controlled file store ('env') and merges them with block metadata. If an attacker can influence the content of the 'env' file or the block metadata, they can inject arbitrary environment variables into the shell execution context, potentially leading to command injection or privilege escalation via variables like LD_PRELOAD, PATH, or others.</note>
+</notesplit>
+<notesplit>
+<path>pkg/wslconn/wslconn.go</path>
+<side>right</side>
+<from>120</from>
+<to>122</to>
+<note>The Debugf method in WslConn is a duplicate of the existing Infof method logic, just with a different name. This creates unnecessary code duplication.</note>
+</notesplit>

@@ -1,0 +1,34 @@
+<notesplit>
+<path>codex-rs/core/src/client_common.rs</path>
+<side>right</side>
+<from>198</from>
+<to>198</to>
+<note>**[Code Defect]** The `store` field is hardcoded to `false` in `Default` implementations for `Request`. If any downstream code relies on the `Default` state to represent a 'stored' request, this will now incorrectly default to 'not stored'.
+
+**[Maintainability and Readability]** The 'store' field is still present in the request struct definition but is now hardcoded to 'false' in all instantiations. This creates a 'dead' configuration field that serves no purpose but adds noise to the codebase.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/src/client.rs</path>
+<side>right</side>
+<from>197</from>
+<to>197</to>
+<note>**[Maintainability and Readability]** The variable 'store' is now hardcoded to 'false' in the request payload. Since the 'store' field in the request struct is now effectively a constant, it should be removed from the struct definition and the request construction logic to avoid misleading developers into thinking it is configurable.
+
+**[Security Vulnerability]** The 'store' flag is hardcoded to 'false'. While this simplifies the code, it removes the ability for users to opt-in to server-side response storage. If this storage was intended to provide persistence or state management for specific workflows, forcing it off may break expected behavior or lead to data loss in multi-turn conversations where the server expects to reference previous state by ID.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/protocol/src/models.rs</path>
+<side>right</side>
+<from>45</from>
+<to>46</to>
+<note>**[Performance]** The addition of #[serde(skip_serializing)] to the 'id' field in multiple ResponseItem variants prevents the client from sending IDs back to the server. While this aligns with the goal of disabling storage, it forces the server to re-process or re-index every item in the conversation history on every request, significantly increasing latency and server-side load for long-running sessions.
+
+**[Maintainability and Readability]** The 'id' field in 'ResponseItem::Message' is now skipped during serialization. If this field is no longer used, it should be removed entirely from the enum variant to prevent confusion and reduce memory footprint.</note>
+</notesplit>
+<notesplit>
+<path>codex-rs/core/src/client.rs</path>
+<side>right</side>
+<from>168</from>
+<to>168</to>
+<note>The logic for `include` now unconditionally adds `reasoning.encrypted_content` if `reasoning` is `Some`. Previously, this was conditional on `!store`. If the server-side logic expects this field only when storage is disabled, this change may cause unexpected behavior or errors when storage is enabled (though `store` is now hardcoded to `false`).</note>
+</notesplit>

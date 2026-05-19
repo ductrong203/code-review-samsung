@@ -1,0 +1,42 @@
+<notesplit>
+<path>modules/imgcodecs/src/grfmt_png.cpp</path>
+<side>right</side>
+<from>291</from>
+<to>295</to>
+<note>The code checks for `id_CgBI` before checking for `id_IHDR`. This creates a specific case for Apple's private format while handling other malformed chunks with a generic error. This is a 'magic value' check that should ideally be part of a more general validation or clearly documented as an exception. The error message for CgBI is specific, but the subsequent generic error for other non-IHDR chunks is less helpful. Consider consolidating or clarifying the error handling strategy for malformed PNG headers.</note>
+</notesplit>
+<notesplit>
+<path>modules/imgcodecs/src/grfmt_png.cpp</path>
+<side>right</side>
+<from>293</from>
+<to>293</to>
+<note>The code logs an error message containing the literal string 'CgBI chunk (Apple private)'. While this is not user-controlled input, it reveals internal implementation details and specific chunk identifiers to the logs. In a security context, exposing specific internal chunk IDs can aid attackers in crafting targeted malformed inputs or understanding the parser's logic. It is better to use generic error messages.</note>
+</notesplit>
+<notesplit>
+<path>modules/imgcodecs/test/test_png.cpp</path>
+<side>right</side>
+<from>125</from>
+<to>130</to>
+<note>The test uses magic numbers for byte offsets (`8+4+0`, `8+4+1`, etc.) to access PNG signature and chunk length fields. These should be replaced with named constants or a struct to improve readability and maintainability. For example, `PNG_SIGNATURE_LENGTH` and `CHUNK_LENGTH_FIELD_OFFSET`.</note>
+</notesplit>
+<notesplit>
+<path>modules/imgcodecs/test/test_png.cpp</path>
+<side>right</side>
+<from>134</from>
+<to>138</to>
+<note>Similar to the previous issue, the test uses magic numbers (`8+4+0`, etc.) to modify the chunk ID for the 'Non-IHDR' test case. These should be replaced with named constants for clarity.</note>
+</notesplit>
+<notesplit>
+<path>modules/imgcodecs/test/test_png.cpp</path>
+<side>right</side>
+<from>142</from>
+<to>146</to>
+<note>Similar to previous issues, the test uses magic numbers (`8+4+0`, etc.) to modify the chunk ID for the 'CgBI' test case. These should be replaced with named constants for clarity.</note>
+</notesplit>
+<notesplit>
+<path>modules/imgcodecs/src/grfmt_png.cpp</path>
+<side>right</side>
+<from>298</from>
+<to>298</to>
+<note>The error message 'This data may be broken or malformed' is verbose and potentially exposes internal assumptions about file structure. While low risk, generic messages are preferred for security hygiene to avoid leaking parser state or expectations.</note>
+</notesplit>

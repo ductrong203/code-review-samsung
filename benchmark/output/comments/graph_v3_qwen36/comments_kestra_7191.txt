@@ -1,0 +1,32 @@
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileEmptyFunction.java</path>
+<side>right</side>
+<from>67</from>
+<to>75</to>
+<note>In FileEmptyFunction.java, the method readAndCheckEmptyFileFromInternalStorage calls checkIfFileFromParentExecution(context, path) when the file is not from the current execution. However, checkIfFileFromParentExecution throws an IllegalArgumentException if the file is not from the parent execution (or if there is no trigger). This means that if the file is not from the current execution AND not from the parent execution, an exception is thrown instead of returning false (which would indicate the file is not empty because it doesn't exist or is inaccessible). This is inconsistent with fileExists which also throws an exception in this case, but for a 'fileEmpty' check, one might expect it to return false if the file doesn't exist. More critically, if the file exists but is not accessible due to permission issues (not caught by isFileUriValid), it throws an exception. This is a logic error in handling non-existent or inaccessible files.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileExistsFunction.java</path>
+<side>right</side>
+<from>66</from>
+<to>72</to>
+<note>In FileExistsFunction.java, the method checkFileExistsFromInternalStorage calls checkIfFileFromParentExecution(context, path) when the file is not from the current execution. checkIfFileFromParentExecution throws an IllegalArgumentException if the file is not from the parent execution. This means that if the file is not from the current execution AND not from the parent execution, an exception is thrown. This is a logic error because fileExists should return false if the file doesn't exist or is not accessible, not throw an exception. The exception should only be thrown if the file is from a different execution/flow, which is a security concern. However, the current implementation throws an exception for any file not from the current or parent execution, which might be too restrictive or incorrect depending on the intended behavior. If the intention is to only allow access to files from the current or parent execution, then the exception is correct. But if the intention is to check existence regardless of ownership, then the exception is a bug.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileEmptyFunction.java</path>
+<side>right</side>
+<from>72</from>
+<to>75</to>
+<note>**[Code Defect]** In FileEmptyFunction.java, the method readAndCheckEmptyFileFromInternalStorage uses a buffer of size 1 to check if the file is empty. This is a valid approach for checking if a file is empty, but it only reads the first byte. If the file is empty, read() will return -1, and the method returns true. If the file has content, read() will return 1 (or more, but we only read 1 byte), and the method returns false. This is correct for checking if a file is empty. However, if the file is very large, this approach is efficient. If the file is small, it's also efficient. The only potential issue is if the file is not accessible, which is handled by the try-catch in the execute method. This is not a bug, but a design choice.
+
+**[Performance]** Inefficient file emptiness check: The code reads the entire file into a byte array buffer of size 1, then checks if read returns <= 0. This is inefficient for large files as it reads byte-by-byte. A better approach is to check file size first or use a larger buffer to reduce I/O calls.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileExistsFunction.java</path>
+<side>right</side>
+<from>72</from>
+<to>72</to>
+<note>**[Code Defect]** In FileExistsFunction.java, the method checkFileExistsFromInternalStorage calls storageInterface.exists() which might throw an exception if the file is not accessible. This exception is not caught in the method, so it will propagate to the execute method, where it is caught and re-thrown as a PebbleException. This is a design choice, but it might be better to return false if the file is not accessible, rather than throwing an exception. This depends on the intended behavior of the fileExists function. If the intention is to return false if the file is not accessible, then the exception should be caught and false returned. If the intention is to throw an exception if the file is not accessible, then the current implementation is correct.
+
+**[Performance]** Potential performance issue: The code calls storageInterface.exists() which may perform a full file system check. If this function is called frequently in templates, it could become a bottleneck. Consider caching results if the same file is checked multiple times.</note>
+</notesplit>

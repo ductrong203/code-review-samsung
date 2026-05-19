@@ -1,0 +1,44 @@
+<notesplit>
+<path>packages/svelte/src/compiler/phases/2-analyze/index.js</path>
+<side>right</side>
+<from>434</from>
+<to>456</to>
+<note>The `maybe_runes` logic in `analyze_component` is a complex boolean expression spanning 23 lines. It mixes multiple checks (options, scope references, AST body traversal) into a single assignment, making it hard to read and maintain. This violates Single Responsibility and readability principles.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/compiler/phases/2-analyze/index.js</path>
+<side>right</side>
+<from>437</from>
+<to>456</to>
+<note>The `maybe_runes` calculation iterates over `module.scope.references.keys()` and `instance.ast.body` on every component analysis. While likely fast for small components, iterating the AST body and checking node types/properties for every component adds overhead to the compilation phase. If components have large scripts, this could become a bottleneck.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/compiler/phases/2-analyze/index.js</path>
+<side>right</side>
+<from>437</from>
+<to>437</to>
+<note>The variable name `maybe_runes` is ambiguous. It's unclear if it means 'possibly runes' or 'maybe not runes'. The comment explains the logic, but the name itself doesn't clearly convey the intent (fallback to runic behavior).</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/compiler/phases/2-analyze/index.js</path>
+<side>right</side>
+<from>434</from>
+<to>455</to>
+<note>**[Performance]** Creating a new array from `module.scope.references.keys()` using spread syntax `[...module.scope.references.keys()]` creates an unnecessary copy of the keys just to check for the presence of two strings. This is a minor memory allocation overhead in a hot path.
+
+**[Security Vulnerability]** The new `maybe_runes` logic in `analyze_component` uses `module.scope.references` to detect legacy patterns. If `module.scope` is null or undefined in certain edge cases (e.g., malformed components), this could throw an unhandled exception during compilation, leading to a Denial of Service (DoS) for the build process. While not a runtime exploit, compiler crashes can be used to disrupt CI/CD pipelines.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/compiler/phases/2-analyze/index.js</path>
+<side>right</side>
+<from>434</from>
+<to>455</to>
+<note>The `maybe_runes` check iterates over `module.scope.references` and `instance.ast.body`. If an attacker can inject malicious code into the AST structure (e.g., via a crafted Svelte component with deeply nested or malformed nodes), the `instance.ast.body.some(...)` call could potentially be used in a ReDoS (Regular Expression Denial of Service) or simple CPU exhaustion attack if the AST traversal is inefficient. This is a low-probability but high-impact issue in compiler contexts.</note>
+</notesplit>
+<notesplit>
+<path>packages/svelte/src/compiler/phases/3-transform/client/visitors/shared/utils.js</path>
+<side>right</side>
+<from>375</from>
+<to>375</to>
+<note>The comment 'Kind of an in-between-mode' is vague and doesn't add much value. It refers to a concept that isn't clearly defined elsewhere.</note>
+</notesplit>

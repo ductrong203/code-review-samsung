@@ -1,0 +1,63 @@
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileEmptyFunction.java</path>
+<side>right</side>
+<from>62</from>
+<to>76</to>
+<note>The logic for checking if a file is empty and validating access is duplicated almost identically in FileExistsFunction.java. This violates the DRY principle. These validation and storage access patterns should be extracted into a shared utility class or a base class for storage-related Pebble functions.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileEmptyFunction.java</path>
+<side>right</side>
+<from>74</from>
+<to>74</to>
+<note>The code reads only 1 byte from the input stream to check if the file is empty. If the file contains exactly 1 byte, the read operation will return 1, and the condition 'inputStream.read(buffer, 0, 1) <= 0' will evaluate to false, incorrectly reporting that a 1-byte file is not empty. The correct check for emptiness is to read and check if the result is -1 (EOF).</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileExistsFunction.java</path>
+<side>right</side>
+<from>61</from>
+<to>73</to>
+<note>The logic for validating file access and retrieving storage context is duplicated from FileEmptyFunction. This creates a maintenance burden where changes to access rules must be applied in multiple places.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileEmptyFunction.java</path>
+<side>right</side>
+<from>99</from>
+<to>99</to>
+<note>The isFileUriValid method in FileEmptyFunction.java uses string concatenation to build an authorized path. An attacker could potentially bypass the path restriction by providing a crafted namespace or flowId containing path traversal characters (e.g., '../') that manipulate the resulting URI, leading to unauthorized access to files outside the intended execution directory.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileExistsFunction.java</path>
+<side>right</side>
+<from>96</from>
+<to>96</to>
+<note>The isFileUriValid method in FileExistsFunction.java uses string concatenation to build an authorized path. Similar to FileEmptyFunction, this is vulnerable to path traversal if the namespace or flowId inputs are not strictly validated, allowing an attacker to check for the existence of arbitrary files on the storage system.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileEmptyFunction.java</path>
+<side>right</side>
+<from>72</from>
+<to>75</to>
+<note>The code creates a byte array buffer and reads from the InputStream to check if a file is empty. While functional, this is unnecessary overhead for simply checking if a file has content. If the underlying storage implementation supports metadata or size checks, those should be used instead to avoid opening and reading the file stream entirely.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileEmptyFunction.java</path>
+<side>right</side>
+<from>64</from>
+<to>65</to>
+<note>The variables 'flow' and 'execution' are retrieved from the context without checking if they are null. If these variables are missing in the Pebble context, this will throw a NullPointerException. These should be validated or handled safely.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileEmptyFunction.java</path>
+<side>right</side>
+<from>78</from>
+<to>90</to>
+<note>The method checkIfFileFromParentExecution uses hardcoded string keys like 'trigger' and 'executionId'. These should be defined as constants at the class level to improve maintainability and prevent typos.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/runners/pebble/functions/FileExistsFunction.java</path>
+<side>right</side>
+<from>63</from>
+<to>64</to>
+<note>Similar to FileEmptyFunction, the variables 'flow' and 'execution' are retrieved from the context without null checks, which can lead to a NullPointerException if the context is incomplete.</note>
+</notesplit>

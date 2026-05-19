@@ -1,0 +1,16 @@
+<notesplit>
+<path>src/System.Management.Automation/engine/CommandCompletion/CompletionCompleters.cs</path>
+<side>right</side>
+<from>499</from>
+<to>503</to>
+<note>**[Code Defect]** The logic for filtering nested modules is flawed because it uses a HashSet of PSModuleInfo objects. PSModuleInfo does not override Equals/GetHashCode based on identity or unique path, meaning the HashSet.Contains check will likely fail to identify the nested modules correctly, causing the filter to be ineffective.
+
+**[Maintainability and Readability]** The logic for filtering nested modules is mixed directly into the main loop of CompleteModuleName, increasing the cognitive load of an already complex function. This should be extracted into a private helper method or a predicate to improve readability and maintainability.</note>
+</notesplit>
+<notesplit>
+<path>src/System.Management.Automation/engine/CommandCompletion/CompletionCompleters.cs</path>
+<side>right</side>
+<from>479</from>
+<to>482</to>
+<note>The code creates a new HashSet for every call to CompleteModuleName, even when the current module has no nested modules or the list is empty. This adds unnecessary allocation overhead in a hot path (tab completion).</note>
+</notesplit>

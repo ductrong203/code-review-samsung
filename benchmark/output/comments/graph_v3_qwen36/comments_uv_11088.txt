@@ -1,0 +1,39 @@
+<notesplit>
+<path>crates/uv-cache-key/src/canonical_url.rs</path>
+<side>right</side>
+<from>75</from>
+<to>90</to>
+<note>**[Security Vulnerability]** Path Traversal via Percent-Encoded Slashes: The code decodes percent-encoded characters in the URL path (e.g., %2F becomes /). If a URL contains encoded slashes like %2F, decoding them creates actual directory separators. An attacker could craft a URL like `https://example.com/path%2F..%2F..%2Fetc/passwd` which, after decoding, traverses up the directory tree. This allows accessing files outside the intended scope, leading to unauthorized file access or SSRF if used to fetch internal resources.
+
+**[Maintainability and Readability]** The code uses `.unwrap()` on `url.path_segments_mut()` and `urlencoding::decode()`. `path_segments_mut` can panic if the URL is a 'cannot-be-a-base' URL (like `file:` URLs without a host or `mailto:`). The PR summary explicitly mentions that `file://` URLs were problematic and that errors were suppressed. Using unwrap here creates a potential panic at runtime for valid but edge-case URLs, violating robustness principles.
+
+SSRF via Hostname/Port Manipulation: While the code primarily modifies the path, the `url` crate's `path_segments_mut` and `clear` methods can sometimes interact unexpectedly with other URL components if not handled carefully. More critically, if the URL parsing logic elsewhere allows for ambiguous host/port structures, modifying the path could lead to unexpected behavior in downstream SSRF checks that rely on the original URL structure. Ensure that the canonicalization does not inadvertently strip or modify host/port information that is critical for SSRF validation.</note>
+</notesplit>
+<notesplit>
+<path>crates/uv-cache-key/src/canonical_url.rs</path>
+<side>right</side>
+<from>76</from>
+<to>90</to>
+<note>The code iterates over URL path segments twice: once to collect decoded strings into a Vec, and then again to clear and extend the path. This creates unnecessary intermediate allocations and iteration overhead. It can be optimized to a single pass or by building the new path directly.</note>
+</notesplit>
+<notesplit>
+<path>crates/uv-distribution-types/src/any.rs</path>
+<side>right</side>
+<from>22</from>
+<to>29</to>
+<note>The `LocalDist` enum now carries a `CanonicalVersion` in both variants. The `canonical_version` helper method duplicates the match logic found in `name()` and `installed_version()`. This violates DRY (Don't Repeat Yourself) and makes the code harder to maintain if the enum structure changes again. It should ideally be a direct field access or a more robust accessor.</note>
+</notesplit>
+<notesplit>
+<path>crates/uv-distribution-types/src/any.rs</path>
+<side>right</side>
+<from>23</from>
+<to>28</to>
+<note>The `canonical_version` method in `LocalDist` is called frequently during hashing and equality checks. It performs a match and potentially constructs a `CanonicalUrl` (which involves string processing). While not a major bottleneck itself, ensuring this path is efficient is critical as it's part of the hot path for distribution comparison.</note>
+</notesplit>
+<notesplit>
+<path>crates/uv-distribution-types/src/any.rs</path>
+<side>right</side>
+<from>31</from>
+<to>38</to>
+<note>The `name()` implementation ignores the second element of the tuple (the `CanonicalVersion`) using `_`. While this is correct for the logic, using `_` for a significant part of the data structure can be misleading to readers who might think it's unused when it's actually part of the struct's identity. Using `..` or explicit naming in the pattern match improves clarity.</note>
+</notesplit>

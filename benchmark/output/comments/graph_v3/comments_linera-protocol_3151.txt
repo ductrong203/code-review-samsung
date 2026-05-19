@@ -1,0 +1,21 @@
+<notesplit>
+<path>linera-base/src/prometheus_util.rs</path>
+<side>right</side>
+<from>22</from>
+<to>22</to>
+<note>The function uses .expect() for error handling, which causes a panic if the Prometheus registration fails. In a library or core utility, it is better to return a Result to allow the caller to handle the failure gracefully instead of crashing the process.</note>
+</notesplit>
+<notesplit>
+<path>linera-base/src/prometheus_util.rs</path>
+<side>right</side>
+<from>30</from>
+<to>30</to>
+<note>Similar to register_int_counter_vec, this function uses .expect() for error handling. This is a maintainability risk as it forces a process crash on registration failure, which is difficult to recover from in production environments.</note>
+</notesplit>
+<notesplit>
+<path>linera-core/src/client/mod.rs</path>
+<side>right</side>
+<from>3314</from>
+<to>3314</to>
+<note>The error log uses a generic 'error' variable name. While the typo was fixed, using more descriptive variable names (e.g., 'committee_err') improves readability when debugging logs.</note>
+</notesplit>

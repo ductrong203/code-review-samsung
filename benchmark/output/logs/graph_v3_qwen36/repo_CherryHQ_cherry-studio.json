@@ -1,0 +1,36 @@
+{
+  "run_name": "graph_v3_qwen36",
+  "repo": "CherryHQ/cherry-studio",
+  "dataset_path": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\dataset\\positive_samples.json",
+  "extension_base": "http://localhost:8100/api",
+  "backend_url": "",
+  "started_at": "2026-05-19T14:10:46",
+  "comments_output_dir": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36",
+  "results": [
+    {
+      "pr_url": "https://github.com/CherryHQ/cherry-studio/pull/5540",
+      "pr_id": "cherry-studio_5540",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_cherry-studio_5540.txt"
+    },
+    {
+      "pr_url": "https://github.com/CherryHQ/cherry-studio/pull/5637",
+      "pr_id": "cherry-studio_5637",
+      "status": "skipped_existing",
+      "output_file": "E:\\My_Project\\samsung\\codeReviewBot\\benchmark\\output\\comments\\graph_v3_qwen36\\comments_cherry-studio_5637.txt"
+    }
+  ],
+  "initial_graph_status": {
+    "repo": "CherryHQ/cherry-studio",
+    "registered": true,
+    "local_path": "E:\\My_Project\\samsung\\cherry-studio",
+    "main_graph_ready": true
+  },
+  "finished_at": "2026-05-19T14:10:48",
+  "summary": {
+    "selected": 2,
+    "success": 0,
+    "skipped": 2,
+    "errors": 0
+  }
+}

@@ -1,0 +1,30 @@
+<notesplit>
+<path>tests/Validation/ValidationEmailRuleTest.php</path>
+<side>right</side>
+<from>85</from>
+<to>85</to>
+<note>**[Code Defect]** The assertion message in the test loop uses the variable $value, but the loop variable is named $email in the context of the test methods that iterate over data providers. However, in the `assertValidationRules` method, the loop variable is named $value. This is correct, but the error message construction is fragile if the input is an array or object, as it will trigger a string conversion notice or error.
+
+**[Performance]** The test suite performs string concatenation inside the assertion message for every iteration of the loop. In large test datasets, this creates unnecessary string objects. Use lazy evaluation or deferred formatting if the test runner supports it, or simply avoid concatenating the full input value if it is large.</note>
+</notesplit>
+<notesplit>
+<path>tests/Validation/ValidationEmailRuleTest.php</path>
+<side>right</side>
+<from>27</from>
+<to>27</to>
+<note>The test helper 'assertValidationRules' uses a hardcoded error message string 'The '.self::ATTRIBUTE_REPLACED.' must be a valid email address.' repeatedly. This violates DRY principles and makes the test suite fragile if the default validation message changes. It should be defined as a constant or a helper method.</note>
+</notesplit>
+<notesplit>
+<path>tests/Validation/ValidationEmailRuleTest.php</path>
+<side>right</side>
+<from>90</from>
+<to>90</to>
+<note>The test suite performs string concatenation inside the assertion message for every iteration of the loop. This is redundant if the test fails, as the input value is already known from the test context. Avoid building these strings unless necessary for debugging.</note>
+</notesplit>
+<notesplit>
+<path>tests/Validation/ValidationEmailRuleTest.php</path>
+<side>right</side>
+<from>344</from>
+<to>348</to>
+<note>The test method 'testEmailsThatPassOnRfcCompliantButFailOnStrict' contains logic that is duplicated across multiple test methods (e.g., 'testEmailsThatPassOnBothRfcCompliantAndStrict'). The assertion logic for 'fails' with the same error message is repeated, which should be abstracted into a shared helper method to improve readability.</note>
+</notesplit>

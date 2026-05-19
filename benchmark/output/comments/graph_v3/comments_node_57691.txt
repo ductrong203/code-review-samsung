@@ -1,0 +1,45 @@
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>right</side>
+<from>115</from>
+<to>115</to>
+<note>**[Security Vulnerability]** The test uses `eval(code)` with user-controlled input from the REPL. While this is a test file, using `eval` on input that could be manipulated is a dangerous pattern. In a real-world application, this leads to Remote Code Execution (RCE).
+
+The test uses `eval(code)` with user-controlled input from the REPL. This is a dangerous pattern that can lead to Remote Code Execution (RCE).</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>right</side>
+<from>23</from>
+<to>23</to>
+<note>The `getReplOutput` function emits 'data' to the input stream before the REPL has finished initializing. Because `repl.start` is asynchronous in its internal setup, the input might be processed before the custom eval or other options are fully registered, leading to race conditions or ignored input.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>right</side>
+<from>128</from>
+<to>128</to>
+<note>The regex is being recompiled inside a test case that could potentially be executed multiple times or in a loop. While this is a test file, it is best practice to hoist the regex compilation outside of the test logic to avoid redundant overhead.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>right</side>
+<from>129</from>
+<to>129</to>
+<note>The code uses a manual regex escape for a string containing a plus sign. This is brittle and prone to errors if the input string changes. It should be replaced with a robust escaping utility or a more maintainable approach to matching dynamic output.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>right</side>
+<from>10</from>
+<to>30</to>
+<note>The `getReplOutput` function manually manages stream writing and event emission. This pattern is repeated and error-prone. It should be abstracted into a helper that handles the lifecycle of the REPL stream more cleanly, especially regarding the `run` flag and stream cleanup.</note>
+</notesplit>
+<notesplit>
+<path>test/parallel/test-repl-custom-eval.js</path>
+<side>right</side>
+<from>125</from>
+<to>125</to>
+<note>The regex used to match the preview output is fragile. It relies on `
+` which might not match the actual line endings produced by the REPL across different platforms (e.g., CRLF vs LF).</note>
+</notesplit>

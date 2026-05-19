@@ -1,0 +1,58 @@
+<notesplit>
+<path>script/src/main/java/io/kestra/plugin/scripts/exec/scripts/runners/CommandsWrapper.java</path>
+<side>right</side>
+<from>179</from>
+<to>179</to>
+<note>The code overwrites the 'commands' field with a rendered list of strings, but the 'commands' field is defined as a 'Property<List<String>>'. Assigning a 'Property.of(List<String>)' to this field is correct, but the subsequent logic in the class expects 'commands' to be a 'Property' object. If this method is called multiple times or if other methods rely on the original 'Property' definition, this mutation will cause type mismatches or loss of dynamic evaluation capabilities.</note>
+</notesplit>
+<notesplit>
+<path>script/src/main/java/io/kestra/plugin/scripts/runner/docker/Docker.java</path>
+<side>right</side>
+<from>645</from>
+<to>645</to>
+<note>**[Code Defect]** The method 'configure' now throws 'IOException' due to the call to 'renderCommands', but the method signature was updated to include 'IOException'. However, the caller 'run' in 'Docker.java' (line 338) does not handle this new checked exception, which will cause a compilation error or unhandled exception at runtime.
+
+**[Maintainability and Readability]** The configure method signature was changed to throw IOException, which forces all callers to handle this checked exception. This increases coupling and complicates the call stack for a configuration method.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/plugin/core/runner/Process.java</path>
+<side>right</side>
+<from>140</from>
+<to>140</to>
+<note>The code performs dynamic rendering of user-provided command strings using `runContext.render()`. If the `commands` property contains malicious input (e.g., shell injection payloads), this will be executed by the system process. While Kestra is designed to execute user code, this change expands the attack surface by allowing dynamic rendering of the entire command list without explicit sanitization or validation of the resulting command structure.</note>
+</notesplit>
+<notesplit>
+<path>script/src/main/java/io/kestra/plugin/scripts/exec/scripts/runners/CommandsWrapper.java</path>
+<side>right</side>
+<from>171</from>
+<to>171</to>
+<note>The `CommandsWrapper` now dynamically renders `interpreter`, `beforeCommands`, and `commands` properties. By allowing the `interpreter` to be dynamically rendered from user input, an attacker can potentially swap the shell (e.g., changing `/bin/sh` to a malicious binary or a different shell with different escape behaviors), leading to command injection or bypass of security controls.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/models/tasks/runners/TaskRunner.java</path>
+<side>right</side>
+<from>139</from>
+<to>140</to>
+<note>The renderCommands method performs a stream operation that creates a new list by concatenating three separate lists. This logic is repeated and could be simplified or abstracted to improve readability, especially as the number of command types grows.</note>
+</notesplit>
+<notesplit>
+<path>script/src/main/java/io/kestra/plugin/scripts/exec/scripts/runners/CommandsWrapper.java</path>
+<side>right</side>
+<from>169</from>
+<to>178</to>
+<note>The logic for rendering and combining commands is becoming complex within the run method. This violates the Single Responsibility Principle as the wrapper is now responsible for orchestrating the rendering of multiple command types.</note>
+</notesplit>
+<notesplit>
+<path>script/src/main/java/io/kestra/plugin/scripts/exec/scripts/runners/CommandsWrapper.java</path>
+<side>right</side>
+<from>169</from>
+<to>171</to>
+<note>The code performs three separate rendering passes (interpreter, beforeCommands, commands) by calling renderCommands for each. Each call to renderCommands triggers a full evaluation of the Property object. These should be batched or optimized to avoid redundant overhead if the underlying Property evaluation is expensive.</note>
+</notesplit>
+<notesplit>
+<path>core/src/main/java/io/kestra/core/models/tasks/runners/TaskRunner.java</path>
+<side>right</side>
+<from>135</from>
+<to>137</to>
+<note>The renderCommands method performs three separate rendering passes on the task commands. This involves multiple calls to runContext.render and subsequent stream processing, which is inefficient when these operations could be combined or cached.</note>
+</notesplit>

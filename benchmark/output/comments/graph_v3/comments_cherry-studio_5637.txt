@@ -1,0 +1,48 @@
+<notesplit>
+<path>src/renderer/src/middlewares/extractReasoningMiddleware.ts</path>
+<side>right</side>
+<from>33</from>
+<to>33</to>
+<note>**[Performance]** The RegExp is re-instantiated on every call to wrapGenerate. Since the opening and closing tags are constant for the middleware instance, this regex should be compiled once in the constructor/factory function to avoid repeated compilation overhead.
+
+**[Security Vulnerability]** The code constructs a RegExp using user-provided opening and closing tags without sufficient validation. If these tags are sourced from user input or external configuration, an attacker could inject malicious regex patterns (e.g., ReDoS or unexpected matching behavior).</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/middlewares/extractReasoningMiddleware.ts</path>
+<side>right</side>
+<from>76</from>
+<to>91</to>
+<note>**[Code Defect]** The `publish` function inside `extractReasoningMiddleware` uses `isReasoning` and `isFirstReasoning` state variables that are defined in the closure scope. However, the `publish` function is defined inside the `transform` callback, meaning it is recreated for every single chunk. This causes the state to be reset or incorrectly managed if the closure captures stale variables. The state variables should be defined outside the `transform` function to persist across chunks.
+
+**[Maintainability and Readability]** The `publish` function is defined inside the `transform` method of a `TransformStream`. This causes the function to be re-allocated on every single chunk processed, which is inefficient and reduces readability. Move this helper function outside the `transform` method or define it as a class method.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/middlewares/extractReasoningMiddleware.ts</path>
+<side>right</side>
+<from>92</from>
+<to>110</to>
+<note>**[Code Defect]** The `while(true)` loop inside the `transform` function relies on `buffer` being updated. If `getPotentialStartIndex` returns a value, the code slices the buffer. However, if `startIndex` is 0 and the tag is found, the logic might enter an infinite loop if the buffer is not correctly consumed or if `nextTag` doesn't advance the state.
+
+**[Maintainability and Readability]** The `while(true)` loop inside the `transform` method contains complex state management (`isReasoning`, `afterSwitch`, `buffer`) that is difficult to follow. This logic should be extracted into a dedicated state machine class or a more descriptive helper function to improve maintainability.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/middlewares/extractReasoningMiddleware.ts</path>
+<side>right</side>
+<from>40</from>
+<to>46</to>
+<note>String concatenation inside a loop using slice and addition creates multiple intermediate string objects. For large texts, this leads to O(n²) memory allocation and GC pressure. Use an array to collect parts and join them once.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/utils/getPotentialIndex.ts</path>
+<side>right</side>
+<from>21</from>
+<to>26</to>
+<note>The loop performs substring creation and comparison on every iteration. In a hot path (stream processing), this creates significant garbage. If the text is long, this O(n*m) approach is inefficient.</note>
+</notesplit>
+<notesplit>
+<path>src/renderer/src/providers/AiProvider/OpenAICompatibleProvider.ts</path>
+<side>right</side>
+<from>476</from>
+<to>479</to>
+<note>The `getAppropriateTag` function uses a hardcoded string check (`qwen3`) to determine reasoning tags. This is brittle and violates the Open/Closed principle. Consider moving this mapping to a configuration object or a strategy pattern based on the model type.</note>
+</notesplit>
