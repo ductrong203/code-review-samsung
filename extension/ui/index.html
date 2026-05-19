@@ -1386,7 +1386,7 @@
       }
 
       function radiusForNode(node) {
-        return Math.max(0.12, Math.min(0.28, 0.135 + Math.log1p(node.degree || 0) * 0.009));
+        return Math.max(0.14, Math.min(0.32, 0.155 + Math.log1p(node.degree || 0) * 0.0095));
       }
 
       function makeLabelSprite(text) {
@@ -1435,13 +1435,13 @@
           const y = 1 - t * 2;
           const radial = Math.sqrt(Math.max(0, 1 - y * y));
           const angle = clusterIndex * golden;
-          const shell = Math.max(2.45, Math.cbrt(nodes.length) * 0.72);
+          const shell = Math.max(2.35, Math.cbrt(nodes.length) * 0.66);
           const center = new THREE.Vector3(
             Math.cos(angle) * radial * shell,
             y * shell,
             Math.sin(angle) * radial * shell,
           );
-          const clusterRadius = Math.max(0.4, Math.cbrt(clusterNodes.length) * 0.25);
+          const clusterRadius = Math.max(0.66, Math.cbrt(clusterNodes.length) * 0.42);
           clusterNodes.forEach((node, nodeIndex) => {
             const localT = (nodeIndex + 0.5) / Math.max(clusterNodes.length, 1);
             const localY = 1 - localT * 2;
@@ -1827,7 +1827,7 @@
       };
       if (window.pendingGraphData) renderGraph3D(window.pendingGraphData);
     </script>
-    <script type="module" src="/ui/components/graph-viewer.js?v=green-incoming-highlight-20260519"></script>
+    <script type="module" src="/ui/components/graph-viewer.js?v=balanced-file-node-scale-20260519"></script>
 
     <script>
       const API = ""; // Same origin

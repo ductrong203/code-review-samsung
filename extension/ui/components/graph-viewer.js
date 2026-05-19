@@ -69,8 +69,8 @@ function cssColorForNode(node) {
 }
 
 function radiusForNode(node) {
-  const base = Math.max(0.055, Math.min(0.2, state.graphRadius * 0.0052));
-  const degreeBoost = Math.min(base * 0.3, Math.log1p(node.degree || 0) * state.graphRadius * 0.000085);
+  const base = Math.max(0.065, Math.min(0.23, state.graphRadius * 0.006));
+  const degreeBoost = Math.min(base * 0.28, Math.log1p(node.degree || 0) * state.graphRadius * 0.00009);
   return base + degreeBoost;
 }
 
@@ -159,7 +159,7 @@ function graphPositions(nodes) {
 
   const orderedClusters = [...clusters.entries()].sort((a, b) => b[1].length - a[1].length);
   const golden = Math.PI * (3 - Math.sqrt(5));
-  const clusterStep = Math.max(2.25, Math.cbrt(nodes.length) * 0.82);
+  const clusterStep = Math.max(2.25, Math.cbrt(nodes.length) * 0.76);
 
   orderedClusters.forEach(([, clusterNodes], clusterIndex) => {
     const shell = Math.ceil(Math.cbrt(clusterIndex + 1)) - 1;
@@ -177,7 +177,7 @@ function graphPositions(nodes) {
       y * distance,
       Math.sin(angle) * radial * distance,
     );
-    const clusterRadius = Math.max(0.38, Math.cbrt(clusterNodes.length) * 0.25);
+    const clusterRadius = Math.max(0.66, Math.cbrt(clusterNodes.length) * 0.44);
 
     clusterNodes.forEach((node, nodeIndex) => {
       const localT = (nodeIndex + 0.5) / Math.max(clusterNodes.length, 1);
@@ -598,7 +598,7 @@ function addFileClusterSpheres(nodes, positions) {
         const nodeRadius = radiusForNode(cluster.nodes[pointIndex]);
         radius = Math.max(radius, point.distanceTo(cluster.center) + nodeRadius);
       });
-      radius = Math.max(radius + 0.28, 0.55);
+      radius = Math.max(radius + 0.38, 0.72);
 
       const geometry = new THREE.SphereGeometry(radius, 28, 18);
       const material = new THREE.MeshBasicMaterial({
