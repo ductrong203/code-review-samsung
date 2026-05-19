@@ -8,8 +8,12 @@ const state = {
   raycaster: new THREE.Raycaster(),
   pointer: new THREE.Vector2(),
   nodeMeshes: [],
+  edgeMeshes: [],
+  highlightEdges: null,
   nodeById: new Map(),
   nodeRecords: [],
+  edges: [],
+  positions: new Map(),
   selectedMesh: null,
   selectedMarker: null,
   selectedLabel: null,
@@ -47,6 +51,14 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;");
 }
 
+function escapeJsString(text) {
+  return String(text || "")
+    .replace(/\\/g, "\\\\")
+    .replace(/'/g, "\\'")
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r");
+}
+
 function colorForNode(node) {
   if (node.is_test || node.kind === "Test") return palette.Test;
   return palette[node.kind] || palette.Other;
@@ -57,9 +69,9 @@ function cssColorForNode(node) {
 }
 
 function radiusForNode(node) {
-  const overviewScale = Math.max(0.026, state.graphRadius * 0.0046);
-  const degreeBoost = Math.sqrt(node.degree || 0) * overviewScale * 0.045;
-  return Math.max(overviewScale, Math.min(overviewScale * 1.45, overviewScale + degreeBoost));
+  const base = Math.max(0.055, Math.min(0.2, state.graphRadius * 0.0052));
+  const degreeBoost = Math.min(base * 0.3, Math.log1p(node.degree || 0) * state.graphRadius * 0.000085);
+  return base + degreeBoost;
 }
 
 function ensureEnhancements() {
@@ -71,6 +83,8 @@ function ensureEnhancements() {
   toolbar.innerHTML = `
     <button class="kg-tool active" data-mode="orbit" type="button">Orbit</button>
     <button class="kg-tool" data-mode="focus" type="button">Focus</button>
+    <button class="kg-tool" data-action="zoom-in" type="button">Zoom +</button>
+    <button class="kg-tool" data-action="zoom-out" type="button">Zoom -</button>
     <button class="kg-tool" data-action="reset" type="button">Reset</button>
   `;
   toolbar.addEventListener("click", (event) => {
@@ -82,6 +96,8 @@ function ensureEnhancements() {
         el.classList.toggle("active", el.dataset.mode === state.mode);
       });
     }
+    if (button.dataset.action === "zoom-in") zoomCamera(-1);
+    if (button.dataset.action === "zoom-out") zoomCamera(1);
     if (button.dataset.action === "reset") resetCamera();
   });
   stage.appendChild(toolbar);
@@ -93,30 +109,30 @@ function ensureEnhancements() {
 }
 
 function makeLabelSprite(text, selected = false) {
-  const label = String(text || "node").slice(0, 30);
+  const label = String(text || "node");
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
-  const fontSize = selected ? 30 : 20;
+  const fontSize = selected ? 28 : 18;
   ctx.font = `800 ${fontSize}px Inter, Arial, sans-serif`;
-  const width = Math.ceil(ctx.measureText(label).width + 24);
-  canvas.width = Math.max(selected ? 150 : 116, width);
-  canvas.height = selected ? 54 : 42;
+  const width = Math.ceil(ctx.measureText(label).width + 28);
+  canvas.width = Math.max(selected ? 160 : 128, width);
+  canvas.height = selected ? 52 : 38;
   ctx.font = `800 ${fontSize}px Inter, Arial, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = selected ? "rgba(11, 92, 255, 0.92)" : "rgba(255, 255, 255, 0.9)";
-  roundRect(ctx, 0, selected ? 7 : 6, canvas.width, selected ? 40 : 30, selected ? 14 : 10);
+  roundRect(ctx, 0, selected ? 7 : 5, canvas.width, selected ? 38 : 28, selected ? 14 : 10);
   ctx.fill();
   ctx.strokeStyle = selected ? "rgba(11, 92, 255, 0.74)" : "rgba(70, 108, 170, 0.28)";
   ctx.stroke();
   ctx.fillStyle = selected ? "#ffffff" : "#0f1a2e";
-  ctx.fillText(label, canvas.width / 2, selected ? 27 : 21);
+  ctx.fillText(label, canvas.width / 2, selected ? 26 : 19);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
   const sprite = new THREE.Sprite(material);
-  sprite.scale.set(canvas.width / (selected ? 128 : 170), selected ? 0.34 : 0.23, 1);
+  sprite.scale.set(canvas.width / (selected ? 138 : 190), selected ? 0.32 : 0.2, 1);
   sprite.userData.isLabel = true;
   return sprite;
 }
@@ -143,7 +159,7 @@ function graphPositions(nodes) {
 
   const orderedClusters = [...clusters.entries()].sort((a, b) => b[1].length - a[1].length);
   const golden = Math.PI * (3 - Math.sqrt(5));
-  const clusterStep = Math.max(2.6, Math.cbrt(nodes.length) * 0.72);
+  const clusterStep = Math.max(2.25, Math.cbrt(nodes.length) * 0.82);
 
   orderedClusters.forEach(([, clusterNodes], clusterIndex) => {
     const shell = Math.ceil(Math.cbrt(clusterIndex + 1)) - 1;
@@ -161,7 +177,7 @@ function graphPositions(nodes) {
       y * distance,
       Math.sin(angle) * radial * distance,
     );
-    const clusterRadius = Math.max(0.48, Math.cbrt(clusterNodes.length) * 0.25);
+    const clusterRadius = Math.max(0.38, Math.cbrt(clusterNodes.length) * 0.25);
 
     clusterNodes.forEach((node, nodeIndex) => {
       const localT = (nodeIndex + 0.5) / Math.max(clusterNodes.length, 1);
@@ -192,7 +208,7 @@ function centerPositions(positions) {
     position.sub(center);
     radius = Math.max(radius, position.length());
   });
-  return Math.max(4, radius + 1.4);
+  return Math.max(4, radius + 2.2);
 }
 
 function fitCameraToGraph() {
@@ -201,13 +217,23 @@ function fitCameraToGraph() {
   const aspect = Math.max(0.75, state.camera.aspect || 1);
   const verticalFit = state.graphRadius / Math.tan(fov / 2);
   const horizontalFit = state.graphRadius / Math.tan(fov / 2) / aspect;
-  state.overviewZoom = Math.max(9, Math.max(verticalFit, horizontalFit) * 1.08);
-  state.maxZoom = Math.max(state.overviewZoom * 2.4, state.overviewZoom + 18);
+  state.overviewZoom = Math.max(9, Math.max(verticalFit, horizontalFit) * 1.16);
+  state.maxZoom = Math.max(state.overviewZoom * 3.2, state.overviewZoom + 28);
   state.camera.position.set(0, state.graphRadius * 0.06, state.overviewZoom);
-  state.camera.near = Math.max(0.01, state.overviewZoom / 1000);
-  state.camera.far = state.maxZoom * 3;
+  state.camera.near = 0.005;
+  state.camera.far = state.maxZoom * 3.4;
   state.camera.updateProjectionMatrix();
   state.camera.lookAt(0, 0, 0);
+}
+
+function minZoom() {
+  return Math.max(0.45, state.graphRadius * 0.018);
+}
+
+function zoomCamera(direction) {
+  if (!state.camera) return;
+  const step = Math.max(0.18, state.camera.position.z * 0.14);
+  state.camera.position.z = Math.max(minZoom(), Math.min(state.maxZoom, state.camera.position.z + direction * step));
 }
 
 function ensureScene(canvas) {
@@ -300,7 +326,9 @@ function onPointerUp(event) {
 
 function onWheel(event) {
   event.preventDefault();
-  state.camera.position.z = Math.max(state.overviewZoom * 0.18, Math.min(state.maxZoom, state.camera.position.z + event.deltaY * 0.018));
+  const direction = Math.sign(event.deltaY || 0);
+  const step = Math.max(0.08, state.camera.position.z * 0.085);
+  state.camera.position.z = Math.max(minZoom(), Math.min(state.maxZoom, state.camera.position.z + direction * step));
 }
 
 function pickNode(event) {
@@ -350,8 +378,12 @@ function clearGroup() {
     disposeObject(child);
   }
   state.nodeMeshes = [];
+  state.edgeMeshes = [];
+  state.highlightEdges = null;
   state.nodeById.clear();
   state.nodeRecords = [];
+  state.edges = [];
+  state.positions = new Map();
   state.selectedMesh = null;
   state.selectedMarker = null;
   state.selectedLabel = null;
@@ -368,9 +400,11 @@ function edgeColor(kind) {
 function addBatchedEdges(edges, positions, nodeSet) {
   const batches = new Map();
   edges.forEach((edge) => {
-    if (!nodeSet.has(edge.source) || !nodeSet.has(edge.target)) return;
-    const a = positions.get(edge.source);
-    const b = positions.get(edge.target);
+    const source = edgeSource(edge);
+    const target = edgeTarget(edge);
+    if (!nodeSet.has(source) || !nodeSet.has(target)) return;
+    const a = positions.get(source);
+    const b = positions.get(target);
     if (!a || !b) return;
     const color = edgeColor(edge.kind);
     if (!batches.has(color)) batches.set(color, []);
@@ -383,10 +417,110 @@ function addBatchedEdges(edges, positions, nodeSet) {
     const material = new THREE.LineBasicMaterial({
       color,
       transparent: true,
-      opacity: 0.34,
+      opacity: 0.18,
     });
-    state.group.add(new THREE.LineSegments(geometry, material));
+    const lines = new THREE.LineSegments(geometry, material);
+    lines.userData.isGraphEdgeBatch = true;
+    state.group.add(lines);
+    state.edgeMeshes.push(lines);
   });
+}
+
+function clearHighlightedEdges() {
+  if (!state.highlightEdges) return;
+  state.group.remove(state.highlightEdges);
+  disposeObjectTree(state.highlightEdges);
+  state.highlightEdges = null;
+}
+
+function disposeObjectTree(object) {
+  object.traverse?.((child) => {
+    if (child !== object) disposeObject(child);
+  });
+  disposeObject(object);
+}
+
+function edgeSource(edge) {
+  return String(edge?.source ?? edge?.source_qualified ?? "");
+}
+
+function edgeTarget(edge) {
+  return String(edge?.target ?? edge?.target_qualified ?? "");
+}
+
+function setBaseEdgeOpacity(opacity) {
+  state.edgeMeshes.forEach((mesh) => {
+    if (!mesh.material) return;
+    mesh.material.opacity = opacity;
+    mesh.material.needsUpdate = true;
+  });
+}
+
+function highlightConnectedEdges(nodeId) {
+  clearHighlightedEdges();
+  setBaseEdgeOpacity(0.07);
+
+  const related = state.edges.filter((edge) => edgeSource(edge) === nodeId || edgeTarget(edge) === nodeId);
+  const points = [];
+  const colors = [];
+  const highlightGroup = new THREE.Group();
+  const tubeRadius = Math.max(0.002, Math.min(0.0055, state.graphRadius * 0.0002));
+  const tubeLimit = 220;
+  related.forEach((edge) => {
+    const source = edgeSource(edge);
+    const target = edgeTarget(edge);
+    const a = state.positions.get(source);
+    const b = state.positions.get(target);
+    if (!a || !b) return;
+    const color = new THREE.Color(source === nodeId ? 0xe88b80 : 0x7abf8f);
+    const direction = new THREE.Vector3().subVectors(b, a).normalize();
+    const offsets = [
+      new THREE.Vector3(0, 0, 0),
+    ];
+    offsets.forEach((offset) => {
+      points.push(
+        a.x + offset.x, a.y + offset.y, a.z + offset.z,
+        b.x + offset.x, b.y + offset.y, b.z + offset.z,
+      );
+      colors.push(color.r, color.g, color.b, color.r, color.g, color.b);
+    });
+
+    if (highlightGroup.children.length < tubeLimit) {
+      const curve = new THREE.LineCurve3(a, b);
+      const tube = new THREE.Mesh(
+        new THREE.TubeGeometry(curve, 1, tubeRadius, 6, false),
+        new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity: 0.62,
+          depthTest: false,
+        }),
+      );
+      tube.renderOrder = 20;
+      highlightGroup.add(tube);
+    }
+  });
+
+  if (!points.length) {
+    setBaseEdgeOpacity(0.18);
+    return;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+  const material = new THREE.LineBasicMaterial({
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.72,
+    depthTest: false,
+  });
+  const lines = new THREE.LineSegments(geometry, material);
+  lines.renderOrder = 21;
+  highlightGroup.add(lines);
+  highlightGroup.userData.isHighlightEdges = true;
+  state.highlightEdges = highlightGroup;
+  state.group.add(state.highlightEdges);
 }
 
 function addInstancedNodes(nodes, positions) {
@@ -470,7 +604,7 @@ function addFileClusterSpheres(nodes, positions) {
       const material = new THREE.MeshBasicMaterial({
         color: colorForCluster(name, index),
         transparent: true,
-        opacity: 0.18,
+        opacity: 0.11,
         wireframe: true,
         depthWrite: false,
       });
@@ -483,14 +617,15 @@ function addFileClusterSpheres(nodes, positions) {
 }
 
 function addImportantLabels(nodes, positions) {
-  const labelBudget = Math.min(nodes.length, nodes.length > 5000 ? 120 : 260);
+  const labelBudget = Math.min(nodes.length, nodes.length > 1200 ? 90 : nodes.length > 600 ? 130 : 220);
   nodes.slice(0, labelBudget).forEach((node) => {
     const record = state.nodeById.get(node.id);
     const position = positions.get(node.id);
     if (!record || !position) return;
     const label = makeLabelSprite(node.name || node.kind || "node");
+    label.scale.multiplyScalar(nodes.length > 600 ? 0.82 : 0.92);
     label.position.copy(position);
-    label.position.y += record.radius + state.graphRadius * 0.008;
+    label.position.y += record.radius + state.graphRadius * 0.0048;
     record.label = label;
     state.group.add(label);
   });
@@ -540,7 +675,7 @@ function addSelectedMarker(record) {
     }),
   );
   marker.position.copy(record.position);
-  marker.scale.setScalar(record.radius * 2.5);
+  marker.scale.setScalar(record.radius * 2.2);
   state.group.add(marker);
   state.selectedMarker = marker;
 
@@ -551,14 +686,63 @@ function addSelectedMarker(record) {
   state.selectedLabel = label;
 }
 
+function relationSummary(nodeId) {
+  const outgoing = [];
+  const incoming = [];
+  state.edges.forEach((edge) => {
+    const source = edgeSource(edge);
+    const target = edgeTarget(edge);
+    if (source === nodeId) outgoing.push(target);
+    if (target === nodeId) incoming.push(source);
+  });
+  return { incoming, outgoing };
+}
+
+function relationNodeName(item) {
+  const node = item?.node || {};
+  return node.name || node.id || "";
+}
+
+function renderRelationList(title, items, direction) {
+  const visibleItems = items || [];
+  const body = visibleItems.length
+    ? visibleItems.map((item) => {
+        const node = item.node || {};
+        const inPage = state.nodeById.has(node.id);
+        const pageOffset = Number.isFinite(item.page_offset) ? item.page_offset : 0;
+        const edgeKind = item.edge_kind ? ` · ${escapeHtml(item.edge_kind)}` : "";
+        const pageHint = inPage ? "" : ` · page ${pageOffset + 1}`;
+        return `<button class="kg-relation-item ${inPage ? "" : "is-offpage"}" type="button"
+            onclick="window.Graph3D?.openRelation('${escapeJsString(node.id)}', ${pageOffset})">
+          <span class="kg-relation-item__name">${escapeHtml(relationNodeName(item))}</span>
+          <span class="kg-relation-item__meta">${escapeHtml(node.kind || "Node")} · degree ${node.degree || 0}${edgeKind}${pageHint}</span>
+        </button>`;
+      }).join("")
+    : `<div class="kg-relation-empty">No ${direction} nodes.</div>`;
+
+  return `<section class="kg-relation-box">
+    <div class="kg-relation-box__header">
+      <span>${escapeHtml(title)}</span>
+      <strong>${visibleItems.length}</strong>
+    </div>
+    <div class="kg-relation-box__body">${body}</div>
+  </section>`;
+}
+
 function renderGraph3D(data) {
   const canvas = $("graphCanvas3d");
   ensureScene(canvas);
   resize();
   clearGroup();
 
-  const nodes = data.nodes || [];
-  const edges = data.edges || [];
+  const pageLimit = data.limit > 0 ? data.limit : (data.nodes || []).length;
+  const nodes = (data.nodes || []).slice(0, pageLimit);
+  const nodeSet = new Set(nodes.map((node) => node.id));
+  const edges = (data.edges || []).filter((edge) => {
+    const source = edgeSource(edge);
+    const target = edgeTarget(edge);
+    return nodeSet.has(source) && nodeSet.has(target);
+  });
   const empty = $("graphEmptyState");
   if (empty) {
     empty.classList.toggle("show", !nodes.length);
@@ -568,7 +752,8 @@ function renderGraph3D(data) {
 
   const positions = graphPositions(nodes, edges);
   state.graphRadius = centerPositions(positions);
-  const nodeSet = new Set(nodes.map((node) => node.id));
+  state.edges = edges;
+  state.positions = positions;
 
   addFileClusterSpheres(nodes, positions);
   addBatchedEdges(edges, positions, nodeSet);
@@ -577,22 +762,35 @@ function renderGraph3D(data) {
   addImportantLabels(nodes, positions);
 
   resetCamera();
-  selectNode(nodes[0].id);
+  selectNode(window.pendingGraphFocusNodeId || nodes[0].id);
+  window.pendingGraphFocusNodeId = "";
 }
 
-function renderNodeShell(node, loading = false) {
+function renderNodeShell(node, loading = false, fullRelations = null) {
   const lines = node.line_start ? `:${node.line_start}${node.line_end ? "-" + node.line_end : ""}` : "";
+  const pageRelations = relationSummary(node.id);
+  const relations = fullRelations || {
+    incoming: pageRelations.incoming.map((id) => ({ node: state.nodeById.get(id)?.node || { id } })),
+    outgoing: pageRelations.outgoing.map((id) => ({ node: state.nodeById.get(id)?.node || { id } })),
+  };
   const metadata = [
     ["Kind", node.kind || "Node"],
     ["Language", node.language || ""],
     ["Parent", node.parent_name || ""],
     ["Return", node.return_type || ""],
+    ["Incoming", relations.incoming.length],
+    ["Outgoing", relations.outgoing.length],
   ].filter(([, value]) => value);
 
   return `<div class="graph-node-detail__label">Selected node</div>
     <h4>${escapeHtml(node.name || node.id)}</h4>
+    <div class="kg-edge-hint"><span class="kg-edge-hint__out"></span> outgoing edges <span class="kg-edge-hint__in"></span> incoming edges</div>
     <div class="kg-node-meta">
       ${metadata.map(([key, value]) => `<div><span>${escapeHtml(key)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}
+    </div>
+    <div class="kg-relations">
+      ${renderRelationList("Incoming", relations.incoming, "incoming")}
+      ${renderRelationList("Outgoing", relations.outgoing, "outgoing")}
     </div>
     <div class="kg-node-file"><span>File</span><code>${escapeHtml(node.file || "")}${lines}</code></div>
     ${loading ? `<div class="graph-code-status">Loading source code for this node...</div>` : ""}`;
@@ -605,6 +803,7 @@ function selectNode(id) {
   state.selectedMesh = record.mesh;
   state.selectedNodeId = id;
   addSelectedMarker(record);
+  highlightConnectedEdges(id);
 
   if (state.mode === "focus") {
     state.group.rotation.y = -Math.atan2(record.position.x, record.position.z);
@@ -628,7 +827,7 @@ async function loadNodeSource(id) {
   const pr = request.prNumber ? `&pr_number=${encodeURIComponent(request.prNumber)}` : "";
   try {
     const response = await fetch(
-      `/api/graph/${encodeURIComponent(request.owner)}/${encodeURIComponent(request.name)}/node?qualified_name=${encodeURIComponent(id)}${pr}`,
+      `/api/graph/${encodeURIComponent(request.owner)}/${encodeURIComponent(request.name)}/node?qualified_name=${encodeURIComponent(id)}&page_size=${encodeURIComponent(request.limit || 200)}${pr}`,
     );
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail || "Could not load node source");
@@ -646,7 +845,7 @@ async function loadNodeSource(id) {
         </span>`).join("")
       : "";
 
-    detail.innerHTML = `${renderNodeShell(node, false)}
+    detail.innerHTML = `${renderNodeShell(node, false, data.relations)}
       ${codeHtml
         ? `<div class="graph-code-box">
             <div class="graph-code-box__header">
@@ -663,9 +862,22 @@ async function loadNodeSource(id) {
   }
 }
 
+function openRelation(id, pageOffset = 0) {
+  if (!id) return;
+  if (state.nodeById.has(id)) {
+    selectNode(id);
+    return;
+  }
+  const request = window.currentGraphRequest || {};
+  if (request.owner && request.name && typeof window.loadGraph === "function") {
+    window.loadGraph(request.owner, request.name, Math.max(0, pageOffset || 0), id);
+  }
+}
+
 window.Graph3D = {
   render: renderGraph3D,
   select: selectNode,
+  openRelation,
   resize,
 };
 

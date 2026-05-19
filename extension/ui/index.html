@@ -945,8 +945,8 @@
         font-size: 12px;
         font-weight: 650;
         overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        overflow-wrap: anywhere;
+        white-space: normal;
       }
       .graph-node-row__meta {
         font-size: 10px;
@@ -1193,7 +1193,7 @@
         }
       }
     </style>
-    <link rel="stylesheet" href="/ui/styles/graph-viewer.css" />
+    <link rel="stylesheet" href="/ui/styles/graph-viewer.css?v=relation-list-panel-20260519" />
   </head>
   <body>
     <div class="app">
@@ -1362,7 +1362,11 @@
         camera: null,
         graphGroup: null,
         nodeMeshes: [],
+        edgeMeshes: [],
+        highlightEdges: null,
         nodeById: new Map(),
+        edges: [],
+        positions: new Map(),
         raycaster: new THREE.Raycaster(),
         pointer: new THREE.Vector2(),
         selectedMesh: null,
@@ -1382,11 +1386,11 @@
       }
 
       function radiusForNode(node) {
-        return Math.max(0.18, Math.min(0.48, 0.2 + Math.sqrt(node.degree || 0) * 0.055));
+        return Math.max(0.12, Math.min(0.28, 0.135 + Math.log1p(node.degree || 0) * 0.009));
       }
 
       function makeLabelSprite(text) {
-        const label = String(text || "node").slice(0, 28);
+        const label = String(text || "node");
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
         const fontSize = 28;
@@ -1418,27 +1422,37 @@
       }
 
       function graphPositions(nodes) {
-        const sorted = [...nodes].sort((a, b) => (b.degree || 0) - (a.degree || 0));
         const positions = new Map();
+        const clusters = new Map();
         const golden = Math.PI * (3 - Math.sqrt(5));
-        sorted.forEach((node, index) => {
-          if (index === 0) {
-            positions.set(node.id, new THREE.Vector3(0, 0, 0));
-            return;
-          }
-          const t = index / Math.max(sorted.length - 1, 1);
+        nodes.forEach((node) => {
+          const key = node.file || node.module || node.kind || "unknown";
+          if (!clusters.has(key)) clusters.set(key, []);
+          clusters.get(key).push(node);
+        });
+        [...clusters.values()].forEach((clusterNodes, clusterIndex) => {
+          const t = (clusterIndex + 0.5) / Math.max(clusters.size, 1);
           const y = 1 - t * 2;
-          const radius = Math.sqrt(Math.max(0, 1 - y * y));
-          const theta = index * golden;
-          const shell = 2.6 + Math.min(2.8, index / 18);
-          positions.set(
-            node.id,
-            new THREE.Vector3(
-              Math.cos(theta) * radius * shell,
-              y * shell * 0.82,
-              Math.sin(theta) * radius * shell,
-            ),
+          const radial = Math.sqrt(Math.max(0, 1 - y * y));
+          const angle = clusterIndex * golden;
+          const shell = Math.max(2.45, Math.cbrt(nodes.length) * 0.72);
+          const center = new THREE.Vector3(
+            Math.cos(angle) * radial * shell,
+            y * shell,
+            Math.sin(angle) * radial * shell,
           );
+          const clusterRadius = Math.max(0.4, Math.cbrt(clusterNodes.length) * 0.25);
+          clusterNodes.forEach((node, nodeIndex) => {
+            const localT = (nodeIndex + 0.5) / Math.max(clusterNodes.length, 1);
+            const localY = 1 - localT * 2;
+            const localRadial = Math.sqrt(Math.max(0, 1 - localY * localY));
+            const localAngle = nodeIndex * golden;
+            positions.set(node.id, new THREE.Vector3(
+              center.x + Math.cos(localAngle) * localRadial * clusterRadius,
+              center.y + localY * clusterRadius,
+              center.z + Math.sin(localAngle) * localRadial * clusterRadius,
+            ));
+          });
         });
         return positions;
       }
@@ -1523,7 +1537,9 @@
 
       function onWheel(event) {
         event.preventDefault();
-        state.camera.position.z = Math.max(4.2, Math.min(18, state.camera.position.z + event.deltaY * 0.01));
+        const direction = Math.sign(event.deltaY || 0);
+        const step = Math.max(0.08, state.camera.position.z * 0.085);
+        state.camera.position.z = Math.max(0.6, Math.min(38, state.camera.position.z + direction * step));
       }
 
       function pickNode(event) {
@@ -1548,8 +1564,105 @@
           else disposeMaterial(child.material);
         }
         state.nodeMeshes = [];
+        state.edgeMeshes = [];
+        state.highlightEdges = null;
         state.nodeById.clear();
+        state.edges = [];
+        state.positions = new Map();
         state.selectedMesh = null;
+      }
+
+      function disposeObjectTree(object) {
+        object.traverse?.((child) => {
+          if (child === object) return;
+          child.geometry?.dispose?.();
+          if (Array.isArray(child.material)) child.material.forEach((material) => material?.dispose?.());
+          else child.material?.dispose?.();
+        });
+        object.geometry?.dispose?.();
+        if (Array.isArray(object.material)) object.material.forEach((material) => material?.dispose?.());
+        else object.material?.dispose?.();
+      }
+
+      function edgeSource(edge) {
+        return String(edge?.source ?? edge?.source_qualified ?? "");
+      }
+
+      function edgeTarget(edge) {
+        return String(edge?.target ?? edge?.target_qualified ?? "");
+      }
+
+      function clearHighlightedEdges() {
+        if (!state.highlightEdges) return;
+        state.graphGroup.remove(state.highlightEdges);
+        disposeObjectTree(state.highlightEdges);
+        state.highlightEdges = null;
+      }
+
+      function setBaseEdgeOpacity(opacity) {
+        state.edgeMeshes.forEach((mesh) => {
+          if (!mesh.material) return;
+          mesh.material.opacity = opacity;
+          mesh.material.needsUpdate = true;
+        });
+      }
+
+      function highlightConnectedEdges(nodeId) {
+        clearHighlightedEdges();
+        setBaseEdgeOpacity(0.07);
+
+        const points = [];
+        const colors = [];
+        const group = new THREE.Group();
+        const tubeRadius = 0.0026;
+        state.edges
+          .filter((edge) => edgeSource(edge) === nodeId || edgeTarget(edge) === nodeId)
+          .forEach((edge) => {
+            const source = edgeSource(edge);
+            const target = edgeTarget(edge);
+            const a = state.positions.get(source);
+            const b = state.positions.get(target);
+            if (!a || !b) return;
+            const color = new THREE.Color(source === nodeId ? 0xe88b80 : 0x7abf8f);
+            points.push(a.x, a.y, a.z, b.x, b.y, b.z);
+            colors.push(color.r, color.g, color.b, color.r, color.g, color.b);
+
+            if (group.children.length < 220) {
+              const tube = new THREE.Mesh(
+                new THREE.TubeGeometry(new THREE.LineCurve3(a, b), 1, tubeRadius, 6, false),
+                new THREE.MeshBasicMaterial({
+                  color,
+                  transparent: true,
+                  opacity: 0.62,
+                  depthTest: false,
+                }),
+              );
+              tube.renderOrder = 20;
+              group.add(tube);
+            }
+          });
+
+        if (!points.length) {
+          setBaseEdgeOpacity(0.18);
+          return;
+        }
+
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+        geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+        const lines = new THREE.LineSegments(
+          geometry,
+          new THREE.LineBasicMaterial({
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.72,
+            depthTest: false,
+          }),
+        );
+        lines.renderOrder = 21;
+        group.add(lines);
+        state.highlightEdges = group;
+        state.graphGroup.add(group);
       }
 
       function selectNode(id) {
@@ -1564,6 +1677,7 @@
         state.selectedNodeId = id;
         mesh.scale.setScalar(1.55);
         mesh.material.emissive?.setHex(0x163b2c);
+        highlightConnectedEdges(id);
 
         document.querySelectorAll(".graph-node-row").forEach((row) => {
           row.classList.toggle("active", row.dataset.nodeId === id);
@@ -1640,8 +1754,14 @@
         resize();
         clearGroup();
 
-        const nodes = data.nodes || [];
-        const edges = data.edges || [];
+        const pageLimit = data.limit > 0 ? data.limit : (data.nodes || []).length;
+        const nodes = (data.nodes || []).slice(0, pageLimit);
+        const nodeSet = new Set(nodes.map((node) => node.id));
+        const edges = (data.edges || []).filter((edge) => {
+          const source = edgeSource(edge);
+          const target = edgeTarget(edge);
+          return nodeSet.has(source) && nodeSet.has(target);
+        });
         const empty = document.getElementById("graphEmptyState");
         empty.classList.toggle("show", !nodes.length);
         empty.textContent = nodes.length ? "" : "No displayable graph nodes were returned.";
@@ -1649,7 +1769,8 @@
         if (!nodes.length) return;
 
         const positions = graphPositions(nodes);
-        const nodeSet = new Set(nodes.map((node) => node.id));
+        state.edges = edges;
+        state.positions = positions;
         const sphere = new THREE.SphereGeometry(1, 28, 20);
 
         nodes.forEach((node) => {
@@ -1674,9 +1795,11 @@
 
         const edgePositions = [];
         edges.forEach((edge) => {
-          if (!nodeSet.has(edge.source) || !nodeSet.has(edge.target)) return;
-          const a = positions.get(edge.source);
-          const b = positions.get(edge.target);
+          const source = edgeSource(edge);
+          const target = edgeTarget(edge);
+          if (!nodeSet.has(source) || !nodeSet.has(target)) return;
+          const a = positions.get(source);
+          const b = positions.get(target);
           if (!a || !b) return;
           edgePositions.push(a.x, a.y, a.z, b.x, b.y, b.z);
         });
@@ -1686,9 +1809,11 @@
           const edgeMaterial = new THREE.LineBasicMaterial({
             color: 0x7a8aa0,
             transparent: true,
-            opacity: 0.42,
+            opacity: 0.18,
           });
-          state.graphGroup.add(new THREE.LineSegments(edgeGeometry, edgeMaterial));
+          const edgeMesh = new THREE.LineSegments(edgeGeometry, edgeMaterial);
+          state.graphGroup.add(edgeMesh);
+          state.edgeMeshes.push(edgeMesh);
         }
 
         state.graphGroup.rotation.set(-0.18, 0.35, 0);
@@ -1702,11 +1827,11 @@
       };
       if (window.pendingGraphData) renderGraph3D(window.pendingGraphData);
     </script>
-    <script type="module" src="/ui/components/graph-viewer.js"></script>
+    <script type="module" src="/ui/components/graph-viewer.js?v=green-incoming-highlight-20260519"></script>
 
     <script>
       const API = ""; // Same origin
-      const GRAPH_PAGE_SIZE = 100;
+      const GRAPH_PAGE_SIZE = 200;
 
       // ─── Helpers ──────────────────────────────────────────────────────────
       function $(id) {
@@ -2217,46 +2342,40 @@
         overlay.setAttribute("aria-hidden", "true");
       }
 
-      function renderGraph(data) {
-        const overlay = $("graphOverlay");
-        const title = $("graphTitle");
-        const subtitle = $("graphSubtitle");
-        const meta = $("graphMeta");
-        const pager = $("graphPager");
-        const detail = $("graphDetail");
-        const nodeList = $("graphNodeList");
-        if (!overlay || !title || !subtitle || !meta || !detail || !nodeList) return;
+      function graphNodeSearchText(node) {
+        return [
+          node.name,
+          node.id,
+          node.kind,
+          node.file,
+          node.module,
+          node.parent_name,
+        ].filter(Boolean).join(" ").toLowerCase();
+      }
 
-        const nodes = data.nodes || [];
-        const stats = data.stats || {};
-        const offset = data.offset || 0;
-        const totalNodes = data.total_node_count ?? stats.total_nodes ?? nodes.length;
-        const totalEdges = data.total_edge_count ?? stats.total_edges ?? (data.edges || []).length;
-        const pageStart = nodes.length ? offset + 1 : 0;
-        const pageEnd = offset + nodes.length;
+      function graphNodeSearchScore(node, query) {
+        const q = query.trim().toLowerCase();
+        if (!q) return 1;
+        const name = String(node.name || "").toLowerCase();
+        const file = String(node.file || "").toLowerCase();
+        const id = String(node.id || "").toLowerCase();
+        const haystack = graphNodeSearchText(node);
+        if (name === q || id === q) return 1000;
+        if (name.startsWith(q)) return 900 - name.length * 0.01;
+        if (file.endsWith(q) || id.endsWith(q)) return 760 - id.length * 0.005;
+        if (name.includes(q)) return 680 - name.indexOf(q);
+        if (haystack.includes(q)) return 420 - haystack.indexOf(q) * 0.01;
 
-        overlay.classList.add("show");
-        overlay.setAttribute("aria-hidden", "false");
-        title.textContent = data.repo || "Code graph";
-        subtitle.textContent = `Showing nodes ${pageStart}-${pageEnd} of ${totalNodes}. Drag to rotate, scroll to zoom, click a node to inspect it.`;
-        if (pager) {
-          const owner = data.owner || window.currentGraphRequest?.owner || "";
-          const name = data.name || window.currentGraphRequest?.name || "";
-          pager.innerHTML = `
-            <button class="btn btn-sm btn-outline" ${data.has_previous ? "" : "disabled"} onclick="loadGraph('${escapeJsString(owner)}','${escapeJsString(name)}',${data.previous_offset || 0})">Prev 100</button>
-            <span>${pageStart}-${pageEnd} / ${totalNodes}</span>
-            <button class="btn btn-sm btn-primary" ${data.has_next ? "" : "disabled"} onclick="loadGraph('${escapeJsString(owner)}','${escapeJsString(name)}',${data.next_offset || offset})">Next 100</button>`;
+        let qi = 0;
+        for (const ch of haystack) {
+          if (ch === q[qi]) qi += 1;
+          if (qi === q.length) return 160 - haystack.length * 0.001;
         }
-        const listedNodes = nodes;
-        meta.innerHTML = `
-          <span class="graph-stat-chip">${totalNodes} total nodes</span>
-          <span class="graph-stat-chip">${totalEdges} total edges</span>
-          <span class="graph-stat-chip">${nodes.length} visible nodes</span>
-          <span class="graph-stat-chip">${(data.edges || []).length} visible edges</span>
-          <span class="graph-stat-chip">${(data.clusters || []).length} file groups</span>
-          <span class="graph-stat-chip">${stats.files_count || 0} files</span>
-          <span class="graph-stat-chip">${escapeHtml((stats.languages || []).slice(0, 4).join(", ") || "language unknown")}</span>`;
-        nodeList.innerHTML = listedNodes
+        return 0;
+      }
+
+      function renderGraphNodeRows(nodes, hasNext) {
+        return nodes
           .map((node) => {
             const kind = node.is_test || node.kind === "Test"
               ? "#7c3aed"
@@ -2268,24 +2387,152 @@
             return `<button class="graph-node-row" data-node-id="${escapeHtml(node.id)}" onclick="window.Graph3D?.select('${escapeJsString(node.id)}')">
               <span class="graph-node-row__dot" style="background:${kind}"></span>
               <span class="graph-node-row__name">${escapeHtml(node.name || node.id)}</span>
-              <span class="graph-node-row__meta">${escapeHtml(node.kind || "Node")} · ${node.degree || 0}</span>
+              <span class="graph-node-row__meta">${escapeHtml(node.kind || "Node")} · ${node.degree || 0} · ${escapeHtml(node.file || node.module || "")}</span>
             </button>`;
           })
-          .join("") + (data.has_next
-            ? `<div class="graph-code-status">Use Next 100 to display the next batch of graph nodes.</div>`
+          .join("") + (hasNext
+            ? `<div class="graph-code-status">Use Next 200 to display the next batch of graph nodes.</div>`
             : "");
+      }
+
+      window.filterGraphNodes = function filterGraphNodes(value) {
+        const rows = $("graphNodeRows");
+        const count = $("graphSearchCount");
+        const nodes = window.currentGraphNodes || [];
+        if (!rows) return;
+        const query = String(value || "").trim();
+        const matches = query
+          ? nodes
+              .map((node) => ({ node, score: graphNodeSearchScore(node, query) }))
+              .filter((item) => item.score > 0)
+              .sort((a, b) => b.score - a.score || (b.node.degree || 0) - (a.node.degree || 0))
+              .slice(0, 40)
+              .map((item) => item.node)
+          : nodes;
+
+        rows.innerHTML = renderGraphNodeRows(matches, !query && Boolean(window.currentGraphHasNext));
+        if (count) {
+          count.textContent = query
+            ? `${matches.length} result${matches.length === 1 ? "" : "s"}`
+            : `${nodes.length} visible`;
+        }
+      };
+
+      window.graphSearchTimer = null;
+      window.searchGraphDb = function searchGraphDb(value) {
+        const rows = $("graphNodeRows");
+        const count = $("graphSearchCount");
+        const request = window.currentGraphRequest || {};
+        const query = String(value || "").trim();
+        window.clearTimeout(window.graphSearchTimer);
+
+        if (!query) {
+          window.filterGraphNodes("");
+          return;
+        }
+        if (!rows || !request.owner || !request.name) return;
+
+        count.textContent = "Searching graph...";
+        rows.innerHTML = `<div class="graph-code-status">Searching all graph nodes...</div>`;
+
+        window.graphSearchTimer = window.setTimeout(async () => {
+          try {
+            const pr = request.prNumber ? `&pr_number=${encodeURIComponent(request.prNumber)}` : "";
+            const r = await fetch(
+              `${API}/api/graph/${encodeURIComponent(request.owner)}/${encodeURIComponent(request.name)}/search?q=${encodeURIComponent(query)}&limit=30&page_size=${request.limit || GRAPH_PAGE_SIZE}${pr}`,
+            );
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.detail || "Graph search failed");
+            const matches = data.matches || [];
+            count.textContent = `${matches.length} result${matches.length === 1 ? "" : "s"} in ${data.total_node_count || 0} nodes`;
+            rows.innerHTML = matches.length
+              ? matches.map(({ node, page_offset }) => {
+                  const kind = node.is_test || node.kind === "Test"
+                    ? "#7c3aed"
+                    : node.kind === "Class"
+                      ? "#0b5cff"
+                      : node.kind === "Function" || node.kind === "Method"
+                        ? "#059669"
+                        : "#d29922";
+                  return `<button class="graph-node-row" data-node-id="${escapeHtml(node.id)}" onclick="loadGraph('${escapeJsString(request.owner)}','${escapeJsString(request.name)}',${page_offset || 0},'${escapeJsString(node.id)}')">
+                    <span class="graph-node-row__dot" style="background:${kind}"></span>
+                    <span class="graph-node-row__name">${escapeHtml(node.name || node.id)}</span>
+                    <span class="graph-node-row__meta">${escapeHtml(node.kind || "Node")} · page ${(page_offset || 0) + 1}-${(page_offset || 0) + (request.limit || GRAPH_PAGE_SIZE)} · ${escapeHtml(node.file || node.module || "")}</span>
+                  </button>`;
+                }).join("")
+              : `<div class="graph-code-status">No matching node found.</div>`;
+          } catch (error) {
+            count.textContent = "Search failed";
+            rows.innerHTML = `<div class="graph-code-status">${escapeHtml(error.message)}</div>`;
+          }
+        }, 180);
+      };
+
+      function renderGraph(data) {
+        const overlay = $("graphOverlay");
+        const title = $("graphTitle");
+        const subtitle = $("graphSubtitle");
+        const meta = $("graphMeta");
+        const pager = $("graphPager");
+        const detail = $("graphDetail");
+        const nodeList = $("graphNodeList");
+        if (!overlay || !title || !subtitle || !meta || !detail || !nodeList) return;
+
+        const pageLimit = data.limit > 0 ? data.limit : (data.nodes || []).length;
+        const nodes = (data.nodes || []).slice(0, pageLimit);
+        const nodeIds = new Set(nodes.map((node) => node.id));
+        const edges = (data.edges || []).filter((edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target));
+        const stats = data.stats || {};
+        const offset = data.offset || 0;
+        const totalNodes = data.total_node_count ?? stats.total_nodes ?? nodes.length;
+        const totalEdges = data.total_edge_count ?? stats.total_edges ?? edges.length;
+        const pageStart = nodes.length ? offset + 1 : 0;
+        const pageEnd = offset + nodes.length;
+
+        overlay.classList.add("show");
+        overlay.setAttribute("aria-hidden", "false");
+        title.textContent = data.repo || "Code graph";
+        subtitle.textContent = `Showing nodes ${pageStart}-${pageEnd} of ${totalNodes}. Drag to rotate, scroll to zoom, click a node to inspect it.`;
+        if (pager) {
+          const owner = data.owner || window.currentGraphRequest?.owner || "";
+          const name = data.name || window.currentGraphRequest?.name || "";
+          pager.innerHTML = `
+            <button class="btn btn-sm btn-outline" ${data.has_previous ? "" : "disabled"} onclick="loadGraph('${escapeJsString(owner)}','${escapeJsString(name)}',${data.previous_offset || 0})">Prev 200</button>
+            <span>${pageStart}-${pageEnd} / ${totalNodes}</span>
+            <button class="btn btn-sm btn-primary" ${data.has_next ? "" : "disabled"} onclick="loadGraph('${escapeJsString(owner)}','${escapeJsString(name)}',${data.next_offset || offset})">Next 200</button>`;
+        }
+        window.currentGraphNodes = nodes;
+        window.currentGraphHasNext = Boolean(data.has_next);
+        meta.innerHTML = `
+          <span class="graph-stat-chip">${totalNodes} total nodes</span>
+          <span class="graph-stat-chip">${totalEdges} total edges</span>
+          <span class="graph-stat-chip">${nodes.length} visible nodes</span>
+          <span class="graph-stat-chip">${edges.length} visible edges</span>
+          <span class="graph-stat-chip">${(data.clusters || []).length} file groups</span>
+          <span class="graph-stat-chip">${stats.files_count || 0} files</span>
+          <span class="graph-stat-chip">${escapeHtml((stats.languages || []).slice(0, 4).join(", ") || "language unknown")}</span>`;
+        nodeList.innerHTML = `
+          <div class="graph-node-search">
+            <input id="graphNodeSearch" type="search" placeholder="Search all nodes, functions, classes, files..." oninput="window.searchGraphDb(this.value)" />
+            <span id="graphSearchCount">${nodes.length} visible</span>
+          </div>
+          <div id="graphNodeRows">${renderGraphNodeRows(nodes, data.has_next)}</div>`;
         detail.innerHTML = `<div class="graph-node-detail__label">Node detail</div>
           <h4>${nodes.length ? "Loading graph..." : "No nodes"}</h4>
           <p>${nodes.length ? "The 3D scene is initializing." : "The graph database exists, but no displayable code nodes were returned."}</p>`;
 
-        window.pendingGraphData = data;
+        window.pendingGraphData = { ...data, nodes, edges };
         if (window.Graph3D) {
-          window.Graph3D.render(data);
+          window.Graph3D.render(window.pendingGraphData);
           window.Graph3D.resize();
+          if (window.pendingGraphFocusNodeId) {
+            window.Graph3D.select(window.pendingGraphFocusNodeId);
+            window.pendingGraphFocusNodeId = "";
+          }
         }
       }
 
-      async function loadGraph(owner, name, offset = 0) {
+      async function loadGraph(owner, name, offset = 0, focusNodeId = "") {
         const overlay = $("graphOverlay");
         const title = $("graphTitle");
         const subtitle = $("graphSubtitle");
@@ -2298,6 +2545,7 @@
           overlay.setAttribute("aria-hidden", "false");
         }
         window.currentGraphRequest = { owner, name, prNumber: null, limit: GRAPH_PAGE_SIZE, offset };
+        window.pendingGraphFocusNodeId = focusNodeId || "";
         if (title) title.textContent = `${owner}/${name}`;
         if (subtitle) subtitle.textContent = `Loading graph nodes ${offset + 1}-${offset + GRAPH_PAGE_SIZE}...`;
         if (meta) meta.innerHTML = `<span class="graph-stat-chip">Loading graph...</span>`;

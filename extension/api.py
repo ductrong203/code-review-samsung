@@ -461,6 +461,133 @@ def _edge_to_view(edge: Any) -> Dict[str, Any]:
     }
 
 
+def _graph_degree(edges: List[Any]) -> Dict[str, int]:
+    degree: Dict[str, int] = {}
+    for edge in edges:
+        source = getattr(edge, "source_qualified", "")
+        target = getattr(edge, "target_qualified", "")
+        if source:
+            degree[source] = degree.get(source, 0) + 1
+        if target:
+            degree[target] = degree.get(target, 0) + 1
+    return degree
+
+
+def _rank_graph_nodes(nodes: List[Any], degree: Dict[str, int]) -> List[Any]:
+    return sorted(
+        nodes,
+        key=lambda node: (
+            degree.get(getattr(node, "qualified_name", ""), 0),
+            0 if getattr(node, "is_test", False) else 1,
+            getattr(node, "kind", "") in {"Function", "Class", "Method"},
+        ),
+        reverse=True,
+    )
+
+
+def _graph_search_text(node: Any) -> str:
+    return " ".join(
+        str(value or "")
+        for value in (
+            getattr(node, "name", ""),
+            getattr(node, "qualified_name", ""),
+            getattr(node, "kind", ""),
+            getattr(node, "file_path", ""),
+            getattr(node, "parent_name", ""),
+            getattr(node, "language", ""),
+        )
+    ).lower()
+
+
+def _graph_search_score(node: Any, query: str) -> float:
+    q = query.strip().lower()
+    if not q:
+        return 0.0
+    name = str(getattr(node, "name", "") or "").lower()
+    qualified = str(getattr(node, "qualified_name", "") or "").lower()
+    file_path = str(getattr(node, "file_path", "") or "").replace("\\", "/").lower()
+    haystack = _graph_search_text(node)
+
+    if name == q or qualified == q:
+        return 1000.0
+    if name.startswith(q):
+        return 900.0 - len(name) * 0.01
+    if file_path.endswith(q) or qualified.endswith(q):
+        return 760.0 - len(qualified) * 0.005
+    if q in name:
+        return 680.0 - name.index(q)
+    if q in haystack:
+        return 420.0 - haystack.index(q) * 0.01
+
+    qi = 0
+    for char in haystack:
+        if qi < len(q) and char == q[qi]:
+            qi += 1
+        if qi == len(q):
+            return 160.0 - len(haystack) * 0.001
+    return 0.0
+
+
+def _graph_node_relations(
+    store: Any,
+    qualified_name: str,
+    page_size: int = 200,
+) -> Dict[str, List[Dict[str, Any]]]:
+    """Return incoming/outgoing relation targets with graph-page offsets."""
+    nodes = store.get_all_nodes(exclude_files=True)
+    edges = store.get_all_edges()
+    degree = _graph_degree(edges)
+    ranked_nodes = _rank_graph_nodes(nodes, degree)
+    node_by_id = {
+        getattr(node, "qualified_name", ""): node
+        for node in ranked_nodes
+    }
+    rank_by_id = {
+        getattr(node, "qualified_name", ""): index
+        for index, node in enumerate(ranked_nodes)
+    }
+    bounded_page_size = max(10, min(page_size, 2000))
+
+    def relation_record(node_id: str, edge: Any) -> Optional[Dict[str, Any]]:
+        node = node_by_id.get(node_id)
+        if not node:
+            return None
+        rank = rank_by_id.get(node_id, 0)
+        return {
+            "node": _node_to_view(node, degree.get(node_id, 0)),
+            "page_offset": (rank // bounded_page_size) * bounded_page_size,
+            "edge_kind": getattr(edge, "kind", ""),
+            "line": getattr(edge, "line", None),
+        }
+
+    incoming: List[Dict[str, Any]] = []
+    outgoing: List[Dict[str, Any]] = []
+    seen_incoming = set()
+    seen_outgoing = set()
+
+    for edge in store.get_edges_by_target(qualified_name):
+        source = getattr(edge, "source_qualified", "")
+        if not source or source in seen_incoming:
+            continue
+        seen_incoming.add(source)
+        record = relation_record(source, edge)
+        if record:
+            incoming.append(record)
+
+    for edge in store.get_edges_by_source(qualified_name):
+        target = getattr(edge, "target_qualified", "")
+        if not target or target in seen_outgoing:
+            continue
+        seen_outgoing.add(target)
+        record = relation_record(target, edge)
+        if record:
+            outgoing.append(record)
+
+    incoming.sort(key=lambda item: item["node"].get("degree", 0), reverse=True)
+    outgoing.sort(key=lambda item: item["node"].get("degree", 0), reverse=True)
+    return {"incoming": incoming, "outgoing": outgoing}
+
+
 def build_graph_view(
     owner: str,
     repo: str,
@@ -485,24 +612,8 @@ def build_graph_view(
     finally:
         store.close()
 
-    degree: Dict[str, int] = {}
-    for edge in edges:
-        source = getattr(edge, "source_qualified", "")
-        target = getattr(edge, "target_qualified", "")
-        if source:
-            degree[source] = degree.get(source, 0) + 1
-        if target:
-            degree[target] = degree.get(target, 0) + 1
-
-    ranked_nodes = sorted(
-        nodes,
-        key=lambda node: (
-            degree.get(getattr(node, "qualified_name", ""), 0),
-            0 if getattr(node, "is_test", False) else 1,
-            getattr(node, "kind", "") in {"Function", "Class", "Method"},
-        ),
-        reverse=True,
-    )
+    degree = _graph_degree(edges)
+    ranked_nodes = _rank_graph_nodes(nodes, degree)
     all_nodes_requested = limit <= 0
     bounded_offset = 0 if all_nodes_requested else max(0, offset)
     visible_nodes = (
@@ -1117,12 +1228,87 @@ async def graph_view(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/graph/{owner}/{name}/search", tags=["graph"])
+async def graph_search(
+    owner: str,
+    name: str,
+    q: str,
+    pr_number: Optional[int] = None,
+    limit: int = 20,
+    page_size: int = 100,
+):
+    """Search the full graph DB and return matches with the page offset containing each node."""
+    repo = registry.get(owner, name)
+    if not repo:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Repo {owner}/{name} not registered.",
+        )
+
+    query = (q or "").strip()
+    if not query:
+        return {"query": "", "matches": [], "total_node_count": 0}
+
+    bounded_limit = max(1, min(limit, 50))
+    bounded_page_size = max(10, min(page_size, 2000))
+    db_path = get_graph_db_or_404(owner, name, pr_number)
+
+    from code_review_graph.graph import GraphStore
+
+    store = GraphStore(str(db_path))
+    try:
+        nodes = store.get_all_nodes(exclude_files=True)
+        edges = store.get_all_edges()
+    finally:
+        store.close()
+
+    degree = _graph_degree(edges)
+    ranked_nodes = _rank_graph_nodes(nodes, degree)
+    rank_by_id = {
+        getattr(node, "qualified_name", ""): index
+        for index, node in enumerate(ranked_nodes)
+    }
+
+    scored = []
+    for node in ranked_nodes:
+        score = _graph_search_score(node, query)
+        if score > 0:
+            scored.append((score, node))
+
+    scored.sort(
+        key=lambda item: (
+            item[0],
+            degree.get(getattr(item[1], "qualified_name", ""), 0),
+        ),
+        reverse=True,
+    )
+
+    matches = []
+    for score, node in scored[:bounded_limit]:
+        node_id = getattr(node, "qualified_name", "")
+        rank = rank_by_id.get(node_id, 0)
+        page_offset = (rank // bounded_page_size) * bounded_page_size
+        matches.append({
+            "node": _node_to_view(node, degree.get(node_id, 0)),
+            "rank": rank,
+            "page_offset": page_offset,
+            "score": round(score, 3),
+        })
+
+    return {
+        "query": query,
+        "matches": matches,
+        "total_node_count": len(ranked_nodes),
+    }
+
+
 @app.get("/api/graph/{owner}/{name}/node", tags=["graph"])
 async def graph_node_detail(
     owner: str,
     name: str,
     qualified_name: str,
     pr_number: Optional[int] = None,
+    page_size: int = 200,
 ):
     """Return node metadata plus the source span for the selected code node."""
     repo = registry.get(owner, name)
@@ -1139,6 +1325,7 @@ async def graph_node_detail(
     store = GraphStore(str(db_path))
     try:
         node = store.get_node(qualified_name)
+        relations = _graph_node_relations(store, qualified_name, page_size)
     finally:
         store.close()
 
@@ -1150,6 +1337,7 @@ async def graph_node_detail(
 
     return {
         "node": _node_to_view(node),
+        "relations": relations,
         **_read_node_code(node, Path(repo["local_path"])),
     }
 
