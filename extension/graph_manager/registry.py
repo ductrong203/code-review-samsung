@@ -49,6 +49,8 @@ class RepoRegistry:
         name: str,
         local_path: str,
         repo_url: Optional[str] = None,
+        target_branch: Optional[str] = None,
+        managed_checkout: bool = False,
     ) -> Dict[str, Any]:
         """
         Register a repo for graph tracking.
@@ -58,6 +60,8 @@ class RepoRegistry:
             name: Repo name (e.g. 'react')
             local_path: Path to the cloned repo as seen by the extension process
             repo_url: Optional Git clone URL used to create/manage the checkout
+            target_branch: Branch selected as the initial graph baseline
+            managed_checkout: True when the extension cloned/manages the repo
 
         Returns:
             The registered repo entry
@@ -71,6 +75,9 @@ class RepoRegistry:
                 repo["local_path"] = local_path
                 if repo_url:
                     repo["repo_url"] = repo_url
+                if target_branch:
+                    repo["target_branch"] = target_branch
+                repo["managed_checkout"] = managed_checkout
                 self._save()
                 logger.info(f"Updated repo: {key} -> {local_path}")
                 return repo
@@ -82,6 +89,9 @@ class RepoRegistry:
         }
         if repo_url:
             entry["repo_url"] = repo_url
+        if target_branch:
+            entry["target_branch"] = target_branch
+        entry["managed_checkout"] = managed_checkout
         self._repos.append(entry)
         self._save()
         logger.info(f"Registered repo: {key} -> {local_path}")

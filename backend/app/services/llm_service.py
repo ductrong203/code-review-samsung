@@ -216,27 +216,47 @@ def get_llm(settings: Settings) -> BaseChatModel:
         )
 
     elif provider in {"qwen", "openai_compatible"}:
-        if not settings.QWEN_BASE_URL:
-            raise ValueError("QWEN_BASE_URL is required when using 'qwen' provider")
+        base_url = settings.OPENAI_COMPATIBLE_BASE_URL or settings.QWEN_BASE_URL
+        api_key = settings.OPENAI_COMPATIBLE_API_KEY or settings.QWEN_API_KEY or "dummy"
+        model = settings.OPENAI_COMPATIBLE_MODEL or settings.QWEN_MODEL
+        timeout = (
+            settings.OPENAI_COMPATIBLE_TIMEOUT_SECONDS
+            or settings.QWEN_TIMEOUT_SECONDS
+        )
+        enable_thinking = (
+            settings.OPENAI_COMPATIBLE_ENABLE_THINKING
+            or settings.QWEN_ENABLE_THINKING
+        )
+
+        if not base_url:
+            raise ValueError(
+                "OPENAI_COMPATIBLE_BASE_URL is required when using "
+                "'openai_compatible' provider"
+            )
+        if not model:
+            raise ValueError(
+                "OPENAI_COMPATIBLE_MODEL is required when using "
+                "'openai_compatible' provider"
+            )
 
         logger.info(
-            "Initializing Qwen/OpenAI-compatible LLM: %s at %s (max_tokens=%s)",
-            settings.QWEN_MODEL,
-            settings.QWEN_BASE_URL,
+            "Initializing OpenAI-compatible LLM: %s at %s (max_tokens=%s)",
+            model,
+            base_url,
             settings.LLM_MAX_OUTPUT_TOKENS,
         )
         return OpenAICompatibleChatModel(
-            base_url=settings.QWEN_BASE_URL,
-            api_key=settings.QWEN_API_KEY or "dummy",
-            model=settings.QWEN_MODEL,
+            base_url=base_url,
+            api_key=api_key,
+            model=model,
             temperature=0.1,
             max_tokens=settings.LLM_MAX_OUTPUT_TOKENS,
-            timeout=settings.QWEN_TIMEOUT_SECONDS,
-            enable_thinking=settings.QWEN_ENABLE_THINKING,
+            timeout=timeout,
+            enable_thinking=enable_thinking,
         )
 
     else:
         raise ValueError(
             f"Unsupported LLM provider: '{provider}'. "
-            f"Supported: 'ollama', 'gemini', 'qwen'"
+            f"Supported: 'ollama', 'gemini', 'openai_compatible'"
         )

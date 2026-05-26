@@ -103,17 +103,29 @@ class RegisterRequest(BaseModel):
         default=None,
         description="Git clone URL. Defaults to https://github.com/{owner}/{name}.git",
     )
+    target_branch: str = Field(
+        default="main",
+        description="Branch to build as the initial graph baseline",
+    )
 
 
 class BuildMainRequest(BaseModel):
     owner: str
     name: str
+    branch: str = Field(
+        default="main",
+        description="Branch to build as baseline. Defaults to main for compatibility.",
+    )
 
 
 class BuildPRRequest(BaseModel):
     owner: str
     name: str
     pr_number: int
+    base_branch: Optional[str] = Field(
+        default=None,
+        description="PR target/base branch. If omitted, fetched from GitHub.",
+    )
     changed_files: List[str] = Field(
         default_factory=list,
         description="List of file paths changed in the PR",
@@ -165,6 +177,22 @@ def fetch_pr_changed_files(owner: str, repo: str, pr_number: int) -> List[str]:
     return []
 
 
+def fetch_pr_base_branch(owner: str, repo: str, pr_number: int) -> str:
+    """Fetch the PR target/base branch from GitHub."""
+    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
+    try:
+        resp = requests.get(url, timeout=15)
+        if resp.ok:
+            data = resp.json()
+            base = data.get("base") or {}
+            branch = base.get("ref")
+            if branch:
+                return branch
+    except Exception as e:
+        logger.warning(f"Failed to fetch PR base branch: {e}")
+    return "main"
+
+
 def changed_files_from_diff_files(diff_files) -> List[str]:
     """Derive changed file paths from parsed diff data."""
     changed_files: List[str] = []
@@ -201,7 +229,12 @@ def _run_git(args: List[str], cwd: Optional[Path] = None, timeout: int = 300) ->
     )
 
 
-def ensure_repo_checkout(owner: str, repo: str, repo_url: Optional[str]) -> Path:
+def ensure_repo_checkout(
+    owner: str,
+    repo: str,
+    repo_url: Optional[str],
+    target_branch: Optional[str] = None,
+) -> Path:
     """
     Ensure a server/container-local checkout exists and return its path.
 
@@ -213,6 +246,17 @@ def ensure_repo_checkout(owner: str, repo: str, repo_url: Optional[str]) -> Path
 
     if (checkout / ".git").exists():
         _run_git(["fetch", "origin", "--prune"], cwd=checkout)
+        if target_branch:
+            _run_git(
+                [
+                    "fetch",
+                    "origin",
+                    f"refs/heads/{target_branch}:refs/remotes/origin/{target_branch}",
+                    "--force",
+                ],
+                cwd=checkout,
+                timeout=120,
+            )
         return checkout
 
     if checkout.exists() and any(checkout.iterdir()):
@@ -221,7 +265,11 @@ def ensure_repo_checkout(owner: str, repo: str, repo_url: Optional[str]) -> Path
         )
 
     checkout.parent.mkdir(parents=True, exist_ok=True)
-    _run_git(["clone", "--filter=blob:none", url, str(checkout)], timeout=900)
+    clone_args = ["clone", "--filter=blob:none"]
+    if target_branch:
+        clone_args.extend(["--branch", target_branch])
+    clone_args.extend([url, str(checkout)])
+    _run_git(clone_args, timeout=900)
     return checkout
 
 
@@ -233,6 +281,64 @@ def get_pr_worktree_path(owner: str, repo: str, pr_number: int) -> Path:
         / _safe_path_part(repo)
         / f"pr_{pr_number}"
     )
+
+
+def get_branch_worktree_path(owner: str, repo: str, branch: str) -> Path:
+    return (
+        GraphLifecycleManager.BASE
+        / "worktrees"
+        / _safe_path_part(owner)
+        / _safe_path_part(repo)
+        / f"branch_{_safe_path_part(branch)}"
+    )
+
+
+def prepare_branch_worktree(
+    owner: str,
+    repo: str,
+    repo_root: Path,
+    branch: str,
+) -> Optional[Path]:
+    """Fetch a target/base branch into a temporary detached worktree."""
+    if not (repo_root / ".git").exists():
+        logger.warning("Repo root is not a git checkout: %s", repo_root)
+        return None
+
+    worktree_root = get_branch_worktree_path(owner, repo, branch)
+    ref = f"refs/codereviewbot/base/{_safe_path_part(branch)}"
+
+    try:
+        if worktree_root.exists():
+            subprocess.run(
+                ["git", "worktree", "remove", "--force", str(worktree_root)],
+                cwd=str(repo_root),
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            if worktree_root.exists():
+                shutil.rmtree(worktree_root, ignore_errors=True)
+
+        _run_git(
+            ["fetch", "origin", f"refs/heads/{branch}:{ref}", "--force"],
+            cwd=repo_root,
+            timeout=120,
+        )
+        _run_git(
+            ["worktree", "add", "--detach", str(worktree_root), ref],
+            cwd=repo_root,
+            timeout=120,
+        )
+        return worktree_root
+    except Exception as e:
+        logger.warning(
+            "Could not prepare branch worktree for %s/%s@%s: %s",
+            owner,
+            repo,
+            branch,
+            e,
+        )
+        return None
 
 
 def prepare_pr_worktree(
@@ -305,6 +411,64 @@ def cleanup_pr_worktree(repo_root: Path, worktree_path: Optional[Path]) -> None:
             logger.debug("Failed to remove PR worktree %s: %s", worktree_path, e)
     if worktree_path.exists():
         shutil.rmtree(worktree_path, ignore_errors=True)
+
+
+def current_git_branch(repo_root: Path) -> Optional[str]:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=str(repo_root),
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        branch = result.stdout.strip()
+        return None if branch == "HEAD" else branch
+    except Exception:
+        return None
+
+
+def ensure_branch_graph(
+    owner: str,
+    repo: str,
+    repo_root: Path,
+    branch: str,
+    allow_fetch: bool = True,
+) -> bool:
+    """Build the target branch graph if it is missing."""
+    if lifecycle.branch_graph_ready(owner, repo, branch):
+        return True
+
+    branch_worktree = (
+        prepare_branch_worktree(owner, repo, repo_root, branch)
+        if allow_fetch
+        else None
+    )
+    if not branch_worktree and current_git_branch(repo_root) != branch:
+        logger.warning(
+            "Refusing to build %s/%s@%s from checkout on branch %s",
+            owner,
+            repo,
+            branch,
+            current_git_branch(repo_root) or "<unknown>",
+        )
+        return False
+    graph_repo_root = branch_worktree or repo_root
+    try:
+        lifecycle.build_branch_graph(owner, repo, branch, graph_repo_root)
+        return True
+    except Exception as e:
+        logger.warning(
+            "Could not build branch graph for %s/%s@%s: %s",
+            owner,
+            repo,
+            branch,
+            e,
+        )
+        return False
+    finally:
+        cleanup_pr_worktree(repo_root, branch_worktree)
 
 
 def should_cleanup_review_artifacts(success: bool) -> bool:
@@ -672,7 +836,7 @@ def build_graph_view(
 
 
 def get_graph_db_or_404(owner: str, name: str, pr_number: Optional[int] = None) -> Path:
-    """Resolve a main or PR graph DB path, raising an HTTP 404 when absent."""
+    """Resolve a registered branch or PR graph DB path, raising 404 when absent."""
     if pr_number is not None:
         db_path = lifecycle.get_pr_db_path(owner, name, pr_number)
         if not db_path:
@@ -682,11 +846,13 @@ def get_graph_db_or_404(owner: str, name: str, pr_number: Optional[int] = None) 
             )
         return db_path
 
-    db_path = lifecycle.get_main_db_path(owner, name)
+    repo_entry = registry.get(owner, name)
+    branch = (repo_entry or {}).get("target_branch") or "main"
+    db_path = lifecycle.get_branch_db_path(owner, name, branch)
     if not db_path:
         raise HTTPException(
             status_code=404,
-            detail=f"Main graph not built for {owner}/{name}.",
+            detail=f"Baseline graph not built for {owner}/{name}@{branch}.",
         )
     return db_path
 
@@ -711,7 +877,10 @@ async def register_repo(request: RegisterRequest):
                 )
         else:
             local = ensure_repo_checkout(
-                request.owner, request.name, request.repo_url,
+                request.owner,
+                request.name,
+                request.repo_url,
+                target_branch=request.target_branch,
             )
     except HTTPException:
         raise
@@ -723,19 +892,28 @@ async def register_repo(request: RegisterRequest):
         request.owner,
         request.name,
         str(local),
-        repo_url=request.repo_url,
+        repo_url=(
+            request.repo_url
+            or (None if request.local_path else f"https://github.com/{request.owner}/{request.name}.git")
+        ),
+        target_branch=request.target_branch,
+        managed_checkout=not bool(request.local_path),
     )
     return {
         "status": "registered",
         "repo": entry,
         "message": f"Repo {request.owner}/{request.name} registered. "
-                   f"Run /api/build-main to build the main graph.",
+                   f"Build branch graph for {request.target_branch}.",
     }
 
 
 @app.post("/api/build-main", tags=["graph"])
 async def build_main_graph(request: BuildMainRequest):
-    """Build the main branch graph for a registered repo."""
+    """Build a branch graph for a registered repo.
+
+    The endpoint name is kept for compatibility; pass `branch` to build a
+    non-main baseline.
+    """
     repo = registry.get(request.owner, request.name)
     if not repo:
         raise HTTPException(
@@ -752,22 +930,61 @@ async def build_main_graph(request: BuildMainRequest):
         )
 
     try:
-        stats = lifecycle.build_main_graph(
-            request.owner, request.name, repo_root,
+        branch_worktree: Optional[Path] = None
+        build_root = repo_root
+        if repo.get("managed_checkout") or repo.get("repo_url"):
+            branch_worktree = prepare_branch_worktree(
+                request.owner,
+                request.name,
+                repo_root,
+                request.branch,
+            )
+            if not branch_worktree:
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Could not fetch target branch {request.branch} "
+                        "from git origin."
+                    ),
+                )
+            build_root = branch_worktree
+        else:
+            current_branch = current_git_branch(repo_root)
+            if current_branch != request.branch:
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Server Path is currently on branch "
+                        f"{current_branch or '<unknown>'}, not {request.branch}. "
+                        "Checkout the target branch before building."
+                    ),
+                )
+
+        stats = lifecycle.build_branch_graph(
+            request.owner, request.name, request.branch, build_root,
         )
         return {
             "status": "built",
+            "branch": request.branch,
             "stats": stats,
-            "message": f"Main graph built for {request.owner}/{request.name}",
+            "message": (
+                f"Branch graph built for "
+                f"{request.owner}/{request.name}@{request.branch}"
+            ),
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Build main graph failed: {e}", exc_info=True)
+        logger.error(f"Build branch graph failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if "branch_worktree" in locals():
+            cleanup_pr_worktree(repo_root, branch_worktree)
 
 
 @app.post("/api/build-pr", tags=["graph"])
 async def build_pr_graph(request: BuildPRRequest):
-    """Build a PR-specific graph (copy main + incremental update)."""
+    """Build a PR-specific graph (copy target branch + incremental update)."""
     repo = registry.get(request.owner, request.name)
     if not repo:
         raise HTTPException(
@@ -775,13 +992,26 @@ async def build_pr_graph(request: BuildPRRequest):
             detail=f"Repo {request.owner}/{request.name} not registered.",
         )
 
-    if not lifecycle.main_graph_ready(request.owner, request.name):
+    repo_root = Path(repo["local_path"])
+    base_branch = request.base_branch or fetch_pr_base_branch(
+        request.owner,
+        request.name,
+        request.pr_number,
+    )
+    if not ensure_branch_graph(
+        request.owner,
+        request.name,
+        repo_root,
+        base_branch,
+        allow_fetch=bool(repo.get("managed_checkout") or repo.get("repo_url")),
+    ):
         raise HTTPException(
             status_code=400,
-            detail="Main graph not built yet. Call /api/build-main first.",
+            detail=(
+                f"Branch graph not ready for {base_branch}. "
+                "Register the repo and ensure the target branch is fetchable."
+            ),
         )
-
-    repo_root = Path(repo["local_path"])
 
     # Use provided changed_files or fetch from GitHub API
     changed_files = request.changed_files
@@ -835,11 +1065,12 @@ async def build_pr_graph(request: BuildPRRequest):
     try:
         stats = lifecycle.build_pr_graph(
             request.owner, request.name, graph_repo_root,
-            request.pr_number, changed_files,
+            request.pr_number, changed_files, base_branch=base_branch,
         )
         return {
             "status": "built",
             "pr_number": request.pr_number,
+            "base_branch": base_branch,
             "stats": stats,
             "message": f"PR #{request.pr_number} graph built",
         }
@@ -892,10 +1123,11 @@ async def review_pr(request: ReviewRequest):
         reg = registry.get(owner, repo)
         if reg:
             repo_root_for_cleanup = Path(reg["local_path"])
+        base_branch = fetch_pr_base_branch(owner, repo, pr_number)
 
         # Step 2: Build/verify PR graph
         if not lifecycle.pr_graph_ready(owner, repo, pr_number):
-            if lifecycle.main_graph_ready(owner, repo) and reg:
+            if reg:
                 changed_files = fetch_pr_changed_files(owner, repo, pr_number)
                 if not changed_files:
                     changed_files = changed_files_from_diff_files(diff_files)
@@ -912,13 +1144,20 @@ async def review_pr(request: ReviewRequest):
                     try:
                         logger.info(f"Auto-building PR graph for {owner}/{repo}#{pr_number}")
                         repo_root = Path(reg["local_path"])
+                        ensure_branch_graph(
+                            owner,
+                            repo,
+                            repo_root,
+                            base_branch,
+                            allow_fetch=bool(reg.get("managed_checkout") or reg.get("repo_url")),
+                        )
                         pr_worktree = prepare_pr_worktree(
                             owner, repo, repo_root, pr_number,
                         )
                         try:
                             lifecycle.build_pr_graph(
                                 owner, repo, pr_worktree or repo_root,
-                                pr_number, changed_files,
+                                pr_number, changed_files, base_branch=base_branch,
                             )
                         finally:
                             cleanup_pr_worktree(repo_root, pr_worktree)
@@ -956,12 +1195,20 @@ async def review_pr(request: ReviewRequest):
                     repo_root = Path(reg["local_path"])
                     pr_worktree = prepare_pr_worktree(owner, repo, repo_root, pr_number)
                     try:
+                        ensure_branch_graph(
+                            owner,
+                            repo,
+                            repo_root,
+                            base_branch,
+                            allow_fetch=bool(reg.get("managed_checkout") or reg.get("repo_url")),
+                        )
                         lifecycle.build_pr_graph(
                             owner,
                             repo,
                             pr_worktree or repo_root,
                             pr_number,
                             changed_files,
+                            base_branch=base_branch,
                         )
                     finally:
                         cleanup_pr_worktree(repo_root, pr_worktree)
@@ -1066,6 +1313,15 @@ async def review_pr_stream(request: ReviewRequest):
         try:
             yield _sse("progress", {"stage": "Parsing PR URL...", "progress": 0.03})
             owner, repo, pr_number = parse_pr_url(request.pr_url)
+            base_branch = fetch_pr_base_branch(owner, repo, pr_number)
+            yield _sse(
+                "progress",
+                {
+                    "stage": f"Target branch: {base_branch}",
+                    "progress": 0.05,
+                    "base_branch": base_branch,
+                },
+            )
             reg = registry.get(owner, repo)
             if reg:
                 repo_root_for_cleanup = Path(reg["local_path"])
@@ -1079,9 +1335,18 @@ async def review_pr_stream(request: ReviewRequest):
 
             yield _sse("progress", {"stage": "Checking PR graph...", "progress": 0.16})
             if not lifecycle.pr_graph_ready(owner, repo, pr_number):
-                if lifecycle.main_graph_ready(owner, repo) and reg:
+                if reg:
                     changed_files = fetch_pr_changed_files(owner, repo, pr_number)
+                    if not changed_files:
+                        changed_files = changed_files_from_diff_files(diff_files)
                     repo_root = Path(reg["local_path"])
+                    ensure_branch_graph(
+                        owner,
+                        repo,
+                        repo_root,
+                        base_branch,
+                        allow_fetch=bool(reg.get("managed_checkout") or reg.get("repo_url")),
+                    )
                     pr_worktree = prepare_pr_worktree(owner, repo, repo_root, pr_number)
                     try:
                         yield _sse("progress", {"stage": "Building PR graph...", "progress": 0.24})
@@ -1091,6 +1356,7 @@ async def review_pr_stream(request: ReviewRequest):
                             pr_worktree or repo_root,
                             pr_number,
                             changed_files,
+                            base_branch=base_branch,
                         )
                     finally:
                         cleanup_pr_worktree(repo_root, pr_worktree)
@@ -1106,6 +1372,7 @@ async def review_pr_stream(request: ReviewRequest):
                 graph_context = enricher.get_context_from_diff(diff_files)
 
             graph_summary = {
+                "base_branch": base_branch,
                 "changed_functions": len(graph_context.get("changed_functions", []) or []),
                 "affected_flows": len(graph_context.get("affected_flows", []) or []),
                 "test_gaps": len(graph_context.get("test_gaps", []) or []),
@@ -1161,8 +1428,15 @@ async def list_repos():
     result = []
     for repo in repos:
         owner, name = repo["owner"], repo["name"]
+        target_branch = repo.get("target_branch") or "main"
         result.append({
             **repo,
+            "target_branch": target_branch,
+            "target_branch_graph_ready": lifecycle.branch_graph_ready(
+                owner,
+                name,
+                target_branch,
+            ),
             "main_graph_ready": lifecycle.main_graph_ready(owner, name),
         })
     return {"repos": result}
@@ -1417,15 +1691,19 @@ async def github_webhook(event: GitHubWebhookEvent):
             return {"status": "ignored", "reason": "Repo not registered"}
         
         try:
-            # Promote PR graph to main
-            lifecycle.promote_pr_to_main(owner, repo, pr_number)
-            logger.info(f"Promoted PR#{pr_number} graph to main")
+            base_branch = (
+                (event.pull_request.get("base") or {}).get("ref")
+                or fetch_pr_base_branch(owner, repo, pr_number)
+            )
+            lifecycle.promote_pr_to_branch(owner, repo, pr_number, base_branch)
+            logger.info(f"Promoted PR#{pr_number} graph to {base_branch}")
             
             return {
                 "status": "processed",
                 "action": "promoted",
                 "repo": f"{owner}/{repo}",
                 "pr_number": pr_number,
+                "base_branch": base_branch,
             }
         except Exception as e:
             logger.error(f"Failed to promote PR graph: {e}", exc_info=True)

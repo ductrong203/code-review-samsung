@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     # --- LLM Provider ---
     LLM_PROVIDER: str = Field(
         default="ollama",
-        description="LLM provider: 'ollama', 'gemini', or 'qwen'",
+        description="LLM provider: 'ollama', 'gemini', or 'openai_compatible'",
     )
 
     # --- Ollama ---
@@ -27,15 +27,34 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = Field(default="", description="Google Gemini API key")
     GEMINI_MODEL: str = Field(default="gemini-3-flash-preview", description="Gemini model name")
 
-    # --- Qwen / OpenAI-compatible endpoint ---
-    QWEN_BASE_URL: str = Field(default="", description="OpenAI-compatible Qwen server URL")
-    QWEN_API_KEY: str = Field(default="dummy", description="Qwen API key placeholder")
-    QWEN_MODEL: str = Field(default="Qwen3.6-35B", description="Qwen model name")
-    QWEN_TIMEOUT_SECONDS: int = Field(default=120, description="Qwen request timeout")
-    QWEN_ENABLE_THINKING: bool = Field(
-        default=False,
-        description="Enable Qwen reasoning/thinking output when supported",
+    # --- OpenAI-compatible endpoint (9Router, vLLM, OpenRouter, etc.) ---
+    OPENAI_COMPATIBLE_BASE_URL: str = Field(
+        default="",
+        description="OpenAI-compatible chat completions base URL",
     )
+    OPENAI_COMPATIBLE_API_KEY: str = Field(
+        default="dummy",
+        description="OpenAI-compatible API key",
+    )
+    OPENAI_COMPATIBLE_MODEL: str = Field(
+        default="",
+        description="OpenAI-compatible model name",
+    )
+    OPENAI_COMPATIBLE_TIMEOUT_SECONDS: int = Field(
+        default=120,
+        description="OpenAI-compatible request timeout",
+    )
+    OPENAI_COMPATIBLE_ENABLE_THINKING: bool = Field(
+        default=False,
+        description="Enable reasoning/thinking output when supported",
+    )
+
+    # Backward-compatible aliases for existing deployments.
+    QWEN_BASE_URL: str = Field(default="", description="Deprecated; use OPENAI_COMPATIBLE_BASE_URL")
+    QWEN_API_KEY: str = Field(default="", description="Deprecated; use OPENAI_COMPATIBLE_API_KEY")
+    QWEN_MODEL: str = Field(default="", description="Deprecated; use OPENAI_COMPATIBLE_MODEL")
+    QWEN_TIMEOUT_SECONDS: int = Field(default=120, description="Deprecated; use OPENAI_COMPATIBLE_TIMEOUT_SECONDS")
+    QWEN_ENABLE_THINKING: bool = Field(default=False, description="Deprecated; use OPENAI_COMPATIBLE_ENABLE_THINKING")
 
     # --- GitHub ---
     GITHUB_TOKEN: str = Field(default="", description="GitHub personal access token (optional)")

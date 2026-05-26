@@ -1184,12 +1184,263 @@
         }
       }
 
-      @media (max-width: 768px) {
+      @media (max-width: 1024px) {
+        html,
+        body {
+          overflow: auto;
+        }
+        .app {
+          min-height: 100dvh;
+          height: auto;
+          flex-direction: column;
+        }
         .sidebar {
-          width: 260px;
+          width: 100%;
+          max-height: none;
+          border-right: none;
+          border-bottom: 1px solid var(--border2);
+        }
+        .sidebar-header {
+          padding: 14px 18px;
+        }
+        .brand-logo {
+          width: 44px;
+          height: 44px;
+        }
+        .sidebar-header h1 {
+          font-size: 16px;
+        }
+        .sidebar-body {
+          display: grid;
+          grid-template-columns: minmax(260px, 1fr) minmax(260px, 1fr);
+          gap: 0;
+          padding: 0;
+          overflow: visible;
+        }
+        .sidebar-section {
+          padding: 14px 18px;
+        }
+        .main {
+          min-height: 62dvh;
+        }
+        .chat-body {
+          min-height: 46dvh;
+          padding: 18px;
+        }
+        .chat-input-area {
+          position: sticky;
+          bottom: 0;
+          padding: 12px 18px max(12px, env(safe-area-inset-bottom));
+          z-index: 10;
+        }
+        .msg {
+          max-width: 92%;
+        }
+      }
+
+      @media (max-width: 768px) {
+        :root {
+          --r-lg: 12px;
+          --r-xl: 16px;
+        }
+        .sidebar {
+          width: 100%;
+        }
+        .sidebar-body {
+          grid-template-columns: 1fr;
+        }
+        .sidebar-section {
+          padding: 12px 14px;
+        }
+        .repo-item {
+          align-items: flex-start;
+          gap: 10px;
+        }
+        .repo-status {
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+        .repo-path {
+          overflow-wrap: anywhere;
+        }
+        .chat-header {
+          padding: 12px 14px;
+        }
+        .chat-logo {
+          width: 38px;
+          height: 38px;
+        }
+        .chat-body {
+          padding: 14px;
+        }
+        .chat-input-wrap {
+          align-items: stretch;
+        }
+        .chat-input-wrap input,
+        .form-group input {
+          font-size: 16px;
         }
         .msg {
           max-width: 95%;
+        }
+        .msg-bubble {
+          padding: 12px 14px;
+        }
+        .review-card {
+          padding: 12px;
+        }
+        .agent-progress {
+          grid-template-columns: 1fr;
+        }
+        .graph-shell {
+          width: 100vw;
+          height: 100dvh;
+          border-radius: 0;
+        }
+        .graph-topbar {
+          align-items: flex-start;
+          flex-wrap: wrap;
+          gap: 10px;
+          padding: 12px;
+        }
+        .graph-heading {
+          flex: 1 1 100%;
+        }
+        .graph-layout {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto minmax(320px, 42dvh) minmax(0, 1fr);
+        }
+        .graph-node-list {
+          max-height: 168px;
+          border-bottom: 1px solid var(--border2);
+        }
+        .graph-stage {
+          min-height: 320px;
+        }
+        #graphCanvas3d {
+          min-height: 320px;
+        }
+        .graph-side-panel {
+          min-height: 0;
+          max-height: none;
+        }
+        .graph-node-detail {
+          max-height: 32dvh;
+        }
+        .graph-stats-row {
+          left: 10px;
+          right: 10px;
+          top: 10px;
+          max-width: none;
+          gap: 6px;
+        }
+        .graph-stat-chip,
+        .graph-legend span {
+          padding: 5px 8px;
+          font-size: 10px;
+        }
+        .graph-legend {
+          left: 10px;
+          right: 10px;
+          bottom: 10px;
+          gap: 6px;
+        }
+        .toast {
+          left: 12px;
+          right: 12px;
+          bottom: max(12px, env(safe-area-inset-bottom));
+          max-width: none;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .sidebar-header {
+          padding: 12px 14px;
+        }
+        .brand-lockup {
+          gap: 10px;
+        }
+        .brand-logo {
+          width: 40px;
+          height: 40px;
+        }
+        .sidebar-section h3 {
+          letter-spacing: 0.7px;
+        }
+        .repo-item {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .repo-status {
+          justify-content: flex-start;
+        }
+        .btn {
+          justify-content: center;
+        }
+        .chat-header p {
+          display: none;
+        }
+        .chat-input-wrap {
+          flex-direction: column;
+          gap: 8px;
+        }
+        .chat-input-wrap .btn {
+          width: 100%;
+        }
+        .msg {
+          max-width: 100%;
+        }
+        .msg-bubble {
+          font-size: 13px;
+        }
+        .finding-header,
+        .graph-chip-row,
+        .progress-log__item {
+          overflow-wrap: anywhere;
+        }
+        .graph-topbar .btn {
+          flex: 1 1 auto;
+        }
+        #graphPager {
+          order: 3;
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          overflow-x: auto;
+        }
+        .graph-node-row {
+          grid-template-columns: 10px minmax(0, 1fr);
+        }
+        .graph-node-row__meta {
+          grid-column: 2;
+          overflow-wrap: anywhere;
+        }
+        .graph-code-box__header {
+          flex-direction: column;
+          gap: 4px;
+        }
+        .graph-code-line {
+          grid-template-columns: 38px minmax(max-content, 1fr);
+          gap: 8px;
+          padding: 0 8px;
+        }
+      }
+
+      @media (max-width: 380px) {
+        .sidebar-section,
+        .chat-body,
+        .chat-input-area {
+          padding-left: 10px;
+          padding-right: 10px;
+        }
+        .graph-layout {
+          grid-template-rows: auto minmax(280px, 40dvh) minmax(0, 1fr);
+        }
+        .graph-stage,
+        #graphCanvas3d {
+          min-height: 280px;
         }
       }
     </style>
@@ -1224,13 +1475,17 @@
             <label>Git URL or Server Path</label
             ><input id="regSource" placeholder="https://github.com/owner/repo" />
           </div>
+          <div class="form-group">
+            <label>Target Branch</label
+            ><input id="regTargetBranch" placeholder="e.g. develop" value="main" />
+          </div>
           <button
             id="registerBuildBtn"
             class="btn btn-primary"
             onclick="registerRepo()"
             style="width: 100%"
           >
-            Register & Build Graph
+            Register & Build Branch Graph
           </button>
           <div id="buildStatus" class="build-status">
             <span class="build-spinner"></span>
@@ -1289,8 +1544,8 @@
               <strong>1.</strong> Register a repo in the sidebar. On Docker
               deploys, use a GitHub URL so the server clones into its /repos
               volume.<br />
-              <strong>2.</strong> Wait for the main graph to build (~1-2s for
-              small repos)<br />
+              <strong>2.</strong> Paste a GitHub PR URL; the target branch graph
+              is built automatically when needed<br />
               <strong>3.</strong> Paste a GitHub PR URL here to review with
               graph context<br /><br />
               The graph analysis gives agents <strong>risk scores</strong>,
@@ -1901,8 +2156,8 @@
         if (!btn) return;
         btn.disabled = isLoading;
         btn.innerHTML = isLoading
-          ? `${icon("clock")} Building graph...`
-          : "Register & Build Graph";
+          ? `${icon("clock")} Registering...`
+          : "Register & Build Branch Graph";
       }
       function graphStatsText(stats) {
         const nodes = stats?.total_nodes ?? stats?.nodes ?? 0;
@@ -2216,14 +2471,15 @@
         const owner = $("regOwner").value.trim();
         const name = $("regName").value.trim();
         const source = $("regSource").value.trim();
-        if (!owner || !name) {
-          toast("Fill owner and repo name", "err");
+        const targetBranch = $("regTargetBranch").value.trim();
+        if (!owner || !name || !targetBranch) {
+          toast("Fill owner, repo name, and target branch", "err");
           return;
         }
 
         clearBuildStatus();
         setBuildButtonLoading(true);
-        setBuildStatus(`Registering ${owner}/${name}...`);
+        setBuildStatus(`Registering ${owner}/${name} for branch ${targetBranch}...`);
         toast("Registering repo...", "info");
         try {
           // Register
@@ -2233,6 +2489,7 @@
             body: JSON.stringify({
               owner,
               name,
+              target_branch: targetBranch,
               ...(source
                 ? isGitSource(source)
                   ? { repo_url: source }
@@ -2245,28 +2502,26 @@
             throw new Error(e.detail);
           }
 
-          // Build main graph
-          setBuildStatus(`Building graph for ${owner}/${name}. This can take a while on large repos...`);
-          toast("Building main graph...", "info");
+          setBuildStatus(`Building graph for ${owner}/${name}@${targetBranch}. This can take a while on large repos...`);
+          toast(`Building graph for ${targetBranch}...`, "info");
           r = await fetch(`${API}/api/build-main`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ owner, name }),
+            body: JSON.stringify({ owner, name, branch: targetBranch }),
           });
           const data = await r.json();
-          if (r.ok) {
-            const statsText = graphStatsText(data.stats);
-            const doneMsg = `Graph for ${owner}/${name} built successfully: ${statsText}.`;
-            setBuildStatus(doneMsg, "ok");
-            toast(doneMsg, "ok");
-            $("regOwner").value = "";
-            $("regName").value = "";
-            $("regSource").value = "";
-            loadGraph(owner, name);
-          } else {
-            setBuildStatus(data.detail || "Build failed", "err");
-            toast(data.detail || "Build failed", "err");
+          if (!r.ok) {
+            throw new Error(data.detail || "Build failed");
           }
+
+          const statsText = graphStatsText(data.stats);
+          const doneMsg = `${owner}/${name}@${targetBranch} graph built successfully: ${statsText}.`;
+          setBuildStatus(doneMsg, "ok");
+          toast(doneMsg, "ok");
+          $("regOwner").value = "";
+          $("regName").value = "";
+          $("regSource").value = "";
+          $("regTargetBranch").value = "main";
           loadRepos();
         } catch (e) {
           setBuildStatus(e.message, "err");
@@ -2293,11 +2548,12 @@
       <div class="repo-item">
         <div>
           <div class="repo-name">${repo.owner}/${repo.name}</div>
+          <div class="repo-path">branch: ${escapeHtml(repo.target_branch || "main")}</div>
           <div class="repo-path">${repo.local_path}</div>
         </div>
         <div class="repo-status">
-          <span class="badge ${repo.main_graph_ready ? "badge-ok" : "badge-warn"}">${repo.main_graph_ready ? `${icon("check")} Graph` : `${icon("clock")} No Graph`}</span>
-          ${repo.main_graph_ready ? `<button class="btn btn-sm btn-outline" onclick="loadGraph('${escapeJsString(repo.owner)}','${escapeJsString(repo.name)}')" title="View graph">${icon("target")}</button>` : ""}
+          <span class="badge ${repo.target_branch_graph_ready ? "badge-ok" : "badge-warn"}">${repo.target_branch_graph_ready ? `${icon("check")} Graph` : `${icon("clock")} No Graph`}</span>
+          ${repo.target_branch_graph_ready ? `<button class="btn btn-sm btn-outline" onclick="loadGraph('${escapeJsString(repo.owner)}','${escapeJsString(repo.name)}')" title="View graph">${icon("target")}</button>` : ""}
           <button class="btn btn-sm btn-outline" onclick="deleteRepo('${repo.owner}','${repo.name}')" title="Remove">${icon("close")}</button>
         </div>
       </div>
@@ -2627,6 +2883,7 @@
           const renderedFindings = new Set();
           const renderedProgressStages = new Set();
           const agentProgress = new Map();
+          let baseBranch = "";
 
           function parseEvent(block) {
             let event = "message";
@@ -2692,6 +2949,12 @@
               if (parsed.event === "progress") {
                 const pct = Math.max(2, Math.round((parsed.data.progress || 0) * 100));
                 const stage = stripLegacyIcons(parsed.data.stage || "Reviewing...");
+                if (parsed.data.base_branch) {
+                  baseBranch = parsed.data.base_branch;
+                  if (liveGraph) {
+                    liveGraph.innerHTML = `<span>target branch ${escapeHtml(baseBranch)}</span>`;
+                  }
+                }
                 if (liveStage) liveStage.textContent = stage;
                 if (liveProgress) liveProgress.style.width = `${pct}%`;
                 renderAgentProgress(parseAgentProgress(stage));
@@ -2699,8 +2962,10 @@
               }
               if (parsed.event === "graph") {
                 data.graph_context = parsed.data;
+                baseBranch = parsed.data.base_branch || baseBranch;
                 if (liveGraph) {
                   liveGraph.innerHTML = `
+                    ${baseBranch ? `<span>target branch ${escapeHtml(baseBranch)}</span>` : ""}
                     <span>${parsed.data.changed_functions || 0} changed functions</span>
                     <span>${parsed.data.affected_flows || 0} flows</span>
                     <span>${parsed.data.test_gaps || 0} test gaps</span>

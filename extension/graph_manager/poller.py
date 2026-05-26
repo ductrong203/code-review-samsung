@@ -5,6 +5,7 @@ Polls GitHub API for open PRs on registered repos, auto-builds PR graphs
 when new PRs are detected, and promotes/cleans up when PRs are merged/closed.
 """
 import logging
+import subprocess
 import threading
 import time
 from typing import Dict, Set, Optional
@@ -79,9 +80,6 @@ class PRPoller:
         owner, name = repo["owner"], repo["name"]
         key = f"{owner}/{name}"
 
-        if not self.lifecycle.main_graph_ready(owner, name):
-            return  # Skip repos without main graph
-
         prs = self._fetch_open_prs(owner, name)
         known = self.known_prs.setdefault(key, set())
         open_nums = {p["number"] for p in prs}
@@ -89,15 +87,29 @@ class PRPoller:
         # Build graphs for new PRs
         for pr in prs:
             pr_num = pr["number"]
+            base_branch = (pr.get("base") or {}).get("ref") or "main"
             if pr_num not in known and not self.lifecycle.pr_graph_ready(owner, name, pr_num):
                 known.add(pr_num)
                 try:
                     changed = self._fetch_pr_files(owner, name, pr_num)
                     if changed:
                         from pathlib import Path
+                        repo_root = Path(repo["local_path"])
+                        if not self.lifecycle.branch_graph_ready(owner, name, base_branch):
+                            if self._current_git_branch(repo_root) != base_branch:
+                                logger.warning(
+                                    "Skipping auto-build for %s#%s: checkout is not on base branch %s",
+                                    key,
+                                    pr_num,
+                                    base_branch,
+                                )
+                                continue
+                            self.lifecycle.build_branch_graph(
+                                owner, name, base_branch, repo_root,
+                            )
                         self.lifecycle.build_pr_graph(
-                            owner, name, Path(repo["local_path"]),
-                            pr_num, changed,
+                            owner, name, repo_root,
+                            pr_num, changed, base_branch=base_branch,
                         )
                         logger.info(f"Auto-built PR graph: {key}#{pr_num}")
                 except Exception as e:
@@ -110,7 +122,10 @@ class PRPoller:
         for pr_num in closed:
             state = self._get_pr_state(owner, name, pr_num)
             if state == "merged":
-                self.lifecycle.promote_pr_to_main(owner, name, pr_num)
+                base_branch = self._get_pr_base_branch(owner, name, pr_num)
+                self.lifecycle.promote_pr_to_branch(
+                    owner, name, pr_num, base_branch,
+                )
                 logger.info(f"Promoted merged PR: {key}#{pr_num}")
             else:
                 self.lifecycle.cleanup_pr(owner, name, pr_num)
@@ -151,3 +166,30 @@ class PRPoller:
         except Exception:
             pass
         return "closed"
+
+    def _get_pr_base_branch(self, owner: str, repo: str, pr_num: int) -> str:
+        try:
+            r = requests.get(
+                f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_num}",
+                headers=self._headers, timeout=15,
+            )
+            if r.ok:
+                return ((r.json().get("base") or {}).get("ref")) or "main"
+        except Exception:
+            pass
+        return "main"
+
+    def _current_git_branch(self, repo_root) -> Optional[str]:
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                cwd=str(repo_root),
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            branch = result.stdout.strip()
+            return None if branch == "HEAD" else branch
+        except Exception:
+            return None
