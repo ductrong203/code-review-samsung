@@ -1,4 +1,15 @@
 services:
+  mongo:
+    image: mongo:7
+    container_name: codereview-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+    networks:
+      - codereview-network
+
   backend:
     build:
       context: ./backend
@@ -8,11 +19,17 @@ services:
       - "8000:8000"
     env_file:
       - ./backend/.env
+    environment:
+      MONGO_URL: mongodb://mongo:27017/codereviewbot
+      MONGO_DB_NAME: codereviewbot
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-production}
     extra_hosts:
       # Lets the backend container call Ollama running on the VPS host via
       # OLLAMA_BASE_URL=http://host.docker.internal:11434.
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
+    depends_on:
+      - mongo
     networks:
       - codereview-network
 
@@ -61,6 +78,7 @@ services:
 
 volumes:
   graph-data:
+  mongo-data:
 
 networks:
   codereview-network:

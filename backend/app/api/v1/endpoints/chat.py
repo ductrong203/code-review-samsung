@@ -3,11 +3,15 @@ import json
 import logging
 import queue
 import threading
+from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
+from pymongo import MongoClient
 
+from app.api.deps import get_current_user
 from app.core.config import get_settings
+from app.core.database import get_database
 from app.schemas.chat import (
     AgentMetadata,
     CategoryStats,
@@ -127,8 +131,43 @@ def _help_response() -> ChatResponse:
     )
 
 
+def _review_history_doc(user: dict, request_message: str, response: ChatResponse) -> dict | None:
+    if not response.pr_url or response.error:
+        return None
+    return {
+        "user_id": str(user["_id"]),
+        "pr_url": response.pr_url,
+        "message": request_message,
+        "review": response.model_dump(mode="json"),
+        "created_at": datetime.now(timezone.utc),
+    }
+
+
+async def _save_review_history(user: dict, request_message: str, response: ChatResponse) -> None:
+    """Persist a completed review for the authenticated user."""
+    doc = _review_history_doc(user, request_message, response)
+    if doc:
+        await get_database().review_history.insert_one(doc)
+
+
+def _save_review_history_sync(user: dict, request_message: str, response: ChatResponse) -> None:
+    """Persist review history from the streaming worker thread."""
+    doc = _review_history_doc(user, request_message, response)
+    if not doc:
+        return
+    settings = get_settings()
+    client = MongoClient(settings.MONGO_URL)
+    try:
+        client[settings.MONGO_DB_NAME].review_history.insert_one(doc)
+    finally:
+        client.close()
+
+
 @router.post("/chat", response_model=ChatResponse, tags=["chat"])
-async def chat(request: ChatRequest):
+async def chat(
+    request: ChatRequest,
+    current_user: dict = Depends(get_current_user),
+):
     """Process a chat message and return a complete review response."""
     message = request.message.strip()
     if not message:
@@ -143,7 +182,9 @@ async def chat(request: ChatRequest):
             pr_url,
             graph_context=request.graph_context,
         )
-        return _to_chat_response(result, pr_url)
+        response = _to_chat_response(result, pr_url)
+        await _save_review_history(current_user, message, response)
+        return response
     except Exception as e:
         logger.error("Review failed for %s: %s", pr_url, e, exc_info=True)
         return ChatResponse(
@@ -155,7 +196,10 @@ async def chat(request: ChatRequest):
 
 
 @router.post("/chat/stream", tags=["chat"])
-async def chat_stream(request: ChatRequest):
+async def chat_stream(
+    request: ChatRequest,
+    current_user: dict = Depends(get_current_user),
+):
     """Stream progress, graph stats, and the final review response."""
     message = request.message.strip()
     if not message:
@@ -187,6 +231,7 @@ async def chat_stream(request: ChatRequest):
             )
             result = service.review_pr(pr_url, graph_context=request.graph_context)
             response = _to_chat_response(result, pr_url)
+            _save_review_history_sync(current_user, message, response)
             event_queue.put(("final", response.model_dump()))
         except Exception as e:
             logger.error("Streaming review failed for %s: %s", pr_url, e, exc_info=True)

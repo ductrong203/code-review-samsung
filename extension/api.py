@@ -32,7 +32,7 @@ if str(_backend_path) not in sys.path:
     sys.path.insert(0, str(_backend_path))
 
 import requests
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -144,6 +144,12 @@ class GraphStatusRequest(BaseModel):
     owner: str
     name: str
     pr_number: Optional[int] = None
+
+
+class AuthProxyRequest(BaseModel):
+    name: Optional[str] = None
+    email: str
+    password: str
 
 
 # ─── Helpers ─────────────────────────────────────────────────────────────
@@ -860,6 +866,76 @@ def get_graph_db_or_404(owner: str, name: str, pr_number: Optional[int] = None) 
 # ─── Endpoints ───────────────────────────────────────────────────────────
 
 
+def _backend_auth_headers(authorization: Optional[str]) -> Dict[str, str]:
+    return {"Authorization": authorization} if authorization else {}
+
+
+def _proxy_backend_json(
+    method: str,
+    path: str,
+    *,
+    payload: Optional[Dict[str, Any]] = None,
+    authorization: Optional[str] = None,
+) -> Dict[str, Any]:
+    try:
+        response = requests.request(
+            method,
+            f"{REVIEW_SERVER_URL}{path}",
+            json=payload,
+            headers=_backend_auth_headers(authorization),
+            timeout=30,
+        )
+    except requests.exceptions.ConnectionError:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Cannot connect to review server at {REVIEW_SERVER_URL}.",
+        )
+
+    data = response.json() if response.content else {}
+    if not response.ok:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=data.get("detail") or response.text[:500],
+        )
+    return data
+
+
+@app.post("/api/auth/register", tags=["auth"])
+async def auth_register(request: AuthProxyRequest):
+    return _proxy_backend_json(
+        "POST",
+        "/api/v1/auth/register",
+        payload=request.model_dump(exclude_none=True),
+    )
+
+
+@app.post("/api/auth/login", tags=["auth"])
+async def auth_login(request: AuthProxyRequest):
+    return _proxy_backend_json(
+        "POST",
+        "/api/v1/auth/login",
+        payload={"email": request.email, "password": request.password},
+    )
+
+
+@app.get("/api/auth/me", tags=["auth"])
+async def auth_me(authorization: Optional[str] = Header(default=None)):
+    return _proxy_backend_json(
+        "GET",
+        "/api/v1/auth/me",
+        authorization=authorization,
+    )
+
+
+@app.get("/api/history/reviews", tags=["history"])
+async def history_reviews(authorization: Optional[str] = Header(default=None)):
+    return _proxy_backend_json(
+        "GET",
+        "/api/v1/history/reviews",
+        authorization=authorization,
+    )
+
+
 @app.post("/api/register", tags=["repos"])
 async def register_repo(request: RegisterRequest):
     """Register a repository for graph tracking."""
@@ -1082,7 +1158,10 @@ async def build_pr_graph(request: BuildPRRequest):
 
 
 @app.post("/api/review", tags=["review"])
-async def review_pr(request: ReviewRequest):
+async def review_pr(
+    request: ReviewRequest,
+    authorization: Optional[str] = Header(default=None),
+):
     """
     SIMPLIFIED review flow:
     1. Parse PR URL -> owner/repo/pr_number
@@ -1246,6 +1325,7 @@ async def review_pr(request: ReviewRequest):
             resp = requests.post(
                 f"{server_url}/api/v1/chat",
                 json=payload,
+                headers=_backend_auth_headers(authorization),
                 timeout=300,  # 5 min timeout for review
             )
 
@@ -1302,7 +1382,10 @@ def _sse(event: str, data: dict) -> str:
 
 
 @app.post("/api/review/stream", tags=["review"])
-async def review_pr_stream(request: ReviewRequest):
+async def review_pr_stream(
+    request: ReviewRequest,
+    authorization: Optional[str] = Header(default=None),
+):
     """Graph-powered review with SSE proxy to backend streaming endpoint."""
     def generate():
         review_success = False
@@ -1388,6 +1471,7 @@ async def review_pr_stream(request: ReviewRequest):
             with requests.post(
                 f"{server_url}/api/v1/chat/stream",
                 json=payload,
+                headers=_backend_auth_headers(authorization),
                 timeout=300,
                 stream=True,
             ) as resp:

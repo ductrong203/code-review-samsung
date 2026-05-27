@@ -65,6 +65,63 @@
       }
 
       /* Layout */
+      .auth-screen {
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        overflow-y: auto;
+      }
+      .auth-panel {
+        width: min(420px, 100%);
+        background: var(--bg2);
+        border: 1px solid var(--border2);
+        border-radius: var(--r-md);
+        box-shadow: var(--sh-lg);
+        padding: 24px;
+      }
+      .auth-panel h1 {
+        font-size: 22px;
+        margin-bottom: 6px;
+      }
+      .auth-panel p {
+        color: var(--text3);
+        font-size: 13px;
+        margin-bottom: 18px;
+      }
+      .auth-tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .auth-tab {
+        background: var(--bg3);
+        border: 1px solid var(--border2);
+        color: var(--text2);
+        border-radius: var(--r-sm);
+        padding: 9px 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .auth-tab.active {
+        background: var(--accent);
+        color: #fff;
+      }
+      .auth-error {
+        display: none;
+        margin: 10px 0;
+        padding: 9px 11px;
+        border-radius: var(--r-sm);
+        background: #fff1f0;
+        border: 1px solid #ffe0dd;
+        color: var(--err);
+        font-size: 12px;
+      }
+      .app.is-hidden,
+      .auth-screen.is-hidden {
+        display: none;
+      }
       .app {
         display: flex;
         height: 100vh;
@@ -76,6 +133,7 @@
         display: flex;
         flex-direction: column;
         backdrop-filter: blur(16px);
+        overflow: hidden;
       }
       .main {
         flex: 1;
@@ -127,6 +185,65 @@
       .sidebar-section {
         padding: 16px 20px;
         border-bottom: 1px solid var(--border2);
+        flex: 0 0 auto;
+      }
+      .explorer-section {
+        border-bottom: 1px solid var(--border2);
+        min-height: 0;
+      }
+      .explorer-section.is-fill {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .explorer-header {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 34px;
+        padding: 8px 14px;
+        border: 0;
+        background: #f8fbff;
+        color: var(--text2);
+        font-family: var(--font);
+        cursor: pointer;
+      }
+      .explorer-header:hover {
+        background: #eef5ff;
+      }
+      .explorer-chevron {
+        width: 14px;
+        color: var(--text3);
+        font-size: 12px;
+        font-weight: 800;
+        text-align: center;
+        flex: 0 0 auto;
+      }
+      .explorer-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-width: 0;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .explorer-body {
+        padding: 12px 14px 14px 28px;
+        min-height: 0;
+        overflow-y: auto;
+      }
+      .explorer-section:not(.is-fill) .explorer-body {
+        max-height: min(300px, 34vh);
+      }
+      .explorer-section.is-fill .explorer-body {
+        flex: 1;
+        padding-left: 14px;
+      }
+      .explorer-section.collapsed .explorer-body {
+        display: none;
       }
       .sidebar-section h3 {
         font-size: 11px;
@@ -239,12 +356,16 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 10px;
         padding: 10px 14px;
         border-radius: var(--r-sm);
         margin-bottom: 6px;
         background: var(--bg);
         border: 1px solid var(--border2);
         transition: 0.2s;
+      }
+      .repo-item > div:first-child {
+        min-width: 0;
       }
       .repo-item:hover {
         border-color: var(--accent);
@@ -254,16 +375,63 @@
         font-size: 13px;
         font-weight: 600;
         color: var(--text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .repo-path {
         font-size: 11px;
         color: var(--text3);
         font-family: var(--mono);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .repo-status {
         display: flex;
         gap: 4px;
         align-items: center;
+      }
+      .user-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .user-name {
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .user-email {
+        font-size: 11px;
+        color: var(--text3);
+      }
+      .history-item {
+        width: 100%;
+        text-align: left;
+        border: 1px solid var(--border2);
+        background: var(--bg);
+        border-radius: var(--r-sm);
+        padding: 9px 10px;
+        margin-bottom: 6px;
+        cursor: pointer;
+        font-family: var(--font);
+      }
+      .history-item:hover {
+        border-color: var(--accent);
+      }
+      .history-item__url {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .history-item__meta {
+        margin-top: 3px;
+        font-size: 11px;
+        color: var(--text3);
       }
       .badge {
         display: inline-flex;
@@ -1187,21 +1355,21 @@
       @media (max-width: 1024px) {
         html,
         body {
-          overflow: auto;
+          overflow: hidden;
         }
         .app {
-          min-height: 100dvh;
-          height: auto;
+          height: 100dvh;
           flex-direction: column;
         }
         .sidebar {
           width: 100%;
-          max-height: none;
+          flex: 0 0 auto;
+          max-height: min(42dvh, 420px);
           border-right: none;
           border-bottom: 1px solid var(--border2);
         }
         .sidebar-header {
-          padding: 14px 18px;
+          padding: 12px 18px;
         }
         .brand-logo {
           width: 44px;
@@ -1218,18 +1386,33 @@
           overflow: visible;
         }
         .sidebar-section {
-          padding: 14px 18px;
+          padding: 10px 18px;
+        }
+        .explorer-header {
+          min-height: 32px;
+          padding: 7px 16px;
+        }
+        .explorer-body {
+          padding: 10px 16px 12px 30px;
+        }
+        .explorer-section.is-fill {
+          min-height: 132px;
+        }
+        .explorer-section.is-fill .explorer-body {
+          max-height: 170px;
+        }
+        .explorer-section:not(.is-fill) .explorer-body {
+          max-height: 190px;
         }
         .main {
-          min-height: 62dvh;
+          flex: 1 1 auto;
+          min-height: 0;
         }
         .chat-body {
-          min-height: 46dvh;
+          min-height: 0;
           padding: 18px;
         }
         .chat-input-area {
-          position: sticky;
-          bottom: 0;
           padding: 12px 18px max(12px, env(safe-area-inset-bottom));
           z-index: 10;
         }
@@ -1245,6 +1428,7 @@
         }
         .sidebar {
           width: 100%;
+          max-height: min(46dvh, 390px);
         }
         .sidebar-body {
           grid-template-columns: 1fr;
@@ -1259,9 +1443,21 @@
         .repo-status {
           flex-wrap: wrap;
           justify-content: flex-end;
+          flex: 0 0 auto;
         }
         .repo-path {
+          white-space: normal;
           overflow-wrap: anywhere;
+        }
+        .repo-name {
+          white-space: normal;
+        }
+        .explorer-section.is-fill {
+          min-height: 118px;
+        }
+        .explorer-section.is-fill .explorer-body,
+        .explorer-section:not(.is-fill) .explorer-body {
+          max-height: 150px;
         }
         .chat-header {
           padding: 12px 14px;
@@ -1354,8 +1550,24 @@
       }
 
       @media (max-width: 520px) {
+        .auth-screen {
+          align-items: start;
+          padding: 14px;
+        }
+        .auth-panel {
+          padding: 18px;
+        }
+        .auth-panel h1 {
+          font-size: 20px;
+        }
+        .app {
+          min-width: 0;
+        }
+        .sidebar {
+          max-height: 44dvh;
+        }
         .sidebar-header {
-          padding: 12px 14px;
+          padding: 10px 14px;
         }
         .brand-lockup {
           gap: 10px;
@@ -1367,12 +1579,35 @@
         .sidebar-section h3 {
           letter-spacing: 0.7px;
         }
+        .sidebar-section {
+          padding: 10px 12px;
+        }
+        .explorer-header {
+          min-height: 30px;
+          padding: 6px 12px;
+        }
+        .explorer-title {
+          font-size: 10px;
+          letter-spacing: 0.05em;
+        }
+        .explorer-body {
+          padding: 10px 12px;
+        }
+        .explorer-section.is-fill .explorer-body,
+        .explorer-section:not(.is-fill) .explorer-body {
+          max-height: 132px;
+        }
         .repo-item {
           display: grid;
           grid-template-columns: minmax(0, 1fr);
+          padding: 9px 10px;
         }
         .repo-status {
           justify-content: flex-start;
+        }
+        .history-item__url {
+          white-space: normal;
+          overflow-wrap: anywhere;
         }
         .btn {
           justify-content: center;
@@ -1435,6 +1670,13 @@
           padding-left: 10px;
           padding-right: 10px;
         }
+        .sidebar {
+          max-height: 42dvh;
+        }
+        .explorer-section.is-fill .explorer-body,
+        .explorer-section:not(.is-fill) .explorer-body {
+          max-height: 116px;
+        }
         .graph-layout {
           grid-template-rows: auto minmax(280px, 40dvh) minmax(0, 1fr);
         }
@@ -1447,7 +1689,32 @@
     <link rel="stylesheet" href="/ui/styles/graph-viewer.css?v=relation-list-panel-20260519" />
   </head>
   <body>
-    <div class="app">
+    <div id="authScreen" class="auth-screen">
+      <form id="authForm" class="auth-panel" onsubmit="submitAuth(event)">
+        <h1>SSCR-BOT</h1>
+        <p>Sign in to review code and keep your review history.</p>
+        <div class="auth-tabs">
+          <button id="loginTab" class="auth-tab active" type="button" onclick="setAuthMode('login')">Login</button>
+          <button id="registerTab" class="auth-tab" type="button" onclick="setAuthMode('register')">Register</button>
+        </div>
+        <div id="authNameGroup" class="form-group" style="display:none">
+          <label for="authName">Name</label>
+          <input id="authName" autocomplete="name" />
+        </div>
+        <div class="form-group">
+          <label for="authEmail">Email</label>
+          <input id="authEmail" type="email" autocomplete="email" required />
+        </div>
+        <div class="form-group">
+          <label for="authPassword">Password</label>
+          <input id="authPassword" type="password" autocomplete="current-password" required minlength="6" />
+        </div>
+        <div id="authError" class="auth-error"></div>
+        <button id="authSubmit" class="btn btn-primary" type="submit" style="width:100%;justify-content:center">Login</button>
+      </form>
+    </div>
+
+    <div id="appShell" class="app is-hidden">
       <!-- Sidebar -->
       <div class="sidebar">
         <div class="sidebar-header">
@@ -1460,46 +1727,78 @@
           </div>
         </div>
 
-        <!-- Register Repo -->
         <div class="sidebar-section">
-          <h3><span id="repoIcon"></span> Register Repository</h3>
-          <div class="form-group">
-            <label>Owner</label
-            ><input id="regOwner" placeholder="e.g. facebook" />
+          <div class="user-row">
+            <div>
+              <div id="currentUserName" class="user-name">Signed in</div>
+              <div id="currentUserEmail" class="user-email"></div>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="logout()">Logout</button>
           </div>
-          <div class="form-group">
-            <label>Repo Name</label
-            ><input id="regName" placeholder="e.g. react" />
-          </div>
-          <div class="form-group">
-            <label>Git URL or Server Path</label
-            ><input id="regSource" placeholder="https://github.com/owner/repo" />
-          </div>
-          <div class="form-group">
-            <label>Target Branch</label
-            ><input id="regTargetBranch" placeholder="e.g. develop" value="main" />
-          </div>
-          <button
-            id="registerBuildBtn"
-            class="btn btn-primary"
-            onclick="registerRepo()"
-            style="width: 100%"
-          >
-            Register & Build Branch Graph
+        </div>
+
+        <!-- Register Repo -->
+        <div id="registerPanel" class="explorer-section collapsed">
+          <button class="explorer-header" type="button" onclick="toggleExplorerSection('registerPanel')">
+            <span class="explorer-chevron">›</span>
+            <span class="explorer-title"><span id="repoIcon"></span> Register Repository</span>
           </button>
-          <div id="buildStatus" class="build-status">
-            <span class="build-spinner"></span>
-            <span id="buildStatusText"></span>
+          <div class="explorer-body">
+            <div class="form-group">
+              <label>Owner</label
+              ><input id="regOwner" placeholder="e.g. facebook" />
+            </div>
+            <div class="form-group">
+              <label>Repo Name</label
+              ><input id="regName" placeholder="e.g. react" />
+            </div>
+            <div class="form-group">
+              <label>Git URL or Server Path</label
+              ><input id="regSource" placeholder="https://github.com/owner/repo" />
+            </div>
+            <div class="form-group">
+              <label>Target Branch</label
+              ><input id="regTargetBranch" placeholder="e.g. develop" value="main" />
+            </div>
+            <button
+              id="registerBuildBtn"
+              class="btn btn-primary"
+              onclick="registerRepo()"
+              style="width: 100%"
+            >
+              Register & Build Branch Graph
+            </button>
+            <div id="buildStatus" class="build-status">
+              <span class="build-spinner"></span>
+              <span id="buildStatusText"></span>
+            </div>
           </div>
         </div>
 
         <!-- Repos List -->
-        <div class="sidebar-section" style="flex: 1; overflow-y: auto">
-          <h3><span id="folderIcon"></span> Registered Repos</h3>
-          <div id="repoList">
-            <p style="font-size: 12px; color: var(--text3)">
-              No repos registered
-            </p>
+        <div id="reposPanel" class="explorer-section is-fill">
+          <button class="explorer-header" type="button" onclick="toggleExplorerSection('reposPanel')">
+            <span class="explorer-chevron">⌄</span>
+            <span class="explorer-title"><span id="folderIcon"></span> Registered Repos</span>
+          </button>
+          <div class="explorer-body">
+            <div id="repoList">
+              <p style="font-size: 12px; color: var(--text3)">
+                No repos registered
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div id="historyPanel" class="explorer-section collapsed">
+          <button class="explorer-header" type="button" onclick="toggleExplorerSection('historyPanel')">
+            <span class="explorer-chevron">›</span>
+            <span class="explorer-title">Review History</span>
+          </button>
+          <div class="explorer-body">
+            <div id="historyList">
+              <p style="font-size: 12px; color: var(--text3)">No reviews yet</p>
+            </div>
           </div>
         </div>
 
@@ -2087,10 +2386,95 @@
     <script>
       const API = ""; // Same origin
       const GRAPH_PAGE_SIZE = 200;
+      const AUTH_TOKEN_KEY = "sscr_auth_token";
+      const AUTH_USER_KEY = "sscr_auth_user";
+      let authMode = "login";
+      let currentUser = null;
 
       // ─── Helpers ──────────────────────────────────────────────────────────
       function $(id) {
         return document.getElementById(id);
+      }
+      function getAuthToken() {
+        return localStorage.getItem(AUTH_TOKEN_KEY) || "";
+      }
+      function authHeaders(extra = {}) {
+        const token = getAuthToken();
+        return token ? { ...extra, Authorization: `Bearer ${token}` } : extra;
+      }
+      function setAuthMode(mode) {
+        authMode = mode === "register" ? "register" : "login";
+        $("loginTab")?.classList.toggle("active", authMode === "login");
+        $("registerTab")?.classList.toggle("active", authMode === "register");
+        if ($("authNameGroup")) $("authNameGroup").style.display = authMode === "register" ? "block" : "none";
+        if ($("authSubmit")) $("authSubmit").textContent = authMode === "register" ? "Create account" : "Login";
+        if ($("authError")) $("authError").style.display = "none";
+      }
+      function showAuthError(message) {
+        const box = $("authError");
+        if (!box) return;
+        box.textContent = message;
+        box.style.display = "block";
+      }
+      function showApp(user) {
+        currentUser = user;
+        $("authScreen")?.classList.add("is-hidden");
+        $("appShell")?.classList.remove("is-hidden");
+        if ($("currentUserName")) $("currentUserName").textContent = user?.name || "Signed in";
+        if ($("currentUserEmail")) $("currentUserEmail").textContent = user?.email || "";
+        loadReviewHistory();
+      }
+      function showAuth() {
+        currentUser = null;
+        $("appShell")?.classList.add("is-hidden");
+        $("authScreen")?.classList.remove("is-hidden");
+      }
+      async function submitAuth(event) {
+        event.preventDefault();
+        const payload = {
+          email: $("authEmail").value.trim(),
+          password: $("authPassword").value,
+        };
+        if (authMode === "register") payload.name = $("authName").value.trim();
+        try {
+          const response = await fetch(`${API}/api/auth/${authMode}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(data.detail || "Authentication failed");
+          localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
+          localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
+          showApp(data.user);
+          loadRepos();
+          updatePollerUI();
+        } catch (error) {
+          showAuthError(error.message);
+        }
+      }
+      function logout() {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(AUTH_USER_KEY);
+        showAuth();
+      }
+      async function restoreSession() {
+        const token = getAuthToken();
+        if (!token) {
+          showAuth();
+          return false;
+        }
+        try {
+          const response = await fetch(`${API}/api/auth/me`, { headers: authHeaders() });
+          const user = await response.json();
+          if (!response.ok) throw new Error(user.detail || "Session expired");
+          localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+          showApp(user);
+          return true;
+        } catch (error) {
+          logout();
+          return false;
+        }
       }
       function icon(name, cls = "icon") {
         const attrs = `class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"`;
@@ -2158,6 +2542,13 @@
         btn.innerHTML = isLoading
           ? `${icon("clock")} Registering...`
           : "Register & Build Branch Graph";
+      }
+      function toggleExplorerSection(panelId) {
+        const section = $(panelId);
+        if (!section) return;
+        section.classList.toggle("collapsed");
+        const chevron = section.querySelector(".explorer-chevron");
+        if (chevron) chevron.textContent = section.classList.contains("collapsed") ? "›" : "⌄";
       }
       function graphStatsText(stats) {
         const nodes = stats?.total_nodes ?? stats?.nodes ?? 0;
@@ -2565,6 +2956,57 @@
         }
       }
 
+      async function loadReviewHistory() {
+        const list = $("historyList");
+        if (!list || !getAuthToken()) return;
+        try {
+          const response = await fetch(`${API}/api/history/reviews`, {
+            headers: authHeaders(),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.detail || "Could not load history");
+          const items = data.items || [];
+          if (!items.length) {
+            list.innerHTML = '<p style="font-size:12px;color:var(--text3)">No reviews yet</p>';
+            return;
+          }
+          list.innerHTML = items
+            .map((item) => {
+              const date = new Date(item.created_at).toLocaleString("en", {
+                month: "short",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+              const url = escapeHtml(item.pr_url || "Review");
+              return `<button class="history-item" onclick="openHistoryItem('${escapeJsString(item.id)}')">
+                <div class="history-item__url">${url}</div>
+                <div class="history-item__meta">${item.comments_count || 0} finding${item.comments_count === 1 ? "" : "s"} · ${escapeHtml(item.risk_level || "risk n/a")} · ${date}</div>
+              </button>`;
+            })
+            .join("");
+          window.reviewHistoryItems = items;
+        } catch (error) {
+          list.innerHTML = `<p style="font-size:12px;color:var(--err)">${escapeHtml(error.message)}</p>`;
+        }
+      }
+
+      function openHistoryItem(id) {
+        const item = (window.reviewHistoryItems || []).find((entry) => entry.id === id);
+        if (!item) return;
+        const review = item.review || {};
+        addMsg(
+          `<div class="review-card">
+            <h4>${icon("clock")} Saved Review</h4>
+            <div class="finding-path">${escapeHtml(item.pr_url || "")}</div>
+            <div class="review-summary" style="font-size:13px;line-height:1.7;margin-top:10px">
+              ${escapeHtml(stripLegacyIcons(review.message || "")).replace(/\n/g, "<br>")}
+            </div>
+            ${(review.comments || []).map((c) => renderFinding(c)).join("")}
+          </div>`,
+        );
+      }
+
       async function deleteRepo(owner, name) {
         if (
           !confirm(
@@ -2862,7 +3304,7 @@
 
           const r = await fetch(`${API}/api/review/stream`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: authHeaders({ "Content-Type": "application/json" }),
             body: JSON.stringify({ pr_url: url }),
           });
           if (!r.ok || !r.body) {
@@ -3009,6 +3451,7 @@
           if (!data.review && liveStage) {
             liveStage.textContent = "Review completed but no structured data returned.";
           }
+          loadReviewHistory();
         } catch (e) {
           removeLoading();
           addMsg(
@@ -3051,10 +3494,14 @@
         if (event.target === $("graphOverlay")) hideGraphViewer();
       });
       mountStaticIcons();
-      loadRepos();
-      updatePollerUI();
+      restoreSession().then((ok) => {
+        if (!ok) return;
+        loadRepos();
+        updatePollerUI();
+      });
       setInterval(updatePollerUI, 10000);
       setInterval(loadRepos, 30000);
+      setInterval(loadReviewHistory, 30000);
     </script>
   </body>
 </html>

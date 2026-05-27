@@ -1,23 +1,18 @@
-"""
-Code Review Bot — FastAPI Application Factory
-
-Creates and configures the FastAPI application with CORS, routers, and middleware.
-"""
+"""FastAPI application factory."""
 import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import router as v1_router
+from app.core.database import close_database, init_database
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 
-# Enable DEBUG for agents to see raw LLM output during development
 logging.getLogger("app.agents").setLevel(logging.DEBUG)
-
 logger = logging.getLogger(__name__)
 
 
@@ -31,29 +26,31 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
     )
 
-    # CORS — allow frontend dev server
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
-            "http://localhost:5173",     # Vite dev server
-            "http://localhost:3000",     # Fallback
+            "http://localhost:5173",
+            "http://localhost:3000",
             "http://127.0.0.1:5173",
+            "http://localhost:8100",
+            "http://127.0.0.1:8100",
         ],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
-    # Include API routers
     app.include_router(v1_router)
 
     @app.on_event("startup")
     async def startup():
-        logger.info("🚀 CodeReview Bot starting up...")
+        logger.info("CodeReview Bot starting up...")
+        await init_database()
 
     @app.on_event("shutdown")
     async def shutdown():
-        logger.info("👋 CodeReview Bot shutting down...")
+        logger.info("CodeReview Bot shutting down...")
+        close_database()
 
     return app
 

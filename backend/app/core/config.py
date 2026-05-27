@@ -59,6 +59,19 @@ class Settings(BaseSettings):
     # --- GitHub ---
     GITHUB_TOKEN: str = Field(default="", description="GitHub personal access token (optional)")
 
+    # --- MongoDB / Auth ---
+    MONGO_URL: str = Field(
+        default="mongodb://localhost:27017/codereviewbot",
+        description="MongoDB connection URL",
+    )
+    MONGO_DB_NAME: str = Field(default="codereviewbot", description="MongoDB database name")
+    JWT_SECRET_KEY: str = Field(
+        default="change-me-in-production",
+        description="Secret key used to sign access tokens",
+    )
+    JWT_ALGORITHM: str = Field(default="HS256", description="JWT signing algorithm")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60 * 24 * 7, description="Token lifetime")
+
     # --- AACR-Bench ---
     AACR_BENCH_PATH: str = Field(default="../../aacr-bench", description="Path to AACR-Bench repo")
 
